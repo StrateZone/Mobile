@@ -4,20 +4,20 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
-import AppointmentScreen from "./index";
+import ProductScreen from "./index";
 
 const Stack = createStackNavigator();
 
 type NavigationProp = DrawerNavigationProp<any>;
 
-export default function ProfileLayout() {
+export default function ProductLayout() {
   const navigation = useNavigation<NavigationProp>();
 
   return (
     <Stack.Navigator>
       <Stack.Screen
         name="index"
-        component={AppointmentScreen}
+        component={ProductScreen}
         options={{
           headerLeft: () => (
             <TouchableOpacity
@@ -27,7 +27,7 @@ export default function ProfileLayout() {
               <Ionicons name="menu" size={24} color="black" />
             </TouchableOpacity>
           ),
-          headerTitle: "Thông tin cá nhân",
+          headerTitle: "Sản phẩm",
           headerTitleStyle: {
             fontSize: 20,
           },
