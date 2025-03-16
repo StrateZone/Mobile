@@ -10,7 +10,7 @@ const Stack = createStackNavigator();
 
 type NavigationProp = DrawerNavigationProp<any>;
 
-export default function ProfileLayout() {
+export default function AppointmentLayout() {
   const navigation = useNavigation<NavigationProp>();
 
   return (
@@ -27,7 +27,7 @@ export default function ProfileLayout() {
               <Ionicons name="menu" size={24} color="black" />
             </TouchableOpacity>
           ),
-          headerTitle: "Thông tin cá nhân",
+          headerTitle: "Đặt bàn",
           headerTitleStyle: {
             fontSize: 20,
           },
