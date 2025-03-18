@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { BACKEND_API } from "../config";
+import { config } from "../config";
 export const getRequest = async (
   path: string,
   query?: Record<string, unknown>,
@@ -20,7 +20,7 @@ export const getRequest = async (
   }
 
   const { data } = await axios.get(
-    `${BACKEND_API}/api${path}?${params.toString()}`,
+    `${config.BACKEND_API}/api${path}?${params.toString()}`,
   );
 
   return data;
@@ -31,9 +31,13 @@ export const postRequest = async (
   requestBody?: Record<string, unknown>,
   query?: Record<string, unknown>,
 ) => {
-  const { data } = await axios.post(`${BACKEND_API}/api${path}`, requestBody, {
-    params: query,
-  });
+  const data = await axios.post(
+    `${config.BACKEND_API}/api${path}`,
+    requestBody,
+    {
+      params: query,
+    },
+  );
   return data;
 };
 
@@ -42,11 +46,15 @@ export const postPaymemtRequest = async (
   requestBody?: Record<string, unknown>,
   token?: string,
 ) => {
-  const { data } = await axios.post(`${BACKEND_API}/api${path}`, requestBody, {
-    headers: {
-      authorization: `Bearer ${token}`,
+  const { data } = await axios.post(
+    `${config.BACKEND_API}/api${path}`,
+    requestBody,
+    {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
   return data;
 };
 
@@ -55,11 +63,15 @@ export const patchRequest = async (
   token: string,
   requestBody: Record<string, unknown>,
 ) => {
-  const { data } = await axios.patch(`${BACKEND_API}/api${path}`, requestBody, {
-    headers: {
-      authorization: `Bearer ${token}`,
+  const { data } = await axios.patch(
+    `${config.BACKEND_API}/api${path}`,
+    requestBody,
+    {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   return data;
 };
@@ -82,7 +94,7 @@ export const deleteRequest = async (
   }
 
   const { data } = await axios.delete(
-    `${BACKEND_API}/api${path}?${params.toString()}`,
+    `${config.BACKEND_API}/api${path}?${params.toString()}`,
   );
   return data;
 };
