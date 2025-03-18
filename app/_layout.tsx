@@ -1,17 +1,24 @@
 import "../gesture-handler";
+import "../global.css";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { ThemeProvider, createTheme } from "@rneui/themed";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
+
 import AppointmentLayout from "./(tab)/(appointment)/_layout";
 import ProfileLayout from "./(tab)/(profile)/_layout";
 import ProductLayout from "./(tab)/(product)/_layout";
 import CourseLayout from "./(tab)/(course)/_layout";
 import CommunityLayout from "./(tab)/(community)/_layout";
 import TournamentLayout from "./(tab)/(tournament)/_layout";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import AuthLayout from "./(tab)/(auth)/_layout";
+import DefaultButton from "@/components/button/button";
+import { AuthProvider, useAuth } from "@/context/auth-context";
 
 const Drawer = createDrawerNavigator();
 
@@ -24,106 +31,147 @@ const theme = createTheme({
 export default function RootLayout() {
   return (
     <ThemeProvider theme={theme}>
-      <Drawer.Navigator
-        drawerContent={(props) => <CustomDrawerContent {...props} />}
-        screenOptions={{
-          drawerStyle: {
-            backgroundColor: "#fff",
-            width: 260,
-          },
-          drawerActiveBackgroundColor: "#000",
-          drawerActiveTintColor: "#fff",
-          drawerInactiveTintColor: "#333",
-        }}
-      >
-        <Drawer.Screen
-          name="Appointment"
-          component={AppointmentLayout}
-          options={{
-            headerShown: false,
-            drawerLabel: "Đặt bàn",
-            drawerIcon: ({ color }) => (
-              <AntDesign size={24} name="calendar" color={color} />
-            ),
+      <AuthProvider>
+        <Drawer.Navigator
+          drawerContent={(props) => <CustomDrawerContent {...props} />}
+          screenOptions={{
+            drawerStyle: {
+              backgroundColor: "#fff",
+              width: 260,
+            },
+            drawerActiveBackgroundColor: "#000",
+            drawerActiveTintColor: "#fff",
+            drawerInactiveTintColor: "#333",
           }}
-        />
-        <Drawer.Screen
-          name="Products"
-          component={ProductLayout}
-          options={{
-            headerShown: false,
-            drawerLabel: "Sản phẩm",
-            drawerIcon: ({ color }) => (
-              <FontAwesome name="shopping-cart" size={24} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Courses"
-          component={CourseLayout}
-          options={{
-            headerShown: false,
-            drawerLabel: "Khóa học",
-            drawerIcon: ({ color }) => (
-              <MaterialIcons name="menu-book" size={24} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Tournaments"
-          component={TournamentLayout}
-          options={{
-            headerShown: false,
-            drawerLabel: "Thi đấu",
-            drawerIcon: ({ color }) => (
-              <Ionicons name="trophy" size={24} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Community"
-          component={CommunityLayout}
-          options={{
-            headerShown: false,
-            drawerLabel: "Cộng đồng",
-            drawerIcon: ({ color }) => (
-              <FontAwesome name="users" size={24} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Profile"
-          component={ProfileLayout}
-          options={{
-            headerShown: false,
-            drawerLabel: "Thông tin cá nhân",
-            drawerIcon: ({ color }) => (
-              <Ionicons name="person-circle" size={24} color={color} />
-            ),
-          }}
-        />
-      </Drawer.Navigator>
+        >
+          <Drawer.Screen
+            name="Appointment"
+            component={AppointmentLayout}
+            options={{
+              headerShown: false,
+              drawerLabel: "Đặt bàn",
+              drawerIcon: ({ color }) => (
+                <AntDesign size={24} name="calendar" color={color} />
+              ),
+            }}
+          />
+          <Drawer.Screen
+            name="Auth"
+            component={AuthLayout}
+            options={{
+              headerShown: false,
+              drawerLabel: "Đăng nhập",
+              drawerIcon: ({ color }) => (
+                <AntDesign size={24} name="calendar" color={color} />
+              ),
+            }}
+          />
+          <Drawer.Screen
+            name="Products"
+            component={ProductLayout}
+            options={{
+              headerShown: false,
+              drawerLabel: "Sản phẩm",
+              drawerIcon: ({ color }) => (
+                <FontAwesome name="shopping-cart" size={24} color={color} />
+              ),
+            }}
+          />
+          <Drawer.Screen
+            name="Courses"
+            component={CourseLayout}
+            options={{
+              headerShown: false,
+              drawerLabel: "Khóa học",
+              drawerIcon: ({ color }) => (
+                <MaterialIcons name="menu-book" size={24} color={color} />
+              ),
+            }}
+          />
+          <Drawer.Screen
+            name="Tournaments"
+            component={TournamentLayout}
+            options={{
+              headerShown: false,
+              drawerLabel: "Thi đấu",
+              drawerIcon: ({ color }) => (
+                <Ionicons name="trophy" size={24} color={color} />
+              ),
+            }}
+          />
+          <Drawer.Screen
+            name="Community"
+            component={CommunityLayout}
+            options={{
+              headerShown: false,
+              drawerLabel: "Cộng đồng",
+              drawerIcon: ({ color }) => (
+                <FontAwesome name="users" size={24} color={color} />
+              ),
+            }}
+          />
+          <Drawer.Screen
+            name="Profile"
+            component={ProfileLayout}
+            options={{
+              headerShown: false,
+              drawerLabel: "Thông tin cá nhân",
+              drawerIcon: ({ color }) => (
+                <Ionicons name="person-circle" size={24} color={color} />
+              ),
+            }}
+          />
+        </Drawer.Navigator>
+        <Toast />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
 
-// Custom Drawer Content
 function CustomDrawerContent({ navigation }: any) {
+  const { authState, onLogout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Xác nhận đăng xuất",
+      "Bạn có chắc chắn muốn đăng xuất không?",
+      [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Đăng xuất",
+          onPress: onLogout,
+          style: "destructive",
+        },
+      ],
+    );
+  };
+
   return (
     <View style={{ flex: 1, paddingTop: 40 }}>
-      {/* User Info */}
       <View style={{ alignItems: "center", paddingVertical: 20 }}>
-        <Image
-          source={{ uri: "https://via.placeholder.com/80" }}
-          style={{ width: 80, height: 80, borderRadius: 40 }}
-        />
-        <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 10 }}>
-          Nguyễn Văn A
-        </Text>
-        <Text style={{ fontSize: 14, color: "#666" }}>nguyena@gmail.com</Text>
+        {authState?.authenticated ? (
+          <View style={{ alignItems: "center", paddingVertical: 20 }}>
+            <Ionicons name="person-circle" size={24} />
+            <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 10 }}>
+              {authState.user?.username}
+            </Text>
+
+            <Text style={{ fontSize: 14, color: "#666" }}>
+              {authState.user?.email}
+            </Text>
+          </View>
+        ) : (
+          <DefaultButton
+            title="Đăng nhập"
+            backgroundColor="black"
+            onPress={() => navigation.navigate("Auth")}
+          />
+        )}
       </View>
 
-      {/* Divider */}
       <View
         style={{
           height: 1,
@@ -133,7 +181,6 @@ function CustomDrawerContent({ navigation }: any) {
         }}
       />
 
-      {/* Drawer Items */}
       <View style={{ flex: 1 }}>
         <TouchableOpacity
           onPress={() => navigation.navigate("Appointment")}
@@ -170,16 +217,18 @@ function CustomDrawerContent({ navigation }: any) {
           <FontAwesome name="users" size={24} color="#333" />
           <Text style={styles.menuText}>Cộng đồng</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Profile")}
-          style={styles.menuItem}
-        >
-          <Ionicons name="person-circle" size={24} color="#333" />
-          <Text style={styles.menuText}>Thông tin cá nhân</Text>
-        </TouchableOpacity>
+
+        {authState?.authenticated && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Profile")}
+            style={styles.menuItem}
+          >
+            <Ionicons name="person-circle" size={24} color="#333" />
+            <Text style={styles.menuText}>Thông tin cá nhân</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Divider */}
       <View
         style={{
           height: 1,
@@ -189,21 +238,18 @@ function CustomDrawerContent({ navigation }: any) {
         }}
       />
 
-      {/* Logout */}
-      <TouchableOpacity
-        onPress={() => alert("Đăng xuất")}
-        style={styles.logoutButton}
-      >
-        <Ionicons name="log-out-outline" size={24} color="#F05193" />
-        <Text style={{ fontSize: 16, color: "#F05193", marginLeft: 10 }}>
-          Đăng xuất
-        </Text>
-      </TouchableOpacity>
+      {authState?.authenticated ? (
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="#F05193" />
+          <Text style={{ fontSize: 16, color: "#F05193", marginLeft: 10 }}>
+            Đăng xuất
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
 
-// Styles
 const styles = StyleSheet.create({
   menuItem: {
     flexDirection: "row",
