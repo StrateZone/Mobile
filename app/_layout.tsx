@@ -23,8 +23,8 @@ import { AuthProvider, useAuth } from "@/context/auth-context";
 const Drawer = createDrawerNavigator();
 
 const theme = createTheme({
-  lightColors: { primary: "#F05193" },
-  darkColors: { primary: "#F05193" },
+  lightColors: { primary: "#000000" },
+  darkColors: { primary: "#000000" },
   mode: "light",
 });
 

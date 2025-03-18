@@ -31,6 +31,7 @@ export const postRequest = async (
   requestBody?: Record<string, unknown>,
   query?: Record<string, unknown>,
 ) => {
+  console.log(query);
   const data = await axios.post(
     `${config.BACKEND_API}/api${path}`,
     requestBody,
@@ -38,6 +39,7 @@ export const postRequest = async (
       params: query,
     },
   );
+
   return data;
 };
 
