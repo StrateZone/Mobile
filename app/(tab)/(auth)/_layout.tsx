@@ -6,6 +6,7 @@ import { DrawerNavigationProp } from "@react-navigation/drawer";
 
 import LoginScreen from "./index";
 import OtpConfirmScreen from "./otp_confirm";
+import RegisterScreen from "./register";
 
 const Stack = createStackNavigator();
 
@@ -36,6 +37,13 @@ export default function AuthLayout() {
           headerStyle: {
             backgroundColor: "white",
           },
+        }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{
+          headerShown: false,
         }}
       />
       <Stack.Screen

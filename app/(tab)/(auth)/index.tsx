@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import TextInputComponent from "@/components/input";
 import { useNavigation } from "@react-navigation/native";
@@ -78,12 +78,12 @@ export default function LoginScreen() {
         </View>
 
         <View className="flex flex-row justify-center">
-          <Text
+          <TouchableOpacity
             className="text-blue-600 underline pt-3"
-            // onPress={() => navigation.navigate("Register")}
+            onPress={() => navigation.navigate("Register")}
           >
-            Bạn chưa có tài khoản ?
-          </Text>
+            <Text>Bạn chưa có tài khoản ?</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
