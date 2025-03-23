@@ -23,9 +23,7 @@ import DefaultButton from "@/components/button/button";
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { useEffect, useState } from "react";
 
-
 const Drawer = createDrawerNavigator();
-
 
 const theme = createTheme({
   lightColors: { primary: "#000000" },
@@ -34,7 +32,6 @@ const theme = createTheme({
 });
 
 export default function RootLayout() {
-
   const [isLoading, setIsLoading] = useState(true);
 
   if (isLoading) {

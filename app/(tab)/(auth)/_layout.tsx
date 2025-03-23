@@ -4,13 +4,14 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
-import LoginScreen from "./index";
+import LoginScreen from "./login";
 import OtpConfirmScreen from "./otp_confirm";
 import RegisterScreen from "./register";
 
-const Stack = createStackNavigator();
+import { RootStackParamList } from "@/constants/types/root-stack";
 
-type NavigationProp = DrawerNavigationProp<any>;
+const Stack = createStackNavigator<RootStackParamList>();
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function AuthLayout() {
   const navigation = useNavigation<NavigationProp>();
@@ -18,7 +19,7 @@ export default function AuthLayout() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="index"
+        name="login"
         component={LoginScreen}
         options={{
           headerLeft: () => (

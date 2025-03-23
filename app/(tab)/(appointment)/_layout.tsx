@@ -4,11 +4,14 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
-import AppointmentScreen from "./index";
+import AppointmentScreen from "./home_booking";
+import ListTableScreen from "./list_table";
 
-const Stack = createStackNavigator();
+import { RootStackParamList } from "@/constants/types/root-stack";
+import BookingDetail from "./booking-detail";
 
-type NavigationProp = DrawerNavigationProp<any>;
+const Stack = createStackNavigator<RootStackParamList>();
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function AppointmentLayout() {
   const navigation = useNavigation<NavigationProp>();
@@ -16,7 +19,7 @@ export default function AppointmentLayout() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="index"
+        name="home_booking"
         component={AppointmentScreen}
         options={{
           headerLeft: () => (
@@ -35,6 +38,21 @@ export default function AppointmentLayout() {
           headerStyle: {
             backgroundColor: "white",
           },
+        }}
+      />
+      <Stack.Screen
+        name="ListTable"
+        component={ListTableScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="booking_detail"
+        component={BookingDetail}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
