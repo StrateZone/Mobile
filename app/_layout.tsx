@@ -1,3 +1,4 @@
+import "react-native-reanimated";
 import "../gesture-handler";
 import "../global.css";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -16,11 +17,15 @@ import ProductLayout from "./(tab)/(product)/_layout";
 import CourseLayout from "./(tab)/(course)/_layout";
 import CommunityLayout from "./(tab)/(community)/_layout";
 import TournamentLayout from "./(tab)/(tournament)/_layout";
+import SplashScreen from "./splash-screen";
 import AuthLayout from "./(tab)/(auth)/_layout";
 import DefaultButton from "@/components/button/button";
 import { AuthProvider, useAuth } from "@/context/auth-context";
+import { useEffect, useState } from "react";
+
 
 const Drawer = createDrawerNavigator();
+
 
 const theme = createTheme({
   lightColors: { primary: "#000000" },
@@ -29,6 +34,13 @@ const theme = createTheme({
 });
 
 export default function RootLayout() {
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  if (isLoading) {
+    return <SplashScreen onFinish={() => setIsLoading(false)} />;
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <AuthProvider>
