@@ -8,10 +8,11 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Button, Icon } from "@rneui/themed";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 import { ChessTable } from "@/constants/types/chess_table";
 import { getSelectedTables } from "@/context/select-table";
-import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function BookingDetailScreen() {
   const navigation = useNavigation();
@@ -22,6 +23,10 @@ export default function BookingDetailScreen() {
     const fetchSelectedTables = async () => {
       const tables = await getSelectedTables();
       setSelectedTables(tables);
+
+     
+      const total = tables.reduce((sum, table) => sum + table.totalPrice, 0);
+      setTotalPrice(total);
     };
 
     fetchSelectedTables();
@@ -29,6 +34,7 @@ export default function BookingDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
+     
       <View className="relative">
         <TouchableOpacity
           className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
@@ -38,46 +44,106 @@ export default function BookingDetailScreen() {
         </TouchableOpacity>
       </View>
 
+    
       <View className="flex-1 p-4 mt-10">
         <Text className="text-2xl font-bold text-center text-black mb-5">
           Chi tiết đặt bàn
         </Text>
 
-        <View className="bg-white p-4 rounded-xl mb-4">
-          <Text className="text-lg font-semibold">
-            Số lượng: {selectedTables.length} bàn
+       
+        <View className="bg-white p-4 rounded-xl mb-4 shadow">
+          <Text className="text-lg font-semibold flex-row items-center">
+            <FontAwesome5 name="table" size={20} color="black" /> Số lượng:{" "}
+            {selectedTables.length} bàn
           </Text>
         </View>
 
-        {selectedTables.map((table, index) => (
-          <View key={index} className="bg-white p-4 rounded-xl mb-4 shadow">
-            <Text className="text-lg font-semibold">
-              Số bàn: {table.tableId}
-            </Text>
-            <Text>Ngày: {table.startDate}</Text>
-            <Text>Trạng thái: Chưa đặt</Text>
-            <Text>Loại cờ: {table.gameType.typeName}</Text>
-            <Text>Phòng: {table.roomType}</Text>
-            <Text>Số phòng: {table.roomId}</Text>
-            <Text className="font-bold mt-2">
-              Giá: {table.totalPrice.toLocaleString("vi-VN")} VND
-            </Text>
-          </View>
-        ))}
+        <ScrollView className="flex-1">
+          {selectedTables.map((table, index) => {
+            const startDate = new Date(table.startDate);
+            return (
+              <View key={index} className="bg-white p-4 rounded-xl mb-4 shadow">
+                <Text className="text-lg font-semibold mb-2">
+                  <FontAwesome5 name="chess-board" size={20} color="black" />{" "}
+                  Bàn: {table.tableId}
+                </Text>
 
-        <View className="bg-white p-4 rounded-xl mt-4">
+                <View className="flex-row flex-wrap">
+                  <View className="w-1/2">
+                    <Text className="text-gray-700">
+                      <Ionicons
+                        name="calendar-outline"
+                        size={16}
+                        color="gray"
+                      />{" "}
+                      Ngày: {startDate.toLocaleDateString("vi-VN")}
+                    </Text>
+                    <Text className="text-gray-700">
+                      <Ionicons name="time-outline" size={16} color="gray" />{" "}
+                      Giờ:{" "}
+                      {startDate.toLocaleTimeString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                    <Text className="text-gray-700">
+                      <FontAwesome5 name="chess" size={16} color="gray" /> Loại
+                      cờ: {table.gameType.typeName}
+                    </Text>
+                  </View>
+
+                  <View className="w-1/2">
+                    <Text className="text-gray-700">
+                      <Ionicons name="home-outline" size={16} color="gray" />{" "}
+                      Phòng: {table.roomType}
+                    </Text>
+                    <Text className="text-gray-700">
+                      <Ionicons
+                        name="location-outline"
+                        size={16}
+                        color="gray"
+                      />{" "}
+                      Số phòng: {table.roomId}
+                    </Text>
+                    <Text className="text-gray-700">
+                      <Ionicons
+                        name="checkmark-circle-outline"
+                        size={16}
+                        color="gray"
+                      />{" "}
+                      Trạng thái: Chưa đặt
+                    </Text>
+                  </View>
+                </View>
+
+                <Text className="font-bold mt-3 text-right text-lg text-green-600">
+                  <FontAwesome5 name="money-bill-wave" size={16} />{" "}
+                  {table.totalPrice.toLocaleString("vi-VN")} VND
+                </Text>
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        <View className="bg-white p-4 rounded-xl mt-4 shadow">
           <TouchableOpacity className="flex-row items-center mb-4">
-            <Icon name="tag" type="feather" />
+            <FontAwesome5 name="tags" size={20} color="black" />
             <Text className="ml-2">Áp dụng ưu đãi</Text>
           </TouchableOpacity>
-          {/* <Text className="text-lg font-semibold">Tổng giá: {totalPrice.toLocaleString()} VND</Text> */}
+
+          <Text className="text-xl font-bold text-right text-green-700 mb-4">
+            Tổng tiền: {totalPrice.toLocaleString("vi-VN")} VND
+          </Text>
+
           <Button
-            title="Xác nhận"
+            title="Xác nhận đặt bàn"
             buttonStyle={{
               backgroundColor: "black",
               borderRadius: 10,
-              marginTop: 10,
+              paddingVertical: 12,
             }}
+            icon={<FontAwesome5 name="check-circle" size={18} color="white" />}
+            iconRight
           />
         </View>
       </View>

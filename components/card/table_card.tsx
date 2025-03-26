@@ -1,6 +1,9 @@
 import React from "react";
 import { View } from "react-native";
-import { Card, Text, Button } from "@rneui/themed";
+import { Card, Text, Button, Icon } from "@rneui/themed";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+
 import { ChessTable } from "@/constants/types/chess_table";
 
 type TableCardProps = {
@@ -23,12 +26,10 @@ export default function TableCard({
     const day = String(dateObj.getUTCDate()).padStart(2, "0");
     const month = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
     const year = dateObj.getUTCFullYear();
-    const date = `${day}-${month}-${year}`;
-
+    const date = `${day}/${month}/${year}`;
     const hours = String(dateObj.getUTCHours()).padStart(2, "0");
     const minutes = String(dateObj.getUTCMinutes()).padStart(2, "0");
     const time = `${hours}:${minutes}`;
-
     return { date, time };
   };
 
@@ -36,40 +37,70 @@ export default function TableCard({
   const end = formatDateTime(table.endDate);
 
   return (
-    <View>
-      <Card containerStyle={{ borderRadius: 10, padding: 15 }}>
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-lg font-semibold">Số bàn: {table.tableId}</Text>
-          <Text className="text-lg font-semibold">Ngày: {start.date}</Text>
+    <Card containerStyle={{ borderRadius: 10, padding: 15, marginBottom: 10 }}>
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-lg font-bold">Bàn: {table.tableId}</Text>
+      </View>
+
+      <View className="flex-row flex-wrap">
+        <View className="w-1/2">
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="calendar-outline" size={16} color="gray" />
+            <Text className="text-gray-700 ml-2">Ngày: {start.date}</Text>
+          </View>
+
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="time-outline" size={16} color="gray" />
+            <Text className="text-gray-700 ml-2">
+              {start.time} - {end.time}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center mb-1">
+            <FontAwesome5 name="chess" size={16} color="gray" />
+            <Text className="text-gray-700 ml-2">
+              Loại cờ: {table.gameType.typeName}
+            </Text>
+          </View>
         </View>
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-lg font-semibold">
-            Số phòng: {table.roomName}
-          </Text>
-          <Text className="text-lg font-semibold">
-            Giờ: {start.time} - {end.time}
-          </Text>
+
+        <View className="w-1/2">
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="home-outline" size={16} color="gray" />
+            <Text className="text-gray-700 ml-2">Phòng: {table.roomType}</Text>
+          </View>
+
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="location-outline" size={16} color="gray" />
+            <Text className="text-gray-700 ml-2">Số phòng: {table.roomId}</Text>
+          </View>
+
+          <View className="flex-row items-center mb-1">
+            <Ionicons name="checkmark-circle-outline" size={16} color="gray" />
+            <Text className="text-gray-700 ml-2">Trạng thái: Chưa đặt</Text>
+          </View>
         </View>
-        <View className="flex-row justify-between mb-2">
-          <Text className="text-base">
-            Trạng thái: <Text className="font-semibold">Chưa đặt</Text>
-          </Text>
-          <Text className="text-base">
-            Loại cờ:
-            <Text className="font-semibold">{table.gameType.typeName}</Text>
-          </Text>
-        </View>
-        <Button
-          title={isSelected ? "Đã chọn" : "Chọn"}
-          disabled={isSelected}
-          buttonStyle={{
-            backgroundColor: isSelected ? "#888" : "black",
-            borderRadius: 5,
-            marginTop: 10,
-          }}
-          onPress={onPress}
-        />
-      </Card>
-    </View>
+      </View>
+
+      <View className="flex-row items-center justify-end mt-3">
+        <Ionicons name="cash-outline" size={18} color="green" />
+        <Text className="font-bold text-lg text-green-600 ml-2">
+          {table.totalPrice.toLocaleString("vi-VN")} VND
+        </Text>
+      </View>
+
+      <Button
+        title={isSelected ? "✔ Đã chọn" : "Chọn bàn"}
+        disabled={isSelected}
+        buttonStyle={{
+          backgroundColor: isSelected ? "#888" : "black",
+          borderRadius: 8,
+          marginTop: 12,
+          paddingVertical: 10,
+        }}
+        titleStyle={{ fontSize: 16 }}
+        onPress={onPress}
+      />
+    </Card>
   );
 }

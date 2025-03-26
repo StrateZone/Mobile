@@ -6,9 +6,9 @@ import { DrawerNavigationProp } from "@react-navigation/drawer";
 
 import AppointmentScreen from "./home_booking";
 import ListTableScreen from "./list_table";
+import BookingDetail from "./booking-detail";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
-import BookingDetail from "./booking-detail";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -41,7 +41,7 @@ export default function AppointmentLayout() {
         }}
       />
       <Stack.Screen
-        name="ListTable"
+        name="list_table"
         component={ListTableScreen}
         options={{
           headerShown: false,

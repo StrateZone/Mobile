@@ -9,6 +9,7 @@ import {
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 import { Button, Icon } from "@rneui/themed";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { getRequest } from "@/helpers/api-requests";
 import TableCard from "@/components/card/table_card";
@@ -17,6 +18,7 @@ import {
   getSelectedTables,
   toggleTableSelection,
 } from "@/context/select-table";
+import { roundToNearest30Minutes } from "@/helpers/round_to_nearest_30minutes";
 
 import { RootStackParamList } from "../../../constants/types/root-stack";
 import { ChessTable } from "@/constants/types/chess_table";
@@ -29,38 +31,51 @@ export default function AppointmentScreen() {
   const [goTables, setGoTables] = useState<ChessTable[]>([]);
   const [xiangqiTables, setXiangqiTables] = useState<ChessTable[]>([]);
   const [selectedTables, setSelectedTables] = useState<ChessTable[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Thêm trạng thái loading
   const buttonAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const fetchTables = async () => {
-      const now = new Date();
-      now.setHours(now.getHours() + 7);
-      const startTime = new Date(now);
-      startTime.setHours(startTime.getHours() + 3);
-      const endTime = new Date(startTime);
-      endTime.setHours(endTime.getHours() + 2);
-
-      const formattedStartTime = startTime.toISOString().slice(0, 19);
-      const formattedEndTime = endTime.toISOString().slice(0, 19);
+      setIsLoading(true);
+      let now = new Date();
+      now.setUTCHours(now.getUTCHours() + 7); 
+  
+      let startTime = new Date(now);
+      let endTime = new Date(now);
+  
+     
+       
+        startTime.setUTCDate(startTime.getUTCDate() + 1);
+        endTime.setUTCDate(endTime.getUTCDate() + 1);
+  
+    
+      startTime.setUTCHours(8, 0, 0, 0);
+      endTime.setUTCHours(22, 0, 0, 0);
+  
+      const formattedStartTime = startTime.toISOString();
+      const formattedEndTime = endTime.toISOString();
 
       try {
         const response = await getRequest("/tables/available/each", {
-          tableCount: 3,
+          tableCount: 2,
           StartTime: formattedStartTime,
           EndTime: formattedEndTime,
         });
-
+  
         setChessTables(response.chess || []);
         setGoTables(response.go || []);
         setXiangqiTables(response.xiangqi || []);
       } catch (error) {
         console.error("Error fetching tables", error);
+      } finally {
+        setIsLoading(false);
       }
     };
-
+  
     fetchTables();
     loadSelectedTables();
   }, []);
+  
 
   const loadSelectedTables = async () => {
     const storedTables = await getSelectedTables();
@@ -95,28 +110,38 @@ export default function AppointmentScreen() {
   }, [selectedTables]);
 
   const renderTables = (tables: ChessTable[], gameType: string) => (
-    <View className="mb-4">
-      <View className="flex-row items-center justify-between mb-2">
-        <Text className="font-bold text-3xl">{gameType}</Text>
+    <View className="mb-6">
+      <View className="flex-row items-center justify-between bg-gray-800/90 px-5 py-3 rounded-xl border border-gray-500">
+        <Text className="text-white/90 text-lg font-semibold tracking-wide">
+          {gameType}
+        </Text>
         <TouchableOpacity
-          onPress={() => navigation.navigate("ListTable", { gameType })}
+          className="bg-gray-800 p-2 rounded-full"
+          onPress={() => navigation.navigate("list_table", { gameType })}
         >
-          <Icon name="arrow-right" type="feather" />
+          <Ionicons name="arrow-forward" size={20} color="white" />
         </TouchableOpacity>
       </View>
-      {tables.map((table) => (
-        <TableCard
-          key={table.tableId}
-          table={table}
-          isSelected={selectedTables.some((t) => t.tableId === table.tableId)}
-          onPress={() => handleToggleTable(table)}
-        />
-      ))}
+
+      {isLoading ? (
+        <View className="flex items-center justify-center p-5">
+          <Button title="Loading..." type="solid" loading />
+        </View>
+      ) : (
+        tables.map((table) => (
+          <TableCard
+            key={table.tableId}
+            table={table}
+            isSelected={selectedTables.some((t) => t.tableId === table.tableId)}
+            onPress={() => handleToggleTable(table)}
+          />
+        ))
+      )}
     </View>
   );
 
   return (
-    <View className="flex-1 bg-gray-100 p-4">
+    <View className="flex-1 bg-gray-200 p-4">
       <ScrollView className="flex-1">
         {renderTables(chessTables, "Cờ vua")}
         {renderTables(goTables, "Cờ vây")}
@@ -143,26 +168,28 @@ export default function AppointmentScreen() {
             opacity: buttonAnim,
           }}
         >
-          <Button
-            title={`Chọn ${selectedTables.length} bàn`}
-            onPress={() => navigation.navigate("booking_detail")}
-            buttonStyle={{
-              backgroundColor: "black",
-              borderRadius: 10,
-              paddingVertical: 12,
-              marginTop: 10,
-            }}
-          />
-          <Button
-            title="Xóa hết"
-            onPress={handleClearTables}
-            buttonStyle={{
-              backgroundColor: "red",
-              borderRadius: 10,
-              paddingVertical: 10,
-              marginTop: 10,
-            }}
-          />
+          <View className="flex-row justify-between p-3 rounded-lg shadow-lg">
+            <Button
+              title="Xóa hết"
+              onPress={handleClearTables}
+              buttonStyle={{
+                backgroundColor: "red",
+                borderRadius: 10,
+                paddingVertical: 10,
+              }}
+              titleStyle={{ fontWeight: "bold", fontSize: 16 }}
+            />
+            <Button
+              title={`Chọn ${selectedTables.length} bàn`}
+              onPress={() => navigation.navigate("booking_detail")}
+              buttonStyle={{
+                backgroundColor: "black",
+                borderRadius: 10,
+                paddingVertical: 12,
+              }}
+              titleStyle={{ color: "white", fontWeight: "bold", fontSize: 16 }}
+            />
+          </View>
         </Animated.View>
       )}
     </View>

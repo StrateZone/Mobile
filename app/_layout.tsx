@@ -21,7 +21,7 @@ import SplashScreen from "./splash-screen";
 import AuthLayout from "./(tab)/(auth)/_layout";
 import DefaultButton from "@/components/button/button";
 import { AuthProvider, useAuth } from "@/context/auth-context";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const Drawer = createDrawerNavigator();
 
