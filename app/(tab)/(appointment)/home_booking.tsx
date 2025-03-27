@@ -1,197 +1,228 @@
-import React, { useEffect, useState, useRef } from "react";
-import {
-  View,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Button, Icon } from "@rneui/themed";
-import Ionicons from "@expo/vector-icons/Ionicons";
-
-import { getRequest } from "@/helpers/api-requests";
-import TableCard from "@/components/card/table_card";
-import {
-  clearSelectedTables,
-  getSelectedTables,
-  toggleTableSelection,
-} from "@/context/select-table";
-import { roundToNearest30Minutes } from "@/helpers/round_to_nearest_30minutes";
+import { Button, CheckBox, Icon } from "@rneui/themed";
+import RNDateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { RootStackParamList } from "../../../constants/types/root-stack";
-import { ChessTable } from "@/constants/types/chess_table";
+import { ScrollView } from "react-native-gesture-handler";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function AppointmentScreen() {
+export default function BookingFormScreen() {
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  const minStartTime = new Date(now);
+  minStartTime.setHours(now.getHours() + 1);
+
+  const gameTypeMap: { [key: string]: string } = {
+    "Cờ vua": "chess",
+    "Cờ tướng": "xiangqi",
+    "Cờ vây": "go",
+  };
+
+  const roomTypeMap: { [key: string]: string } = {
+    "Phòng cơ bản": "basic",
+    "Phòng không gian mở": "openspaced",
+    "Phòng cao cấp": "premium",
+  };
+
   const navigation = useNavigation<NavigationProp>();
-  const [chessTables, setChessTables] = useState<ChessTable[]>([]);
-  const [goTables, setGoTables] = useState<ChessTable[]>([]);
-  const [xiangqiTables, setXiangqiTables] = useState<ChessTable[]>([]);
-  const [selectedTables, setSelectedTables] = useState<ChessTable[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Thêm trạng thái loading
-  const buttonAnim = useRef(new Animated.Value(0)).current;
+  const [gameType, setGameType] = useState<string>("Cờ vua");
+  const [roomType, setRoomTypes] = useState<string[]>(["Phòng cơ bản"]);
+  const [selectedDate, setSelectedDate] = useState<Date>(now);
+  const [startTime, setStartTime] = useState<Date>(now);
+  const [endTime, setEndTime] = useState<Date>(now);
 
-  useEffect(() => {
-    const fetchTables = async () => {
-      setIsLoading(true);
-      let now = new Date();
-      now.setUTCHours(now.getUTCHours() + 7); 
-  
-      let startTime = new Date(now);
-      let endTime = new Date(now);
-  
-     
-       
-        startTime.setUTCDate(startTime.getUTCDate() + 1);
-        endTime.setUTCDate(endTime.getUTCDate() + 1);
-  
-    
-      startTime.setUTCHours(8, 0, 0, 0);
-      endTime.setUTCHours(22, 0, 0, 0);
-  
-      const formattedStartTime = startTime.toISOString();
-      const formattedEndTime = endTime.toISOString();
-
-      try {
-        const response = await getRequest("/tables/available/each", {
-          tableCount: 2,
-          StartTime: formattedStartTime,
-          EndTime: formattedEndTime,
-        });
-  
-        setChessTables(response.chess || []);
-        setGoTables(response.go || []);
-        setXiangqiTables(response.xiangqi || []);
-      } catch (error) {
-        console.error("Error fetching tables", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    fetchTables();
-    loadSelectedTables();
-  }, []);
-  
-
-  const loadSelectedTables = async () => {
-    const storedTables = await getSelectedTables();
-    setSelectedTables(storedTables);
+  const handleSelectGameType = (game: string) => {
+    setGameType(game);
   };
 
-  const handleToggleTable = async (table: ChessTable) => {
-    const updatedTables = await toggleTableSelection(table);
-    setSelectedTables(updatedTables || []);
+  const toggleRoomType = (room: string) => {
+    setRoomTypes((prev) =>
+      prev.includes(room) ? prev.filter((r) => r !== room) : [...prev, room],
+    );
   };
 
-  const handleClearTables = async () => {
-    await clearSelectedTables();
-    setSelectedTables([]);
+  const convertToUTC7 = (date: Date): Date => {
+    const utc7Date = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+    return utc7Date;
   };
 
-  useEffect(() => {
-    if (selectedTables.length > 0) {
-      Animated.spring(buttonAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        speed: 5,
-        bounciness: 10,
-      }).start();
-    } else {
-      Animated.timing(buttonAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+  const validateAndNavigate = () => {
+    const selectedDateUTC7 = convertToUTC7(selectedDate);
+    const startTimeUTC7 = convertToUTC7(startTime);
+    const endTimeUTC7 = convertToUTC7(endTime);
+    const nowUTC7 = new Date();
+
+    const startHour = startTimeUTC7.getUTCHours();
+    const endHour = endTimeUTC7.getUTCHours();
+    const nowHour = nowUTC7.getHours();
+    const earliestHour = 6;
+    const latestHour = 22;
+    const minStartHour = nowHour + 1;
+
+    const isToday =
+      selectedDateUTC7.toISOString().split("T")[0] ===
+      nowUTC7.toISOString().split("T")[0];
+
+    if (startHour < earliestHour || startHour > latestHour) {
+      Alert.alert("Lỗi", "Giờ bắt đầu phải từ 6:00 sáng đến 22:00!");
+      return;
     }
-  }, [selectedTables]);
 
-  const renderTables = (tables: ChessTable[], gameType: string) => (
-    <View className="mb-6">
-      <View className="flex-row items-center justify-between bg-gray-800/90 px-5 py-3 rounded-xl border border-gray-500">
-        <Text className="text-white/90 text-lg font-semibold tracking-wide">
-          {gameType}
-        </Text>
-        <TouchableOpacity
-          className="bg-gray-800 p-2 rounded-full"
-          onPress={() => navigation.navigate("list_table", { gameType })}
-        >
-          <Ionicons name="arrow-forward" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
+    if (isToday && startHour < minStartHour) {
+      Alert.alert("Lỗi", "Giờ bắt đầu phải sau giờ hiện tại ít nhất 1 giờ!");
+      return;
+    }
 
-      {isLoading ? (
-        <View className="flex items-center justify-center p-5">
-          <Button title="Loading..." type="solid" loading />
-        </View>
-      ) : (
-        tables.map((table) => (
-          <TableCard
-            key={table.tableId}
-            table={table}
-            isSelected={selectedTables.some((t) => t.tableId === table.tableId)}
-            onPress={() => handleToggleTable(table)}
-          />
-        ))
-      )}
-    </View>
-  );
+    if (endHour <= startHour) {
+      Alert.alert("Lỗi", "Giờ kết thúc phải sau giờ bắt đầu!");
+      return;
+    }
+
+    if (endHour > latestHour) {
+      Alert.alert("Lỗi", "Giờ kết thúc không được sau 22:00!");
+      return;
+    }
+
+    if (roomType.length === 0) {
+      Alert.alert("Lỗi", "Bạn phải chọn ít nhất một loại phòng!");
+      return;
+    }
+
+    const formatDate = (date: Date) => date.toISOString().split("T")[0];
+    const formatTime = (date: Date) =>
+      date.toISOString().split("T")[1].split(".")[0];
+
+    navigation.navigate("list_table", {
+      gameType,
+      roomTypes: roomType,
+      selectedDate: formatDate(selectedDateUTC7),
+      StartTime: formatTime(startTimeUTC7),
+      EndTime: formatTime(endTimeUTC7),
+    });
+  };
+
+  const handleStartTimeChange = (event: DateTimePickerEvent, date?: Date) => {
+    if (date) {
+      setStartTime(date);
+    }
+  };
+
+  const handleEndTimeChange = (event: DateTimePickerEvent, date?: Date) => {
+    if (date) {
+      setEndTime(date);
+    }
+  };
 
   return (
-    <View className="flex-1 bg-gray-200 p-4">
-      <ScrollView className="flex-1">
-        {renderTables(chessTables, "Cờ vua")}
-        {renderTables(goTables, "Cờ vây")}
-        {renderTables(xiangqiTables, "Cờ tướng")}
-      </ScrollView>
+    <ScrollView className="flex-1 bg-white p-6">
+      <Text className="text-center text-red-500 font-semibold mb-4">
+        ⏰ Hệ thống chỉ nhận đặt bàn từ 8:00 đến 22:00 {"\n"}
+        Nếu giờ đặt bàn đã qua, vui lòng chọn giờ gần nhất hoặc chọn ngày tiếp
+        theo.
+      </Text>
+      <Text className="text-lg font-semibold text-black mb-2">
+        Chọn loại cờ:
+      </Text>
+      <Text className="text-gray-500 mb-2">
+        Bạn chỉ có thể chọn <Text className="font-semibold">một</Text> loại cờ.
+      </Text>
+      <View className="mb-4">
+        {Object.keys(gameTypeMap).map((game) => (
+          <CheckBox
+            key={game}
+            title={game}
+            checked={gameType === game}
+            onPress={() => handleSelectGameType(game)}
+            containerStyle={{
+              backgroundColor: gameType === game ? "#dbeafe" : "white",
+              borderRadius: 10,
+              paddingVertical: 8,
+            }}
+            checkedColor="blue"
+          />
+        ))}
+      </View>
 
-      {selectedTables.length > 0 && (
-        <Animated.View
-          style={{
-            transform: [
-              {
-                scale: buttonAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.8, 1],
-                }),
-              },
-              {
-                translateY: buttonAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0],
-                }),
-              },
-            ],
-            opacity: buttonAnim,
+      <Text className="text-lg font-semibold text-black mb-2">
+        Chọn loại phòng:
+      </Text>
+      <Text className="text-gray-500 mb-2">
+        Bạn có thể chọn <Text className="font-semibold">nhiều</Text> loại phòng
+        cùng lúc.
+      </Text>
+      <View className="mb-4">
+        {Object.keys(roomTypeMap).map((room) => (
+          <CheckBox
+            key={room}
+            title={room}
+            checked={roomType.includes(room)}
+            onPress={() => toggleRoomType(room)}
+            containerStyle={{
+              backgroundColor: roomType.includes(room) ? "#ecfccb" : "white",
+              borderRadius: 10,
+              paddingVertical: 8,
+            }}
+            checkedColor="green"
+          />
+        ))}
+      </View>
+
+      <View className="flex-row">
+        <Text className="text-lg font-semibold text-black mb-2">
+          Chọn ngày:
+        </Text>
+        <RNDateTimePicker
+          value={selectedDate || new Date()}
+          mode="date"
+          minimumDate={new Date()}
+          display="default"
+          locale="vi-VN"
+          onChange={(event, date) => {
+            if (date) setSelectedDate(date);
           }}
-        >
-          <View className="flex-row justify-between p-3 rounded-lg shadow-lg">
-            <Button
-              title="Xóa hết"
-              onPress={handleClearTables}
-              buttonStyle={{
-                backgroundColor: "red",
-                borderRadius: 10,
-                paddingVertical: 10,
-              }}
-              titleStyle={{ fontWeight: "bold", fontSize: 16 }}
-            />
-            <Button
-              title={`Chọn ${selectedTables.length} bàn`}
-              onPress={() => navigation.navigate("booking_detail")}
-              buttonStyle={{
-                backgroundColor: "black",
-                borderRadius: 10,
-                paddingVertical: 12,
-              }}
-              titleStyle={{ color: "white", fontWeight: "bold", fontSize: 16 }}
-            />
-          </View>
-        </Animated.View>
-      )}
-    </View>
+          style={{ flex: 1 }}
+        />
+      </View>
+
+      <Text className="text-lg font-semibold text-black mt-4 mb-2">
+        Chọn giờ:
+      </Text>
+      <View className="flex-row items-center justify-between border border-gray-200 p-4 rounded-xl bg-white shadow-sm">
+        <RNDateTimePicker
+          value={startTime}
+          minuteInterval={30}
+          mode="time"
+          display="default"
+          onChange={handleStartTimeChange}
+        />
+        <Text className="mx-3 text-lg font-semibold text-gray-500">→</Text>
+        <RNDateTimePicker
+          value={endTime}
+          minuteInterval={30}
+          mode="time"
+          display="default"
+          onChange={handleEndTimeChange}
+        />
+      </View>
+
+      <Button
+        title="Tìm bàn"
+        buttonStyle={{
+          backgroundColor: "black",
+          borderRadius: 10,
+          paddingVertical: 12,
+          marginTop: 20,
+        }}
+        titleStyle={{ color: "white", fontWeight: "bold", fontSize: 16 }}
+        icon={<Icon name="search" type="feather" color="white" size={20} />}
+        onPress={validateAndNavigate}
+      />
+    </ScrollView>
   );
 }

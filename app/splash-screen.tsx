@@ -14,7 +14,6 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
       useNativeDriver: true,
     }).start();
 
-    // Hiệu ứng fade-in cho tiêu đề sau logo 500ms
     setTimeout(() => {
       Animated.timing(textAnimation, {
         toValue: 1,

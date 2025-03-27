@@ -6,6 +6,9 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 import { ChessTable } from "@/constants/types/chess_table";
 
+import { mapRoomTypesToVietnamese } from "@/helpers/map_room_type_by_language";
+import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
+
 type TableCardProps = {
   table: ChessTable;
   isSelected?: boolean;
@@ -59,7 +62,7 @@ export default function TableCard({
           <View className="flex-row items-center mb-1">
             <FontAwesome5 name="chess" size={16} color="gray" />
             <Text className="text-gray-700 ml-2">
-              Loại cờ: {table.gameType.typeName}
+              Loại cờ: {mapGameTypeToVietnamese(table.gameType.typeName)}
             </Text>
           </View>
         </View>
@@ -67,7 +70,14 @@ export default function TableCard({
         <View className="w-1/2">
           <View className="flex-row items-center mb-1">
             <Ionicons name="home-outline" size={16} color="gray" />
-            <Text className="text-gray-700 ml-2">Phòng: {table.roomType}</Text>
+            <Text className="text-gray-700 ml-2">
+              Phòng:{" "}
+              {{
+                basic: "Phòng cơ bản",
+                openspaced: "Phòng không gian mở",
+                premium: "Phòng cao cấp",
+              }[table.roomType] || table.roomType}
+            </Text>
           </View>
 
           <View className="flex-row items-center mb-1">
@@ -77,7 +87,9 @@ export default function TableCard({
 
           <View className="flex-row items-center mb-1">
             <Ionicons name="checkmark-circle-outline" size={16} color="gray" />
-            <Text className="text-gray-700 ml-2">Trạng thái: Chưa đặt</Text>
+            <Text className="text-gray-700 ml-2">
+              Tổng giờ chơi: {table.durationInHours} giờ
+            </Text>
           </View>
         </View>
       </View>

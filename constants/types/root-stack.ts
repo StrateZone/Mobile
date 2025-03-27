@@ -5,5 +5,11 @@ export type RootStackParamList = {
   Register: undefined;
   home_booking: undefined;
   booking_detail: undefined;
-  list_table: { gameType: string };
+  list_table: {
+    gameType: string;
+    roomTypes: string[];
+    selectedDate: string;
+    StartTime: string;
+    EndTime: string;
+  };
 };

@@ -19,15 +19,18 @@ import {
   getSelectedTables,
   toggleTableSelection,
 } from "@/context/select-table";
-import { mapGameTypeToEnglish } from "@/helpers/map_game_type_to_english";
 import BottomSheetFilterTable from "@/components/bottom_sheet/filter_table";
-import { roundToNearest30Minutes } from "@/helpers/round_to_nearest_30minutes";
+import { mapRoomTypesToEnglish } from "@/helpers/map_room_type_by_language";
+import {
+  mapGameTypeToEnglish,
+  mapGameTypeToVietnamese,
+} from "@/helpers/map_game_type_by_language";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { ChessTable } from "@/constants/types/chess_table";
 
-export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-export type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
 
 type Props = {
   route: ListTableRouteProp;
@@ -35,62 +38,44 @@ type Props = {
 
 export default function ListTableScreen({ route }: Props) {
   const navigation = useNavigation<NavigationProp>();
-  const { gameType } = route.params;
+  const { gameType, roomTypes, selectedDate, StartTime, EndTime } =
+    route.params;
 
-  const now = new Date();
-  const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
-  let startTime: Date;
-  let endTime: Date;
-  const currentHour = vietnamTime.getUTCHours();
+  const selectedDateObj = new Date(selectedDate);
 
-  if (currentHour >= 6 && currentHour < 21) {
-    startTime = new Date(vietnamTime);
-        startTime.setHours(startTime.getHours() + 1, 0, 0, 0);
-  } else {
-    startTime = new Date(vietnamTime);
-    startTime.setUTCDate(startTime.getUTCDate() + 1);
-    startTime.setUTCHours(8, 0, 0, 0);
-  }
-
-  endTime = new Date(startTime);
-  endTime.setUTCHours(startTime.getUTCHours() + 2);
-
-  if (endTime.getUTCHours() > 21) {
-    endTime.setUTCHours(21, 0, 0, 0);
-  }
-
-  const roundedStartTime = roundToNearest30Minutes(startTime);
-  const roundedEndTime = roundToNearest30Minutes(endTime);
-
-  const gameTypeEnglish = mapGameTypeToEnglish(gameType);
+  const createDateTime = (date: Date, time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const newDate = new Date(date);
+    newDate.setUTCHours(hours, minutes, 0, 0);
+    return newDate;
+  };
+  const defaultStartDate = createDateTime(selectedDateObj, StartTime);
+  const defaultEndDate = createDateTime(selectedDateObj, EndTime);
 
   const [chessTables, setChessTable] = useState<ChessTable[]>([]);
   const [selectedTables, setSelectedTables] = useState<ChessTable[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const buttonAnim = useRef(new Animated.Value(0)).current;
-  const [roomTypes, setRoomTypes] = useState(["basic"]);
-  const [gameTypeFilter, setGameTypeFilter] = useState<string>(gameTypeEnglish);
-  const [startDateFilter, setStartDateFilter] = useState<Date | null>(
-    roundedStartTime,
+  const [roomType, setRoomTypes] = useState(mapRoomTypesToEnglish(roomTypes));
+  const [gameTypeFilter, setGameTypeFilter] = useState<string>(
+    mapGameTypeToEnglish(gameType),
   );
-  const [endDateFilter, setEndDateFilter] = useState<Date | null>(
-    roundedEndTime,
-  );
+  const [startDateFilter, setStartDateFilter] =
+    useState<Date>(defaultStartDate);
+  const [endDateFilter, setEndDateFilter] = useState<Date>(defaultEndDate);
   const [filterVisible, setFilterVisible] = useState(false);
+
+  const formatDateForApi = (date: Date | null) =>
+    date ? date.toISOString().slice(0, 19) + "Z" : null;
 
   useEffect(() => {
     fetchTables();
     loadSelectedTables();
   }, []);
 
-  const formatDateForApi = (date: Date | null) =>
-    date ? date.toISOString().slice(0, 19) : null;
-
-
-    console.log(gameTypeFilter,roomTypes,startDateFilter,endDateFilter)
   const fetchTables = async (
     gameTypes = gameTypeFilter,
-    roomTypesFilter = roomTypes,
+    roomTypesFilter = roomType,
     startDate = startDateFilter,
     endDate = endDateFilter,
   ) => {
@@ -110,34 +95,6 @@ export default function ListTableScreen({ route }: Props) {
     }
   };
 
-  const applyFilter = (
-    gameTypes: string,
-    roomTypes: string[],
-    startDate: Date | null,
-    endDate: Date | null,
-  ) => {
-    setGameTypeFilter(gameTypes);
-    setRoomTypes(roomTypes);
-    setStartDateFilter(startDate);
-    setEndDateFilter(endDate);
-    fetchTables(gameTypes, roomTypes, startDate, endDate);
-  };
-
-  const loadSelectedTables = async () => {
-    const storedTables = await getSelectedTables();
-    setSelectedTables(storedTables);
-  };
-
-  const handleToggleTable = async (table: ChessTable) => {
-    const updatedTables = await toggleTableSelection(table);
-    setSelectedTables(updatedTables || []);
-  };
-
-  const handleClearTables = async () => {
-    await clearSelectedTables();
-    setSelectedTables([]);
-  };
-
   useEffect(() => {
     if (selectedTables.length > 0) {
       Animated.spring(buttonAnim, {
@@ -155,6 +112,21 @@ export default function ListTableScreen({ route }: Props) {
     }
   }, [selectedTables]);
 
+  const loadSelectedTables = async () => {
+    const storedTables = await getSelectedTables();
+    setSelectedTables(storedTables);
+  };
+
+  const handleToggleTable = async (table: ChessTable) => {
+    const updatedTables = await toggleTableSelection(table);
+    setSelectedTables(updatedTables || []);
+  };
+
+  const handleClearTables = async () => {
+    await clearSelectedTables();
+    setSelectedTables([]);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="relative">
@@ -167,16 +139,11 @@ export default function ListTableScreen({ route }: Props) {
       </View>
       <View className="flex-1 p-4 mt-10">
         <Text className="text-2xl font-bold text-center text-black mb-5">
-          {gameType}
+          {mapGameTypeToVietnamese(gameTypeFilter)}
         </Text>
 
         <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-1 mr-2">
-            <TextInput
-              placeholder="Tìm kiếm"
-              className="bg-white p-3 rounded-lg shadow"
-            />
-          </View>
+          <View className="flex-1 mr-2"></View>
           <Button
             icon={<Icon name="filter" type="feather" color="white" />}
             buttonStyle={{ backgroundColor: "black", borderRadius: 10 }}
@@ -235,7 +202,7 @@ export default function ListTableScreen({ route }: Props) {
                 titleStyle={{ fontWeight: "bold", fontSize: 16 }}
               />
               <Button
-                title={`Chọn ${selectedTables.length} bàn`}
+                title={`Danh sách bàn ${selectedTables.length} bàn`}
                 onPress={() => navigation.navigate("booking_detail")}
                 buttonStyle={{
                   backgroundColor: "black",
@@ -252,10 +219,17 @@ export default function ListTableScreen({ route }: Props) {
           </Animated.View>
         )}
       </View>
-
       {filterVisible && (
         <BottomSheetFilterTable
-          onApplyFilter={applyFilter}
+          gameType={gameTypeFilter}
+          roomTypes={roomType}
+          onApplyFilter={(gameTypes, roomTypes, startDate, endDate) => {
+            setGameTypeFilter(gameTypes);
+            setRoomTypes(roomTypes);
+            setStartDateFilter(startDate);
+            setEndDateFilter(endDate);
+            fetchTables(gameTypes, roomTypes, startDate, endDate);
+          }}
           onClose={() => setFilterVisible(false)}
         />
       )}

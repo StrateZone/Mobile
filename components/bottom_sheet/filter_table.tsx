@@ -1,25 +1,42 @@
 import React, { useRef, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Button, CheckBox } from "@rneui/themed";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import RNDateTimePicker from "@react-native-community/datetimepicker";
+
+import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
+import { mapRoomTypesToVietnamese } from "@/helpers/map_room_type_by_language";
 
 type Props = {
+  gameType: string;
+  roomTypes: string[];
+
   onApplyFilter: (
     gameType: string,
     roomTypes: string[],
     startDate: Date,
     endDate: Date,
   ) => void;
+
   onClose: () => void;
 };
 
 export default function BottomSheetFilterTable({
+  gameType,
+  roomTypes,
   onApplyFilter,
   onClose,
 }: Props) {
   const sheetRef = useRef<BottomSheet>(null);
+
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  const minStartTime = new Date(now);
+  minStartTime.setHours(now.getHours() + 1);
 
   const gameTypeMap: { [key: string]: string } = {
     "Cờ vua": "chess",
@@ -33,12 +50,15 @@ export default function BottomSheetFilterTable({
     "Phòng cao cấp": "premium",
   };
 
-  const [selectedGameType, setSelectedGameType] = useState<string>("Cờ vua");
-  const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>([
-    "Phòng cơ bản",
-  ]);
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [selectedGameType, setSelectedGameType] = useState<string>(
+    mapGameTypeToVietnamese(gameType),
+  );
+  const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(
+    mapRoomTypesToVietnamese(roomTypes),
+  );
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [startTime, setStartTime] = useState<Date>(now);
+  const [endTime, setEndTime] = useState<Date>(now);
 
   const handleSelectGameType = (game: string) => {
     setSelectedGameType(game);
@@ -50,49 +70,82 @@ export default function BottomSheetFilterTable({
     );
   };
 
-  const handleStartTimeChange = (event: any, selectedTime?: Date) => {
-    if (selectedTime) {
-      setStartDate(
-        new Date(
-          startDate.setHours(
-            selectedTime.getHours(),
-            selectedTime.getMinutes(),
-            0,
-            0,
-          ),
-        ),
-      );
+  const convertToUTC7 = (date: Date): Date => {
+    const utc7Date = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+    return utc7Date;
+  };
+
+  const handleStartTimeChange = (event: DateTimePickerEvent, date?: Date) => {
+    if (date) {
+      setStartTime(date);
     }
   };
 
-  const handleEndTimeChange = (event: any, selectedTime?: Date) => {
-    if (selectedTime) {
-      setEndDate(
-        new Date(
-          endDate.setHours(
-            selectedTime.getHours(),
-            selectedTime.getMinutes(),
-            0,
-            0,
-          ),
-        ),
-      );
+  const handleEndTimeChange = (event: DateTimePickerEvent, date?: Date) => {
+    if (date) {
+      setEndTime(date);
     }
   };
 
   const applyFilters = () => {
-    const mappedGameType = gameTypeMap[selectedGameType]; 
+    const mappedGameType = gameTypeMap[selectedGameType];
     const mappedRoomTypes = selectedRoomTypes.map((room) => roomTypeMap[room]);
 
-    console.log("Filtered values:", {
-      gameType: mappedGameType,
-      roomTypes: mappedRoomTypes,
-      startDate,
-      endDate,
-    });
+    const selectedDateUTC7 = convertToUTC7(selectedDate);
+    const startTimeUTC7 = convertToUTC7(startTime);
+    const endTimeUTC7 = convertToUTC7(endTime);
+    const nowUTC7 = new Date();
 
-    onApplyFilter(mappedGameType, mappedRoomTypes, startDate, endDate);
-    onClose();
+    const formatDate = (date: Date) => date.toISOString().split("T")[0];
+
+    const selectedDateObj = new Date(formatDate(selectedDateUTC7));
+
+    const startHour = startTimeUTC7.getUTCHours();
+    const endHour = endTimeUTC7.getUTCHours();
+
+    const nowHour = nowUTC7.getHours();
+    const earliestHour = 6;
+    const latestHour = 22;
+    const minStartHour = nowHour + 1;
+
+    const isToday =
+      selectedDateUTC7.toISOString().split("T")[0] ===
+      nowUTC7.toISOString().split("T")[0];
+
+    if (startHour < earliestHour || startHour > latestHour) {
+      Alert.alert("Lỗi", "Giờ bắt đầu phải từ 6:00 sáng đến 22:00!");
+      return;
+    }
+    if (isToday && startHour < minStartHour) {
+      Alert.alert("Lỗi", "Giờ bắt đầu phải sau giờ hiện tại ít nhất 1 giờ!");
+      return;
+    }
+    if (endHour <= startHour) {
+      Alert.alert("Lỗi", "Giờ kết thúc phải sau giờ bắt đầu!");
+      return;
+    }
+    if (endHour > latestHour) {
+      Alert.alert("Lỗi", "Giờ kết thúc không được sau 22:00!");
+      return;
+    }
+
+    const formatTime = (date: Date) =>
+      date.toISOString().split("T")[1].split(".")[0];
+
+    const createDateTime = (date: Date, time: string) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      const newDate = new Date(date);
+      newDate.setUTCHours(hours, minutes, 0, 0);
+      return newDate;
+    };
+
+    onApplyFilter(
+      mappedGameType,
+      mappedRoomTypes,
+      createDateTime(selectedDateObj, formatTime(startTimeUTC7)),
+      createDateTime(selectedDateObj, formatTime(endTimeUTC7)),
+    ),
+      onClose();
   };
 
   return (
@@ -102,7 +155,6 @@ export default function BottomSheetFilterTable({
           <View style={styles.content}>
             <Text style={styles.title}>Bộ Lọc</Text>
 
-            {/* Chọn loại cờ */}
             <Text style={styles.label}>Loại cờ:</Text>
             {Object.keys(gameTypeMap).map((game) => (
               <CheckBox
@@ -113,42 +165,35 @@ export default function BottomSheetFilterTable({
               />
             ))}
 
-            {/* Chọn ngày */}
             <Text style={styles.label}>Ngày:</Text>
-            <View style={styles.datePickerContainer}>
-              <DateTimePicker
-                value={startDate}
-                mode="date"
-                display="default"
-                onChange={(event, date) => date && setStartDate(date)}
-              />
-              <Text style={styles.centerText}>Đến</Text>
-              <DateTimePicker
-                value={endDate}
-                mode="date"
-                display="default"
-                onChange={(event, date) => date && setEndDate(date)}
-              />
-            </View>
+            <RNDateTimePicker
+              value={selectedDate || new Date()}
+              mode="date"
+              minimumDate={new Date()}
+              display="default"
+              onChange={(event, date) => {
+                if (date) setSelectedDate(date);
+              }}
+            />
 
-            {/* Chọn giờ */}
             <Text style={styles.label}>Giờ:</Text>
             <View style={styles.timePickerContainer}>
-              <DateTimePicker
-                value={startDate}
+              <RNDateTimePicker
+                value={startTime}
+                minuteInterval={30}
                 mode="time"
                 display="default"
                 onChange={handleStartTimeChange}
               />
-              <DateTimePicker
-                value={endDate}
+              <RNDateTimePicker
+                value={endTime}
+                minuteInterval={30}
                 mode="time"
                 display="default"
                 onChange={handleEndTimeChange}
               />
             </View>
 
-            {/* Chọn loại phòng */}
             <Text style={styles.label}>Loại phòng:</Text>
             {Object.keys(roomTypeMap).map((room) => (
               <CheckBox
@@ -159,14 +204,11 @@ export default function BottomSheetFilterTable({
               />
             ))}
 
-            {/* Nút áp dụng */}
             <Button
               title="Áp dụng"
               onPress={applyFilters}
               buttonStyle={styles.applyButton}
             />
-
-            {/* Nút đóng */}
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.closeButton}>Đóng</Text>
             </TouchableOpacity>
@@ -193,19 +235,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   label: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
-  datePickerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
   timePickerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10,
   },
-  centerText: { textAlign: "center", fontSize: 16 },
   applyButton: { backgroundColor: "black", borderRadius: 10, marginTop: 15 },
   closeButton: {
     textAlign: "center",
