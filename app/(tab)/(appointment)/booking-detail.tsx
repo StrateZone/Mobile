@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,11 +13,17 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 
 import { ChessTable } from "@/constants/types/chess_table";
-import { getSelectedTables } from "@/context/select-table";
+import { TableContext } from "@/context/select-table";
 
 export default function BookingDetailScreen() {
+  const [
+    selectedTables,
+    toggleTableSelection,
+    clearSelectedTables,
+    removeSelectedTable,
+  ] = useContext(TableContext);
+
   const navigation = useNavigation();
-  const [selectedTables, setSelectedTables] = useState<ChessTable[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
   const formatDateTime = (isoString: string) => {
@@ -35,18 +41,25 @@ export default function BookingDetailScreen() {
     const time = `${hours}:${minutes}`;
     return { date, time };
   };
-
   useEffect(() => {
     const fetchSelectedTables = async () => {
-      const tables = await getSelectedTables();
-      setSelectedTables(tables);
-
-      const total = tables.reduce((sum, table) => sum + table.totalPrice, 0);
+      const total = selectedTables.reduce(
+        (sum: number, table: ChessTable) => sum + table.totalPrice,
+        0,
+      );
       setTotalPrice(total);
     };
 
     fetchSelectedTables();
   }, []);
+
+  useEffect(() => {
+    const newTotal = selectedTables.reduce(
+      (sum: number, table: ChessTable) => sum + table.totalPrice,
+      0,
+    );
+    setTotalPrice(newTotal);
+  }, [selectedTables]);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -72,15 +85,24 @@ export default function BookingDetailScreen() {
         </View>
 
         <ScrollView className="flex-1">
-          {selectedTables.map((table, index) => {
+          {selectedTables.map((table: ChessTable, index: any) => {
             const startDate = formatDateTime(table.startDate);
             const endDate = formatDateTime(table.endDate);
             return (
               <View key={index} className="bg-white p-4 rounded-xl mb-4 shadow">
-                <Text className="text-lg font-semibold mb-2">
-                  <FontAwesome5 name="chess-board" size={20} color="black" />{" "}
-                  Bàn: {table.tableId}
-                </Text>
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-lg font-semibold mb-2">
+                    <FontAwesome5 name="chess-board" size={20} color="black" />{" "}
+                    Bàn: {table.tableId}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      removeSelectedTable(table);
+                    }}
+                  >
+                    <Ionicons name="close-circle" size={24} color="red" />
+                  </TouchableOpacity>
+                </View>
 
                 <View className="flex-row flex-wrap">
                   <View className="w-1/2">
@@ -106,12 +128,14 @@ export default function BookingDetailScreen() {
                   <View className="w-1/2">
                     <Text className="text-gray-700">
                       <Ionicons name="home-outline" size={16} color="gray" />{" "}
-                      Phòng:
-                      {{
-                        basic: "Phòng cơ bản",
-                        openspaced: "Phòng không gian mở",
-                        premium: "Phòng cao cấp",
-                      }[table.roomType] || table.roomType}
+                      Phòng:{" "}
+                      {(
+                        {
+                          basic: "Phòng cơ bản",
+                          openspaced: "Phòng không gian mở",
+                          premium: "Phòng cao cấp",
+                        } as Record<string, string>
+                      )[table.roomType] || table.roomType}
                     </Text>
                     <Text className="text-gray-700">
                       <Ionicons

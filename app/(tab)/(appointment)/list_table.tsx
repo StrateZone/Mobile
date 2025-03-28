@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -14,11 +14,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import TableCard from "@/components/card/table_card";
 import { getRequest } from "@/helpers/api-requests";
-import {
-  clearSelectedTables,
-  getSelectedTables,
-  toggleTableSelection,
-} from "@/context/select-table";
+
 import BottomSheetFilterTable from "@/components/bottom_sheet/filter_table";
 import { mapRoomTypesToEnglish } from "@/helpers/map_room_type_by_language";
 import {
@@ -28,6 +24,7 @@ import {
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { ChessTable } from "@/constants/types/chess_table";
+import { TableContext } from "@/context/select-table";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
@@ -41,6 +38,9 @@ export default function ListTableScreen({ route }: Props) {
   const { gameType, roomTypes, selectedDate, StartTime, EndTime } =
     route.params;
 
+  const [selectedTables, toggleTableSelection, clearSelectedTables] =
+    useContext(TableContext);
+
   const selectedDateObj = new Date(selectedDate);
 
   const createDateTime = (date: Date, time: string) => {
@@ -53,7 +53,6 @@ export default function ListTableScreen({ route }: Props) {
   const defaultEndDate = createDateTime(selectedDateObj, EndTime);
 
   const [chessTables, setChessTable] = useState<ChessTable[]>([]);
-  const [selectedTables, setSelectedTables] = useState<ChessTable[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const buttonAnim = useRef(new Animated.Value(0)).current;
   const [roomType, setRoomTypes] = useState(mapRoomTypesToEnglish(roomTypes));
@@ -70,7 +69,6 @@ export default function ListTableScreen({ route }: Props) {
 
   useEffect(() => {
     fetchTables();
-    loadSelectedTables();
   }, []);
 
   const fetchTables = async (
@@ -112,19 +110,12 @@ export default function ListTableScreen({ route }: Props) {
     }
   }, [selectedTables]);
 
-  const loadSelectedTables = async () => {
-    const storedTables = await getSelectedTables();
-    setSelectedTables(storedTables);
-  };
-
   const handleToggleTable = async (table: ChessTable) => {
-    const updatedTables = await toggleTableSelection(table);
-    setSelectedTables(updatedTables || []);
+    await toggleTableSelection(table);
   };
 
   const handleClearTables = async () => {
     await clearSelectedTables();
-    setSelectedTables([]);
   };
 
   return (
@@ -162,7 +153,10 @@ export default function ListTableScreen({ route }: Props) {
                 key={table.tableId}
                 table={table}
                 isSelected={selectedTables.some(
-                  (t) => t.tableId === table.tableId,
+                  (t: any) =>
+                    t.tableId === table.tableId &&
+                    t.startDate === table.startDate &&
+                    t.endDate === table.endDate,
                 )}
                 onPress={() => handleToggleTable(table)}
               />
@@ -202,7 +196,7 @@ export default function ListTableScreen({ route }: Props) {
                 titleStyle={{ fontWeight: "bold", fontSize: 16 }}
               />
               <Button
-                title={`Danh sách bàn ${selectedTables.length} bàn`}
+                title={`Chọn ${selectedTables.length} bàn`}
                 onPress={() => navigation.navigate("booking_detail")}
                 buttonStyle={{
                   backgroundColor: "black",

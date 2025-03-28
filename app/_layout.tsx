@@ -22,6 +22,7 @@ import AuthLayout from "./(tab)/(auth)/_layout";
 import DefaultButton from "@/components/button/button";
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { useState } from "react";
+import { TableProvider } from "@/context/select-table";
 
 const Drawer = createDrawerNavigator();
 
@@ -40,99 +41,101 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider theme={theme}>
-      <AuthProvider>
-        <Drawer.Navigator
-          drawerContent={(props) => <CustomDrawerContent {...props} />}
-          screenOptions={{
-            drawerStyle: {
-              backgroundColor: "#fff",
-              width: 260,
-            },
-            drawerActiveBackgroundColor: "#000",
-            drawerActiveTintColor: "#fff",
-            drawerInactiveTintColor: "#333",
-          }}
-        >
-          <Drawer.Screen
-            name="Appointment"
-            component={AppointmentLayout}
-            options={{
-              headerShown: false,
-              drawerLabel: "Đặt bàn",
-              drawerIcon: ({ color }) => (
-                <AntDesign size={24} name="calendar" color={color} />
-              ),
+      <TableProvider>
+        <AuthProvider>
+          <Drawer.Navigator
+            drawerContent={(props) => <CustomDrawerContent {...props} />}
+            screenOptions={{
+              drawerStyle: {
+                backgroundColor: "#fff",
+                width: 260,
+              },
+              drawerActiveBackgroundColor: "#000",
+              drawerActiveTintColor: "#fff",
+              drawerInactiveTintColor: "#333",
             }}
-          />
-          <Drawer.Screen
-            name="Auth"
-            component={AuthLayout}
-            options={{
-              headerShown: false,
-              drawerLabel: "Đăng nhập",
-              drawerIcon: ({ color }) => (
-                <AntDesign size={24} name="calendar" color={color} />
-              ),
-            }}
-          />
-          <Drawer.Screen
-            name="Products"
-            component={ProductLayout}
-            options={{
-              headerShown: false,
-              drawerLabel: "Sản phẩm",
-              drawerIcon: ({ color }) => (
-                <FontAwesome name="shopping-cart" size={24} color={color} />
-              ),
-            }}
-          />
-          <Drawer.Screen
-            name="Courses"
-            component={CourseLayout}
-            options={{
-              headerShown: false,
-              drawerLabel: "Khóa học",
-              drawerIcon: ({ color }) => (
-                <MaterialIcons name="menu-book" size={24} color={color} />
-              ),
-            }}
-          />
-          <Drawer.Screen
-            name="Tournaments"
-            component={TournamentLayout}
-            options={{
-              headerShown: false,
-              drawerLabel: "Thi đấu",
-              drawerIcon: ({ color }) => (
-                <Ionicons name="trophy" size={24} color={color} />
-              ),
-            }}
-          />
-          <Drawer.Screen
-            name="Community"
-            component={CommunityLayout}
-            options={{
-              headerShown: false,
-              drawerLabel: "Cộng đồng",
-              drawerIcon: ({ color }) => (
-                <FontAwesome name="users" size={24} color={color} />
-              ),
-            }}
-          />
-          <Drawer.Screen
-            name="Profile"
-            component={ProfileLayout}
-            options={{
-              headerShown: false,
-              drawerLabel: "Thông tin cá nhân",
-              drawerIcon: ({ color }) => (
-                <Ionicons name="person-circle" size={24} color={color} />
-              ),
-            }}
-          />
-        </Drawer.Navigator>
-        <Toast />
-      </AuthProvider>
+          >
+            <Drawer.Screen
+              name="Appointment"
+              component={AppointmentLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Đặt bàn",
+                drawerIcon: ({ color }) => (
+                  <AntDesign size={24} name="calendar" color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Auth"
+              component={AuthLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Đăng nhập",
+                drawerIcon: ({ color }) => (
+                  <AntDesign size={24} name="calendar" color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Products"
+              component={ProductLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Sản phẩm",
+                drawerIcon: ({ color }) => (
+                  <FontAwesome name="shopping-cart" size={24} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Courses"
+              component={CourseLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Khóa học",
+                drawerIcon: ({ color }) => (
+                  <MaterialIcons name="menu-book" size={24} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Tournaments"
+              component={TournamentLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Thi đấu",
+                drawerIcon: ({ color }) => (
+                  <Ionicons name="trophy" size={24} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Community"
+              component={CommunityLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Cộng đồng",
+                drawerIcon: ({ color }) => (
+                  <FontAwesome name="users" size={24} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Profile"
+              component={ProfileLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Thông tin cá nhân",
+                drawerIcon: ({ color }) => (
+                  <Ionicons name="person-circle" size={24} color={color} />
+                ),
+              }}
+            />
+          </Drawer.Navigator>
+          <Toast />
+        </AuthProvider>
+      </TableProvider>
     </ThemeProvider>
   );
 }
