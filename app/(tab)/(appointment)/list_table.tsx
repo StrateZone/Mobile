@@ -10,7 +10,6 @@ import {
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import Ionicons from "@expo/vector-icons/Ionicons";
 
 import TableCard from "@/components/card/table_card";
 import { getRequest } from "@/helpers/api-requests";
@@ -54,7 +53,6 @@ export default function ListTableScreen({ route }: Props) {
 
   const [chessTables, setChessTable] = useState<ChessTable[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const buttonAnim = useRef(new Animated.Value(0)).current;
   const [roomType, setRoomTypes] = useState(mapRoomTypesToEnglish(roomTypes));
   const [gameTypeFilter, setGameTypeFilter] = useState<string>(
     mapGameTypeToEnglish(gameType),
@@ -63,6 +61,8 @@ export default function ListTableScreen({ route }: Props) {
     useState<Date>(defaultStartDate);
   const [endDateFilter, setEndDateFilter] = useState<Date>(defaultEndDate);
   const [filterVisible, setFilterVisible] = useState(false);
+
+  const buttonAnim = useRef(new Animated.Value(0)).current;
 
   const formatDateForApi = (date: Date | null) =>
     date ? date.toISOString().slice(0, 19) + "Z" : null;
@@ -121,12 +121,12 @@ export default function ListTableScreen({ route }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="relative">
-        <TouchableOpacity
+        {/* <TouchableOpacity
           className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <View className="flex-1 p-4 mt-10">
         <Text className="text-2xl font-bold text-center text-black mb-5">

@@ -7,21 +7,19 @@ import {
   SafeAreaView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Button, Icon } from "@rneui/themed";
+import { Button } from "@rneui/themed";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Toast from "react-native-toast-message";
+
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 
 import { ChessTable } from "@/constants/types/chess_table";
 import { TableContext } from "@/context/select-table";
 
 export default function BookingDetailScreen() {
-  const [
-    selectedTables,
-    toggleTableSelection,
-    clearSelectedTables,
-    removeSelectedTable,
-  ] = useContext(TableContext);
+  const [selectedTables, removeSelectedTable] = useContext(TableContext);
 
   const navigation = useNavigation();
   const [totalPrice, setTotalPrice] = useState(0);
@@ -59,6 +57,15 @@ export default function BookingDetailScreen() {
       0,
     );
     setTotalPrice(newTotal);
+
+    if (selectedTables.length === 0) {
+      navigation.goBack();
+      Toast.show({
+        type: "error",
+        text1: "Không có bàn đã chọn",
+        text2: "Vui lòng chọn thêm bàn.",
+      });
+    }
   }, [selectedTables]);
 
   return (
@@ -104,9 +111,30 @@ export default function BookingDetailScreen() {
                   </TouchableOpacity>
                 </View>
 
+                <View className="flex-row items-center mb-2">
+                  <Ionicons name="home-outline" size={16} color="gray" />
+                  <Text className="text-gray-700 ml-2">
+                    Phòng:{" "}
+                    {{
+                      basic: "Cơ bản",
+                      openspaced: "Không gian mở",
+                      premium: "Cao cấp",
+                    }[table.roomType] || table.roomType}{" "}
+                    ({table.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center mb-2">
+                  <FontAwesome5 name="chess" size={16} color="gray" />
+                  <Text className="text-gray-700 ml-2">
+                    Loại cờ: {mapGameTypeToVietnamese(table.gameType.typeName)}{" "}
+                    ({table.gameTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+                  </Text>
+                </View>
+
                 <View className="flex-row flex-wrap">
                   <View className="w-1/2">
-                    <Text className="text-gray-700">
+                    <Text className="text-gray-700 mb-2">
                       <Ionicons
                         name="calendar-outline"
                         size={16}
@@ -114,30 +142,15 @@ export default function BookingDetailScreen() {
                       />
                       Ngày: {startDate.date}
                     </Text>
-                    <Text className="text-gray-700">
+                    <Text className="text-gray-700 mb-2">
                       <Ionicons name="time-outline" size={16} color="gray" />{" "}
                       Giờ:
                       {startDate.time} - {endDate.time}
                     </Text>
-                    <Text className="text-gray-700">
-                      <FontAwesome5 name="chess" size={16} color="gray" /> Loại
-                      cờ: {mapGameTypeToVietnamese(table.gameType.typeName)}
-                    </Text>
                   </View>
 
                   <View className="w-1/2">
-                    <Text className="text-gray-700">
-                      <Ionicons name="home-outline" size={16} color="gray" />{" "}
-                      Phòng:{" "}
-                      {(
-                        {
-                          basic: "Phòng cơ bản",
-                          openspaced: "Phòng không gian mở",
-                          premium: "Phòng cao cấp",
-                        } as Record<string, string>
-                      )[table.roomType] || table.roomType}
-                    </Text>
-                    <Text className="text-gray-700">
+                    <Text className="text-gray-700 mb-2">
                       <Ionicons
                         name="location-outline"
                         size={16}
@@ -145,7 +158,7 @@ export default function BookingDetailScreen() {
                       />
                       Số phòng: {table.roomId}
                     </Text>
-                    <Text className="text-gray-700">
+                    <Text className="text-gray-700 mb-2">
                       <Ionicons
                         name="checkmark-circle-outline"
                         size={16}
@@ -156,10 +169,17 @@ export default function BookingDetailScreen() {
                   </View>
                 </View>
 
-                <Text className="font-bold mt-3 text-right text-lg text-green-600">
-                  <FontAwesome5 name="money-bill-wave" size={16} />
-                  {table.totalPrice.toLocaleString("vi-VN")} VND
-                </Text>
+                <View className="mt-3 flex-row justify-around">
+                  <AntDesign name="adduser" size={30} color="black" />
+                  <Text className="font-bold text-green-600 mt-1 text-xl flex-row items-center">
+                    <FontAwesome5
+                      name="money-bill-wave"
+                      size={16}
+                      className="mr-1"
+                    />
+                    {table.totalPrice.toLocaleString("vi-VN")} VND
+                  </Text>
+                </View>
               </View>
             );
           })}
@@ -177,6 +197,7 @@ export default function BookingDetailScreen() {
 
           <Button
             title="Xác nhận đặt bàn"
+            disabled={selectedTables.length === 0}
             buttonStyle={{
               backgroundColor: "black",
               borderRadius: 10,

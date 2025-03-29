@@ -9,6 +9,7 @@ import ListTableScreen from "./list_table";
 import BookingDetail from "./booking-detail";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
+import TableDetail from "./table_detail";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -51,6 +52,13 @@ export default function AppointmentLayout() {
       <Stack.Screen
         name="booking_detail"
         component={BookingDetail}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="table_detail"
+        component={TableDetail}
         options={{
           headerShown: false,
         }}

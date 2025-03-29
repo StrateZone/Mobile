@@ -92,7 +92,6 @@ export const TableProvider = ({ children }: any) => {
 
   const clearSelectedTables = async () => {
     try {
-      console.log("ok");
       setSelectedTables([]);
       await AsyncStorage.removeItem(STORAGE_KEY);
     } catch (error) {

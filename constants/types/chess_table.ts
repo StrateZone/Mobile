@@ -13,4 +13,5 @@ export type ChessTable = {
   roomTypePrice: number;
   durationInHours: number;
   totalPrice: number;
+  roomDescription?: string;
 };

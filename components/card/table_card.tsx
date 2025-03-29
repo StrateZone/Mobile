@@ -1,13 +1,18 @@
 import React from "react";
 import { View } from "react-native";
-import { Card, Text, Button, Icon } from "@rneui/themed";
+import { Card, Text, Button } from "@rneui/themed";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { RouteProp, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { ChessTable } from "@/constants/types/chess_table";
 
-import { mapRoomTypesToVietnamese } from "@/helpers/map_room_type_by_language";
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
+import { RootStackParamList } from "@/constants/types/root-stack";
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
 
 type TableCardProps = {
   table: ChessTable;
@@ -20,6 +25,7 @@ export default function TableCard({
   isSelected = false,
   onPress,
 }: TableCardProps) {
+  const navigation = useNavigation<NavigationProp>();
   const formatDateTime = (isoString: string) => {
     const fixedIsoString = isoString.endsWith("Z")
       ? isoString
@@ -45,9 +51,30 @@ export default function TableCard({
         <Text className="text-lg font-bold">Bàn: {table.tableId}</Text>
       </View>
 
+      <View className="flex-row items-center mb-2">
+        <Ionicons name="home-outline" size={16} color="gray" />
+        <Text className="text-gray-700 ml-2">
+          Phòng:{" "}
+          {{
+            basic: "Cơ bản",
+            openspaced: "Không gian mở",
+            premium: "Cao cấp",
+          }[table.roomType] || table.roomType}{" "}
+          ({table.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+        </Text>
+      </View>
+
+      <View className="flex-row items-center mb-2">
+        <FontAwesome5 name="chess" size={16} color="gray" />
+        <Text className="text-gray-700 ml-2">
+          Loại cờ: {mapGameTypeToVietnamese(table.gameType.typeName)} (
+          {table.gameTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+        </Text>
+      </View>
+
       <View className="flex-row flex-wrap">
         <View className="w-1/2">
-          <View className="flex-row items-center mb-1">
+          <View className="flex-row items-center mb-2">
             <Ionicons name="calendar-outline" size={16} color="gray" />
             <Text className="text-gray-700 ml-2">Ngày: {start.date}</Text>
           </View>
@@ -58,28 +85,9 @@ export default function TableCard({
               {start.time} - {end.time}
             </Text>
           </View>
-
-          <View className="flex-row items-center mb-1">
-            <FontAwesome5 name="chess" size={16} color="gray" />
-            <Text className="text-gray-700 ml-2">
-              Loại cờ: {mapGameTypeToVietnamese(table.gameType.typeName)}
-            </Text>
-          </View>
         </View>
 
         <View className="w-1/2">
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="home-outline" size={16} color="gray" />
-            <Text className="text-gray-700 ml-2">
-              Phòng:{" "}
-              {{
-                basic: "Phòng cơ bản",
-                openspaced: "Phòng không gian mở",
-                premium: "Phòng cao cấp",
-              }[table.roomType] || table.roomType}
-            </Text>
-          </View>
-
           <View className="flex-row items-center mb-1">
             <Ionicons name="location-outline" size={16} color="gray" />
             <Text className="text-gray-700 ml-2">Số phòng: {table.roomId}</Text>
@@ -94,11 +102,30 @@ export default function TableCard({
         </View>
       </View>
 
-      <View className="flex-row items-center justify-end mt-3">
-        <Ionicons name="cash-outline" size={18} color="green" />
-        <Text className="font-bold text-lg text-green-600 ml-2">
-          {table.totalPrice.toLocaleString("vi-VN")} VND
-        </Text>
+      <View className="flex-row items-center justify-between mt-3">
+        <Button
+          title="Chi tiết bàn"
+          buttonStyle={{
+            backgroundColor: "green",
+            borderRadius: 8,
+            paddingVertical: 10,
+          }}
+          titleStyle={{ fontSize: 16 }}
+          onPress={() =>
+            navigation.navigate("table_detail", {
+              tableId: table.tableId,
+              startDate: table.startDate,
+              endDate: table.endDate,
+            })
+          }
+        />
+
+        <View className="flex-row items-center">
+          <Ionicons name="cash-outline" size={18} color="green" />
+          <Text className="font-bold text-lg text-green-600 ml-2">
+            {table.totalPrice.toLocaleString("vi-VN")} VND
+          </Text>
+        </View>
       </View>
 
       <Button
