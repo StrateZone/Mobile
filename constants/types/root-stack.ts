@@ -1,8 +1,9 @@
 export type RootStackParamList = {
   login: undefined;
   Otp: { email: string };
-  Profile: undefined;
+  profile: undefined;
   Register: undefined;
+  deposit: { returnUrl: string };
   home_booking: undefined;
   booking_detail: undefined;
   table_detail: { tableId: number; startDate: string; endDate: string };
@@ -13,4 +14,5 @@ export type RootStackParamList = {
     StartTime: string;
     EndTime: string;
   };
+  payment_successfull: undefined;
 };

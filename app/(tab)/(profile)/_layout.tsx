@@ -4,11 +4,13 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
-import AppointmentScreen from "./index";
+import DepositScreen from "./deposit";
+import ProfileScreen from "./index";
 
-const Stack = createStackNavigator();
+import { RootStackParamList } from "@/constants/types/root-stack";
 
-type NavigationProp = DrawerNavigationProp<any>;
+const Stack = createStackNavigator<RootStackParamList>();
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function ProfileLayout() {
   const navigation = useNavigation<NavigationProp>();
@@ -16,8 +18,8 @@ export default function ProfileLayout() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="index"
-        component={AppointmentScreen}
+        name="profile"
+        component={ProfileScreen}
         options={{
           headerLeft: () => (
             <TouchableOpacity
@@ -35,6 +37,14 @@ export default function ProfileLayout() {
           headerStyle: {
             backgroundColor: "white",
           },
+        }}
+      />
+
+      <Stack.Screen
+        name="deposit"
+        component={DepositScreen}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

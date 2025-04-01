@@ -76,7 +76,7 @@ export default function OtpConfirmScreen({
       const result = await onLogin!(email, otpString);
       if (result.success) {
         Toast.show({ type: "success", text1: "Đăng nhập thành công!" });
-        navigation.reset({ index: 0, routes: [{ name: "Profile" }] });
+        navigation.reset({ index: 0, routes: [{ name: "profile" }] });
       } else {
         Toast.show({
           type: "error",

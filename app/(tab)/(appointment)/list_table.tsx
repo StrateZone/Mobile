@@ -1,19 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  SafeAreaView,
-  Animated,
-} from "react-native";
+import { View, ScrollView, SafeAreaView, Animated } from "react-native";
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import TableCard from "@/components/card/table_card";
 import { getRequest } from "@/helpers/api-requests";
-
 import BottomSheetFilterTable from "@/components/bottom_sheet/filter_table";
 import { mapRoomTypesToEnglish } from "@/helpers/map_room_type_by_language";
 import {
@@ -120,14 +112,7 @@ export default function ListTableScreen({ route }: Props) {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="relative">
-        {/* <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity> */}
-      </View>
+      <View className="relative"></View>
       <View className="flex-1 p-4 mt-10">
         <Text className="text-2xl font-bold text-center text-black mb-5">
           {mapGameTypeToVietnamese(gameTypeFilter)}

@@ -10,6 +10,7 @@ import BookingDetail from "./booking-detail";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 import TableDetail from "./table_detail";
+import PaymentSuccessScreen from "./payment_successfull";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -39,6 +40,7 @@ export default function AppointmentLayout() {
           headerStyle: {
             backgroundColor: "white",
           },
+          gestureEnabled: false,
         }}
       />
       <Stack.Screen
@@ -46,6 +48,7 @@ export default function AppointmentLayout() {
         component={ListTableScreen}
         options={{
           headerShown: false,
+          gestureEnabled: false,
         }}
       />
 
@@ -61,6 +64,14 @@ export default function AppointmentLayout() {
         component={TableDetail}
         options={{
           headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="payment_successfull"
+        component={PaymentSuccessScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
         }}
       />
     </Stack.Navigator>

@@ -10,13 +10,25 @@ interface AuthProps {
     authenticated: boolean | null;
     user?: {
       userId: number;
+      userRole: string;
+      status: string;
+      gender: string;
+      skillLevel: string;
+      ranking: string;
+      wallet: {
+        walletId: number;
+        userId: number;
+        balance: number;
+        status: string;
+      };
       username: string;
+      fullName: string;
       email: string;
       phone: string;
-      role: string;
     };
   };
   onLogin?: (email: string, otp: string) => Promise<any>;
+  onUpdateUserBalance?: () => Promise<any>;
   onLogout?: () => Promise<any>;
 }
 
@@ -36,10 +48,21 @@ export const AuthProvider = ({ children }: any) => {
     authenticated: boolean | null;
     user?: {
       userId: number;
+      userRole: string;
+      status: string;
+      gender: string;
+      skillLevel: string;
+      ranking: string;
+      wallet: {
+        walletId: number;
+        userId: number;
+        balance: number;
+        status: string;
+      };
       username: string;
+      fullName: string;
       email: string;
       phone: string;
-      role: string;
     };
   }>({
     token: null,
@@ -75,10 +98,16 @@ export const AuthProvider = ({ children }: any) => {
       if (response.data.success) {
         const userData = {
           userId: response.data.data.userId,
+          userRole: response.data.data.userRole,
+          status: response.data.data.status,
+          gender: response.data.data.gender,
+          skillLevel: response.data.data.skillLevel,
+          ranking: response.data.data.ranking,
+          wallet: response.data.data.wallet,
           username: response.data.data.username,
+          fullName: response.data.data.fullName,
           email: response.data.data.email,
           phone: response.data.data.phone,
-          role: response.data.data.role,
         };
 
         setAuthState({
@@ -112,6 +141,28 @@ export const AuthProvider = ({ children }: any) => {
     }
   };
 
+  const updateUserBalance = async () => {
+    if (!authState.user) return;
+    try {
+      const response = await axios.get(
+        `${config.BACKEND_API}/api/wallets/users/${authState.user.userId}`,
+      );
+      if (response.data) {
+        setAuthState((prev) => ({
+          ...prev,
+          user: prev.user
+            ? {
+                ...prev.user,
+                wallet: { ...prev.user.wallet, balance: response.data.balance },
+              }
+            : prev.user,
+        }));
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật số dư:", error);
+    }
+  };
+
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
@@ -133,6 +184,7 @@ export const AuthProvider = ({ children }: any) => {
   const value = {
     onLogin: login,
     onLogout: logout,
+    onUpdateUserBalance: updateUserBalance,
     authState,
   };
 
