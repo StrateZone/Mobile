@@ -112,7 +112,6 @@ export default function ListTableScreen({ route }: Props) {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="relative"></View>
       <View className="flex-1 p-4 mt-10">
         <Text className="text-2xl font-bold text-center text-black mb-5">
           {mapGameTypeToVietnamese(gameTypeFilter)}

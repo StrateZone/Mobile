@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Linking from "expo-linking";
+import { DrawerNavigationProp } from "@react-navigation/drawer";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function PaymentSuccessScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -43,7 +45,11 @@ export default function PaymentSuccessScreen() {
       </TouchableOpacity>
       <TouchableOpacity
         className="bg-green-500 px-6 py-3 rounded-full mt-6"
-        onPress={() => navigation.navigate("home_booking")}
+        onPress={() => {
+          navigation.navigate("Profile", {
+            screen: "appointment_history",
+          });
+        }}
       >
         <Text className="text-white text-lg font-semibold">
           Lịch sử đặt bàn

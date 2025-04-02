@@ -104,6 +104,26 @@ export default function ProfileScreen() {
           {user?.skillLevel || "Chưa xác định"}
         </Text>
       </View>
+
+      <TouchableOpacity
+        className="bg-white p-5 rounded-xl shadow-md flex-row justify-between items-center mt-6"
+        onPress={() => navigation.navigate("appointment_history")}
+      >
+        <Text className="text-black text-lg font-semibold">
+          Lịch sử đặt bàn
+        </Text>
+        <Ionicons name="chevron-forward" size={24} color="black" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="bg-white p-5 rounded-xl shadow-md flex-row justify-between items-center mt-6"
+        onPress={() => navigation.navigate("appointment_history")}
+      >
+        <Text className="text-black text-lg font-semibold">
+          Biến động số dư
+        </Text>
+        <Ionicons name="chevron-forward" size={24} color="black" />
+      </TouchableOpacity>
     </ScrollView>
   );
 }

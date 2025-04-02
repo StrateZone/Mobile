@@ -9,6 +9,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Alert } from "react-native";
+import * as Linking from "expo-linking";
 import Toast from "react-native-toast-message";
 
 import AppointmentLayout from "./(tab)/(appointment)/_layout";
@@ -31,6 +32,24 @@ const theme = createTheme({
   darkColors: { primary: "#000000" },
   mode: "light",
 });
+
+const linking = {
+  prefixes: [Linking.createURL("/")],
+  config: {
+    screens: {
+      Appointment: {
+        screens: {
+          PaymentSuccess: "payment-success",
+        },
+      },
+      Profile: {
+        screens: {
+          AppointmentHistory: "appointment-history",
+        },
+      },
+    },
+  },
+};
 
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);

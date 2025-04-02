@@ -1,9 +1,15 @@
 export type RootStackParamList = {
+  //auth
   login: undefined;
   Otp: { email: string };
-  profile: undefined;
   Register: undefined;
+  //profile
+  profile: undefined;
+  appointment_history: undefined;
   deposit: { returnUrl: string };
+  appointment_detail: { appointmentId: number };
+  balance_movement_history: undefined;
+  //appointment
   home_booking: undefined;
   booking_detail: undefined;
   table_detail: { tableId: number; startDate: string; endDate: string };

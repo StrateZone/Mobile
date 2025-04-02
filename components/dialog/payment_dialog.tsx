@@ -69,14 +69,24 @@ export default function PaymentDialog({
         );
 
         if (response.status === 200) {
+          navigation.navigate("payment_successfull");
           setIsPaymentSuccessful(true);
           await clearSelectedTables();
-          navigation.navigate("payment_successfull");
         }
         onClose();
       }
     } catch (error) {
-      console.error("Lỗi khi đặt bàn:", error);
+      onClose();
+      Alert.alert("Lỗi đặt bàn", "Đã có người đặt bàn này", [
+        {
+          text: "Đặt bàn khác",
+          onPress: () => {
+            navigation.goBack();
+          },
+          style: "cancel",
+        },
+        // { text: "Đăng nhập", onPress: () => navigation.navigate("login") },
+      ]);
     }
   };
 

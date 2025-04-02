@@ -37,7 +37,6 @@ export const postRequest = async (
       params: query,
     },
   );
-
   return data;
 };
 

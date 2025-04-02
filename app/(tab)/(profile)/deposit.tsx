@@ -49,12 +49,12 @@ export default function DepositScreen({ route }: Props) {
 
       if (response?.data?.order_url) {
         await Linking.openURL(response.data.order_url);
+        navigation.goBack();
       } else {
         setError("Không thể tạo thanh toán, vui lòng thử lại.");
       }
     } catch (error) {
       console.error(error);
-      setError("Có lỗi xảy ra khi tạo thanh toán.");
     }
   };
 

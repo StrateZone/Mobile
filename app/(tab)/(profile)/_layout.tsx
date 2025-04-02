@@ -8,6 +8,9 @@ import DepositScreen from "./deposit";
 import ProfileScreen from "./index";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
+import ApointmentHistory from "./appointment_history";
+import AppointmentDetail from "./appointment_history_detail";
+import BalanceMovementHistory from "./balance_movement_history";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -45,6 +48,33 @@ export default function ProfileLayout() {
         component={DepositScreen}
         options={{
           headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="appointment_history"
+        component={ApointmentHistory}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="appointment_detail"
+        component={AppointmentDetail}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="balance_movement_history"
+        component={BalanceMovementHistory}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
         }}
       />
     </Stack.Navigator>
