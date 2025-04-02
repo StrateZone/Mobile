@@ -117,7 +117,7 @@ export default function ProfileScreen() {
 
       <TouchableOpacity
         className="bg-white p-5 rounded-xl shadow-md flex-row justify-between items-center mt-6"
-        onPress={() => navigation.navigate("appointment_history")}
+        onPress={() => navigation.navigate("balance_movement_history")}
       >
         <Text className="text-black text-lg font-semibold">
           Biến động số dư

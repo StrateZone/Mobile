@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Button } from "@rneui/themed";
@@ -224,10 +225,17 @@ export default function BookingDetailScreen() {
               borderRadius: 10,
               paddingVertical: 12,
             }}
-            onPress={() => setOpenDialog(true)}
+            onPress={() => {
+              if (totalPrice > (user?.wallet.balance || 0)) {
+                Alert.alert("Số dư không đủ để thanh toán!");
+              } else {
+                setOpenDialog(true);
+              }
+            }}
             icon={<FontAwesome5 name="check-circle" size={18} color="white" />}
             iconRight
           />
+
           <PaymentDialog
             visible={opneDialog}
             setIsPaymentSuccessful={setIsPaymentSuccessful}

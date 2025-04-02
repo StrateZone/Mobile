@@ -1,5 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { View, ScrollView, SafeAreaView, Animated } from "react-native";
+import {
+  View,
+  ScrollView,
+  SafeAreaView,
+  Animated,
+  ActivityIndicator,
+} from "react-native";
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -127,8 +133,8 @@ export default function ListTableScreen({ route }: Props) {
         </View>
 
         {isLoading ? (
-          <View className="flex items-center justify-center p-5">
-            <Button title="Loading..." type="solid" loading />
+          <View className="flex items-center justify-center py-10">
+            <ActivityIndicator size="large" color="#4F46E5" />
           </View>
         ) : (
           <ScrollView className="flex-1">
