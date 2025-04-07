@@ -10,7 +10,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.phamcuong3103.Mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,15 +27,6 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
       "expo-font"
     ],
     "experiments": {
@@ -47,11 +39,6 @@
       "eas": {
         "projectId": "75c4fd7d-3fa4-4f95-a060-d61fa3b82ec5"
       }
-    },
-    "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain", 
-      "backgroundColor": "#ffffff"
     }
   }
 }

@@ -7,6 +7,7 @@ import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { ChessTable } from "@/constants/types/chess_table";
+import { formatDateTime } from "@/helpers/format_time";
 
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 import { RootStackParamList } from "@/constants/types/root-stack";
@@ -26,21 +27,6 @@ export default function TableCard({
   onPress,
 }: TableCardProps) {
   const navigation = useNavigation<NavigationProp>();
-  const formatDateTime = (isoString: string) => {
-    const fixedIsoString = isoString.endsWith("Z")
-      ? isoString
-      : `${isoString}Z`;
-    const dateObj = new Date(fixedIsoString);
-
-    const day = String(dateObj.getUTCDate()).padStart(2, "0");
-    const month = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
-    const year = dateObj.getUTCFullYear();
-    const date = `${day}/${month}/${year}`;
-    const hours = String(dateObj.getUTCHours()).padStart(2, "0");
-    const minutes = String(dateObj.getUTCMinutes()).padStart(2, "0");
-    const time = `${hours}:${minutes}`;
-    return { date, time };
-  };
 
   const start = formatDateTime(table.startDate);
   const end = formatDateTime(table.endDate);

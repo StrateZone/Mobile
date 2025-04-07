@@ -4,6 +4,16 @@ export type RootStackParamList = {
   Otp: { email: string };
   Register: undefined;
   //profile
+  Profile: {
+    screen:
+      | "profile"
+      | "appointment_history"
+      | "appointment_detail"
+      | "balance_movement_history"
+      | "deposit"
+      | "invitations";
+  };
+  invitations: undefined;
   profile: undefined;
   appointment_history: undefined;
   deposit: { returnUrl: string };
@@ -11,6 +21,8 @@ export type RootStackParamList = {
   balance_movement_history: undefined;
   //appointment
   home_booking: undefined;
+  find_opponents: { tableId: number; startDate: string; endDate: string };
+  opponent_invited: { tableId: number; startDate: string; endDate: string };
   booking_detail: undefined;
   table_detail: { tableId: number; startDate: string; endDate: string };
   list_table: {

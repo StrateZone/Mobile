@@ -16,10 +16,12 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getRequest } from "@/helpers/api-requests";
 import { ChessTable } from "@/constants/types/chess_table";
 import { TableContext } from "@/context/select-table";
+import { Button } from "@rneui/themed";
+
+import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
+import { formatDateTime } from "@/helpers/format_time";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
-import { Button } from "@rneui/themed";
-import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "table_detail">;
@@ -39,6 +41,9 @@ export default function TableDetail({ route }: Props) {
   const [tableDetail, setTableDetail] = useState<ChessTable>();
 
   const buttonAnim = useRef(new Animated.Value(0)).current;
+
+  const start = formatDateTime(startDate);
+  const end = formatDateTime(endDate);
 
   useEffect(() => {
     setIsLoading(true);
@@ -126,6 +131,18 @@ export default function TableDetail({ route }: Props) {
                   premium: "Cao cấp",
                 }[tableDetail.roomType] || tableDetail.roomType}{" "}
                 ({tableDetail.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+              </Text>
+            </Text>
+
+            <Text className="text-lg text-gray-700 mt-2">
+              <Ionicons name="calendar-outline" size={18} color="black" /> Ngày:{" "}
+              <Text className="font-semibold">{start.date}</Text>
+            </Text>
+
+            <Text className="text-lg text-gray-700 mt-2">
+              <Ionicons name="time-outline" size={18} color="black" /> Giờ chơi:{" "}
+              <Text className="font-semibold">
+                {start.time} - {end.time}
               </Text>
             </Text>
 

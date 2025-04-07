@@ -1,6 +1,6 @@
 import { View, Text, Alert } from "react-native";
 import React, { useContext, useState } from "react";
-import { Button, Dialog, CheckBox } from "@rneui/themed";
+import { Button, Dialog } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -33,6 +33,7 @@ export default function PaymentDialog({
 
   const [selectedTables, toggleTableSelection, clearSelectedTables] =
     useContext(TableContext);
+
   const handleConfirm = async () => {
     try {
       if (!user) {
@@ -46,7 +47,6 @@ export default function PaymentDialog({
               onPress: () => {},
               style: "cancel",
             },
-            // { text: "Đăng nhập", onPress: () => navigation.navigate("login") },
           ],
         );
       } else {
@@ -85,7 +85,6 @@ export default function PaymentDialog({
           },
           style: "cancel",
         },
-        // { text: "Đăng nhập", onPress: () => navigation.navigate("login") },
       ]);
     }
   };

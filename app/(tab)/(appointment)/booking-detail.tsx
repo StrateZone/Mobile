@@ -7,24 +7,37 @@ import {
   SafeAreaView,
   Alert,
 } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useNavigation,
+  RouteProp,
+} from "@react-navigation/native";
 import { Button } from "@rneui/themed";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Toast from "react-native-toast-message";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 import { useAuth } from "@/context/auth-context";
+import PaymentDialog from "@/components/dialog/payment_dialog";
+import { TableContext } from "@/context/select-table";
 
 import { ChessTable } from "@/constants/types/chess_table";
-import { TableContext } from "@/context/select-table";
-import PaymentDialog from "@/components/dialog/payment_dialog";
+import { RootStackParamList } from "@/constants/types/root-stack";
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function BookingDetailScreen() {
-  const [selectedTables, removeSelectedTable] = useContext(TableContext);
-
-  const navigation = useNavigation();
+  const [
+    selectedTables,
+    toggleTableSelection,
+    clearSelectedTables,
+    removeSelectedTable,
+  ] = useContext(TableContext);
+  console.log(selectedTables);
+  const navigation = useNavigation<NavigationProp>();
   const { authState, onUpdateUserBalance } = useAuth();
   const user = authState?.user;
 
@@ -186,7 +199,18 @@ export default function BookingDetailScreen() {
                 </View>
 
                 <View className="mt-3 flex-row justify-around">
-                  <AntDesign name="adduser" size={30} color="black" />
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("find_opponents", {
+                        tableId: table.tableId,
+                        startDate: table.startDate,
+                        endDate: table.endDate,
+                      })
+                    }
+                  >
+                    <AntDesign name="adduser" size={30} color="black" />
+                  </TouchableOpacity>
+
                   <Text className="font-bold text-green-600 mt-1 text-xl flex-row items-center">
                     <FontAwesome5
                       name="money-bill-wave"

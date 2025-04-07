@@ -12,27 +12,28 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth-context";
 import { getRequest } from "@/helpers/api-requests";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "@/constants/types/root-stack";
 import { Card } from "@rneui/themed";
+import { Fold } from "react-native-animated-spinkit";
 
-const TRANSACTION_TYPE = {
-  0: "Nạp tiền",
-  1: "Rút tiền",
-};
-const TRANSLATED_CONTENT = {
+import { RootStackParamList } from "@/constants/types/root-stack";
+import { Transaction } from "@/constants/types/transaction";
+
+const TRANSLATED_CONTENT: Record<string, string> = {
   "Paid booking": "Thanh toán đặt chỗ",
   "Transaction for: Deposite": "Nạp tiền",
 };
 
-const translateContent = (content) => {
+const translateContent = (content: string): string => {
   const bookingMatch = content.match(/(Paid booking) (\d+): (.+)/);
   if (bookingMatch) {
-    return `${TRANSLATED_CONTENT[bookingMatch[1]]} ${bookingMatch[2]}: ${bookingMatch[3]}`;
+    const translated = TRANSLATED_CONTENT[bookingMatch[1]];
+    return `${translated ?? bookingMatch[1]} ${bookingMatch[2]}: ${bookingMatch[3]}`;
   }
 
   const depositMatch = content.match(/(Transaction for: Deposite): (\d+)/);
   if (depositMatch) {
-    return `${TRANSLATED_CONTENT[depositMatch[1]]}: ${depositMatch[2]}`;
+    const translated = TRANSLATED_CONTENT[depositMatch[1]];
+    return `${translated ?? depositMatch[1]}: ${depositMatch[2]}`;
   }
 
   return content;
@@ -45,7 +46,7 @@ export default function BalanceMovementHistory() {
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
 
-  const [balanceHistory, setBalanceHistory] = useState([]);
+  const [balanceHistory, setBalanceHistory] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -85,8 +86,8 @@ export default function BalanceMovementHistory() {
           Biến động số dư
         </Text>
         {isLoading ? (
-          <View className="flex items-center justify-center py-10">
-            <ActivityIndicator size="large" color="#4F46E5" />
+          <View className="flex justify-center items-center">
+            <Fold size={48} color="#000000" />
           </View>
         ) : (
           <ScrollView className="space-y-4">

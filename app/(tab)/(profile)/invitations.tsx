@@ -20,12 +20,12 @@ import { RootStackParamList } from "@/constants/types/root-stack";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function AppointmentHistory() {
+export default function Invitations() {
   const { authState } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
 
-  const [appointments, setAppointments] = useState<Apointment[]>([]);
+  const [invitations, setInvitations] = useState<[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [orderBy, setOrderBy] = useState<string>("created-at-desc");
 
@@ -34,14 +34,14 @@ export default function AppointmentHistory() {
       try {
         setIsLoading(true);
         const response = await getRequest(
-          `/appointments/users/${user?.userId}`,
+          `/appointmentrequests/to/${user?.userId}`,
           {
             "page-size": 50,
             "order-by": orderBy,
           },
         );
         if (response?.pagedList) {
-          setAppointments(response?.pagedList);
+          setInvitations(response?.pagedList);
         }
       } catch (error) {
         console.error("Lỗi khi lấy lịch sử đặt bàn:", error);
@@ -86,7 +86,7 @@ export default function AppointmentHistory() {
         </TouchableOpacity>
 
         <Text className="text-2xl font-bold text-center text-black mb-5">
-          Lịch sử đặt bàn
+          Lời mời đặt bàn
         </Text>
 
         <View className="flex-row items-center justify-between mb-4">
@@ -110,55 +110,96 @@ export default function AppointmentHistory() {
           </View>
         ) : (
           <ScrollView className="flex-1">
-            {appointments.length > 0 ? (
-              appointments.map((item) => {
-                const statusColor = statusColors[item.status] || "gray";
-                const statusText =
-                  statusTextMap[item.status] || "Không xác định";
+            {invitations.length > 0 ? (
+              invitations.map((item) => {
+                const fullName = item.fromUserNavigation?.fullName;
+                const status = item.status;
+                const statusColor = statusColors[status];
+                const statusText = statusTextMap[status];
+
                 return (
                   <View
-                    key={item.appointmentId}
+                    key={item.id}
                     className="bg-white p-4 rounded-lg shadow-md mb-4 border-l-4"
-                    style={{
-                      borderColor: statusColor,
-                    }}
+                    style={{ borderColor: statusColor }}
                   >
                     <Text className="text-lg font-bold text-gray-900">
-                      Mã đơn: {item.appointmentId}
+                      Người gửi: {fullName}
                     </Text>
                     <Text className="text-sm text-gray-600">
-                      Ngày tạo: {new Date(item.createdAt).toLocaleString()}
-                    </Text>
-                    <Text className="text-sm text-gray-600">
-                      Số bàn: {item.tablesAppointments.length}
-                    </Text>
-                    <Text className="text-sm text-gray-600">
-                      Tổng giá: {item.totalPrice.toLocaleString()} VND
+                      Ngày gửi: {new Date(item.createdAt).toLocaleString()}
                     </Text>
                     <Text
-                      className="text-sm font-bold"
+                      className="text-sm font-bold mb-2"
                       style={{ color: statusColor }}
                     >
                       Trạng thái: {statusText}
                     </Text>
-                    <TouchableOpacity
-                      className="mt-3 bg-black text-white px-4 py-2 rounded-full"
-                      onPress={() =>
-                        navigation.navigate("appointment_detail", {
-                          appointmentId: item.appointmentId,
-                        })
-                      }
-                    >
-                      <Text className="text-white text-center font-semibold">
-                        Xem chi tiết
-                      </Text>
-                    </TouchableOpacity>
+
+                    <View className="flex-row flex-wrap gap-2 justify-start items-center">
+                      <TouchableOpacity
+                        className="flex-row items-center bg-black px-4 py-2 rounded-full"
+                        onPress={() => {
+                          if (item.appointmentId) {
+                            navigation.navigate("appointment_detail", {
+                              appointmentId: item.appointmentId,
+                            });
+                          }
+                        }}
+                      >
+                        <Ionicons
+                          name="eye"
+                          size={18}
+                          color="white"
+                          className="mr-1"
+                        />
+                        <Text className="text-white font-semibold ml-1">
+                          Xem
+                        </Text>
+                      </TouchableOpacity>
+
+                      {status === "active" && (
+                        <>
+                          <TouchableOpacity
+                            className="flex-row items-center bg-green-600 px-4 py-2 rounded-full"
+                            onPress={() => {
+                              console.log("Đồng ý lời mời", item.id);
+                            }}
+                          >
+                            <FontAwesome5
+                              name="check"
+                              size={16}
+                              color="white"
+                            />
+                            <Text className="text-white font-semibold ml-2">
+                              Đồng ý
+                            </Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            className="flex-row items-center bg-red-500 px-4 py-2 rounded-full"
+                            onPress={() => {
+                              console.log("Từ chối lời mời", item.id);
+                            }}
+                          >
+                            <FontAwesome5
+                              name="times"
+                              size={16}
+                              color="white"
+                            />
+                            <Text className="text-white font-semibold ml-2">
+                              Từ chối
+                            </Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                    </View>
                   </View>
                 );
               })
             ) : (
               <Text className="text-center text-gray-500">
-                Chưa có lịch sử đặt bàn.
+                Chưa có lời mời đặt bàn.
               </Text>
             )}
           </ScrollView>

@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { View, Image, Animated, ActivityIndicator, Text } from "react-native";
 
 import icon from "../assets/images/splash-icon.webp";
+import { Chase } from "react-native-animated-spinkit";
 
 export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
   const fadeAnimation = useRef(new Animated.Value(0)).current;
@@ -52,7 +53,9 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
         StrateZone
       </Animated.Text>
 
-      <ActivityIndicator size="large" color="black" className="mt-4" />
+      <View className="flex justify-center items-center">
+        <Chase size={48} color="#000000" />
+      </View>
     </View>
   );
 }

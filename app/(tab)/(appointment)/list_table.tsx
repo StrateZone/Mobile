@@ -1,14 +1,9 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  SafeAreaView,
-  Animated,
-  ActivityIndicator,
-} from "react-native";
+import { View, ScrollView, SafeAreaView, Animated } from "react-native";
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Fold } from "react-native-animated-spinkit";
 
 import TableCard from "@/components/card/table_card";
 import { getRequest } from "@/helpers/api-requests";
@@ -50,7 +45,7 @@ export default function ListTableScreen({ route }: Props) {
   const defaultEndDate = createDateTime(selectedDateObj, EndTime);
 
   const [chessTables, setChessTable] = useState<ChessTable[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [roomType, setRoomTypes] = useState(mapRoomTypesToEnglish(roomTypes));
   const [gameTypeFilter, setGameTypeFilter] = useState<string>(
     mapGameTypeToEnglish(gameType),
@@ -133,11 +128,11 @@ export default function ListTableScreen({ route }: Props) {
         </View>
 
         {isLoading ? (
-          <View className="flex items-center justify-center py-10">
-            <ActivityIndicator size="large" color="#4F46E5" />
+          <View className="flex justify-center items-center mt-32">
+            <Fold size={48} color="#000000" />
           </View>
         ) : (
-          <ScrollView className="flex-1">
+          <ScrollView className="flex-1 mb-14">
             {chessTables.map((table) => (
               <TableCard
                 key={table.tableId}
@@ -157,6 +152,10 @@ export default function ListTableScreen({ route }: Props) {
         {selectedTables.length > 0 && (
           <Animated.View
             style={{
+              position: "absolute",
+              bottom: 0,
+              left: 20,
+              right: 20,
               transform: [
                 {
                   scale: buttonAnim.interpolate({

@@ -11,6 +11,8 @@ import BookingDetail from "./booking-detail";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import TableDetail from "./table_detail";
 import PaymentSuccessScreen from "./payment_successfull";
+import FindOpponent from "./find-opponents";
+import OpponentInvited from "./opponent_invited";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -69,6 +71,24 @@ export default function AppointmentLayout() {
       <Stack.Screen
         name="payment_successfull"
         component={PaymentSuccessScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="find_opponents"
+        component={FindOpponent}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="opponent_invited"
+        component={OpponentInvited}
         options={{
           headerShown: false,
           gestureEnabled: false,

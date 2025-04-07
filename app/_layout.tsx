@@ -60,8 +60,8 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider theme={theme}>
-      <TableProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <TableProvider>
           <Drawer.Navigator
             drawerContent={(props) => <CustomDrawerContent {...props} />}
             screenOptions={{
@@ -153,8 +153,8 @@ export default function RootLayout() {
             />
           </Drawer.Navigator>
           <Toast />
-        </AuthProvider>
-      </TableProvider>
+        </TableProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

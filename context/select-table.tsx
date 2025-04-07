@@ -2,12 +2,19 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ChessTable } from "@/constants/types/chess_table";
 import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
+
+import { putRequest } from "@/helpers/api-requests";
+import { useAuth } from "./auth-context";
 
 const STORAGE_KEY = "selectedTables";
 
 export const TableContext = createContext<any[]>([]);
 
 export const TableProvider = ({ children }: any) => {
+  const { authState } = useAuth();
+  const user = authState?.user;
+
   const [selectedTables, setSelectedTables] = useState<any[]>([]);
 
   useEffect(() => {
@@ -73,30 +80,97 @@ export const TableProvider = ({ children }: any) => {
     }
   };
 
-  const removeSelectedTable = async (table: ChessTable) => {
-    try {
-      const updatedTables = selectedTables.filter(
-        (t) =>
-          !(
-            t.tableId === table.tableId &&
-            t.startDate === table.startDate &&
-            t.endDate === table.endDate
-          ),
-      );
-      setSelectedTables(updatedTables);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTables));
-    } catch (error) {
-      console.error("Error removing selected table:", error);
-    }
+  const removeSelectedTable = (table: ChessTable) => {
+    Alert.alert(
+      "Xác nhận",
+      "Nếu hủy chọn bàn này, tất cả lời mời sẽ bị hủy.",
+      [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Đồng ý",
+          onPress: async () => {
+            try {
+              putRequest(
+                `/appointmentrequests/cancel-all/users/${user?.userId}/tables/${table.tableId}`,
+                {},
+              )
+                .then(() => {
+                  Toast.show({
+                    type: "success",
+                    text1: "Hủy thành công",
+                    text2: `Đã hủy chọn bàn ${table.tableId}`,
+                  });
+                })
+                .catch((e) => {
+                  console.error(e);
+                });
+
+              const updatedTables = selectedTables.filter(
+                (t) =>
+                  !(
+                    t.tableId === table.tableId &&
+                    t.startDate === table.startDate &&
+                    t.endDate === table.endDate
+                  ),
+              );
+              setSelectedTables(updatedTables);
+              await AsyncStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(updatedTables),
+              );
+            } catch (error) {
+              console.error("Error removing selected table:", error);
+            }
+          },
+          style: "destructive",
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
-  const clearSelectedTables = async () => {
-    try {
-      setSelectedTables([]);
-      await AsyncStorage.removeItem(STORAGE_KEY);
-    } catch (error) {
-      console.error("Error clearing selected tables:", error);
-    }
+  const clearSelectedTables = () => {
+    Alert.alert(
+      "Xác nhận",
+      "Nếu hủy tất cả bàn, tất cả lời mời sẽ bị hủy.",
+      [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Đồng ý",
+          onPress: async () => {
+            try {
+              putRequest(
+                `/appointmentrequests/cancel-all/users/${user!.userId}`,
+                {},
+              )
+                .then(() => {
+                  Toast.show({
+                    type: "success",
+                    text1: "Hủy thành công",
+                    text2: `Đã hủy toàn bộ bàn đã chọn`,
+                  });
+                })
+                .catch((e) => {
+                  console.error(e);
+                });
+
+              setSelectedTables([]);
+              await AsyncStorage.removeItem(STORAGE_KEY);
+            } catch (error) {
+              console.error("Error clearing selected tables:", error);
+            }
+          },
+          style: "destructive",
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   return (
