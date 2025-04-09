@@ -19,6 +19,7 @@ export const getRequest = async (
       }
     }
   }
+
   const { data } = await axios.get(
     `${config.BACKEND_API}/api${path}?${params.toString()}`,
   );

@@ -34,8 +34,13 @@ export default function TableDetail({ route }: Props) {
   const navigation = useNavigation<NavigationProp>();
   const { tableId, startDate, endDate } = route.params;
 
-  const [selectedTables, toggleTableSelection, clearSelectedTables] =
-    useContext(TableContext);
+  const [
+    selectedTables,
+    toggleTableSelection,
+    clearSelectedTables,
+    removeSelectedTable,
+    clearSelectedTablesWithNoInvite,
+  ] = useContext(TableContext);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [tableDetail, setTableDetail] = useState<ChessTable>();

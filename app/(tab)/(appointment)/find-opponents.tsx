@@ -5,8 +5,9 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ScrollView,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,8 +16,10 @@ import { Fold } from "react-native-animated-spinkit";
 import { useAuth } from "@/context/auth-context";
 import { Opponents } from "@/constants/types/opponent";
 import { RootStackParamList } from "@/constants/types/root-stack";
-import { getRequest, postRequest } from "@/helpers/api-requests";
+import { getRequest } from "@/helpers/api-requests";
 import Toast from "react-native-toast-message";
+import { TableContext } from "@/context/select-table";
+import { ChessTable } from "@/constants/types/chess_table";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "find_opponents">;
@@ -25,19 +28,45 @@ type Props = {
   route: ListTableRouteProp;
 };
 
+type MatchingOpponents = {
+  basic: Opponents[];
+  silver: Opponents[];
+  gold?: Opponents[];
+  platinum?: Opponents[];
+  diamond?: Opponents[];
+};
+
 export default function FindOpponent({ route }: Props) {
-  const { tableId, startDate, endDate } = route.params;
+  const { tableId, startDate, endDate, tablePrice } = route.params;
+
   const { authState } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
 
-  const [opponents, setOpponents] = useState<Opponents[]>([]);
+  const [
+    selectedTables,
+    toggleTableSelection,
+    removeSelectedTable,
+    clearSelectedTables,
+    clearSelectedTablesWithNoInvite,
+    addInvitedUser,
+    removeInvitedUser,
+  ] = useContext(TableContext);
+
+  const [opponents, setOpponents] = useState<MatchingOpponents>({
+    basic: [],
+    silver: [],
+    gold: [],
+    platinum: [],
+    diamond: [],
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [excludedIds, setExcludedIds] = useState<[]>([]);
+  const [excludedIds, setExcludedIds] = useState<number[]>([]);
 
   const handleGetUserForInvite = async () => {
     setIsLoading(true);
-    getRequest(`/users/by-ranking/random/${user?.userId}/table/${tableId}`, {
+    getRequest(`/users/by-ranking/random/${user?.userId}/tables/${tableId}`, {
       StartTime: startDate,
       EndTime: endDate,
       ranking: user?.ranking,
@@ -45,9 +74,9 @@ export default function FindOpponent({ route }: Props) {
       up: 1,
       down: 1,
     })
-      .then((opponent) => {
-        setOpponents(opponent.matchingOpponents);
-        setExcludedIds(opponent.excludedIds);
+      .then((response) => {
+        setOpponents(response.matchingOpponents);
+        setExcludedIds(response.excludedIds);
         setIsLoading(false);
       })
       .catch(() => {
@@ -63,23 +92,19 @@ export default function FindOpponent({ route }: Props) {
     if (!user) return;
 
     try {
-      const payload = {
-        fromUser: user.userId,
-        toUser: toUserId,
-        tableId,
-        startTime: startDate,
-        endTime: endDate,
-      };
+      await addInvitedUser(tableId, toUserId);
 
-      await postRequest("/appointmentrequests", payload);
-
-      setOpponents((prev) =>
-        prev.map((opponent) =>
+      const updatedOpponents = { ...opponents };
+      Object.keys(updatedOpponents).forEach((rank) => {
+        updatedOpponents[rank as keyof MatchingOpponents] = updatedOpponents[
+          rank as keyof MatchingOpponents
+        ].map((opponent) =>
           opponent.userId === toUserId
             ? { ...opponent, isInvited: true }
             : opponent,
-        ),
-      );
+        );
+      });
+      setOpponents(updatedOpponents);
 
       Toast.show({
         type: "success",
@@ -89,6 +114,56 @@ export default function FindOpponent({ route }: Props) {
     } catch (error) {
       console.error("Lỗi khi gửi lời mời:", error);
     }
+  };
+
+  const isUserInvited = (userId: number) => {
+    const table = selectedTables.find((t: ChessTable) => t.tableId === tableId);
+    return table?.invitedUsers?.includes(userId) || false;
+  };
+
+  const renderOpponentList = (rank: string, opponents: Opponents[]) => {
+    if (!opponents.length) return null;
+
+    return (
+      <View className="mb-4">
+        <Text className="text-lg font-semibold text-black mb-2">
+          Cấp bậc {rank.charAt(0).toUpperCase() + rank.slice(1)}
+        </Text>
+        {opponents.map((opponent) => (
+          <View
+            key={opponent.userId}
+            className="flex-row items-center bg-white p-4 rounded-lg shadow-md mb-3 border border-gray-300"
+          >
+            <Image
+              source={{
+                uri:
+                  opponent.avatarUrl ||
+                  "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+              }}
+              className="w-12 h-12 rounded-full border-2 border-blue-500 mr-3"
+            />
+
+            <View className="flex-1">
+              <Text className="text-lg font-semibold text-black">
+                {opponent.fullName || "Không có tên"}
+              </Text>
+              <Text className="text-gray-500">Cấp bậc: {opponent.ranking}</Text>
+            </View>
+
+            {isUserInvited(opponent.userId) ? (
+              <Text className="text-green-500 font-semibold">Đã mời</Text>
+            ) : (
+              <TouchableOpacity
+                onPress={() => handleInvite(opponent.userId)}
+                className="p-2 bg-gray-200 rounded-full"
+              >
+                <Ionicons name="paper-plane" size={20} color="black" />
+              </TouchableOpacity>
+            )}
+          </View>
+        ))}
+      </View>
+    );
   };
 
   return (
@@ -137,53 +212,16 @@ export default function FindOpponent({ route }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* <TouchableOpacity
-          onPress={handleGetUserForInvite}
-          className="mb-5 bg-green-500 p-2 rounded-full flex-row items-center justify-center"
-        >
-          <Ionicons name="refresh" size={24} color="white" />
-          <Text className="text-white ml-2">Tải lại danh sách đối thủ đã mời</Text>
-        </TouchableOpacity> */}
-
         {isLoading ? (
           <View className="flex justify-center items-center mt-32">
             <Fold size={48} color="#000000" />
           </View>
         ) : (
-          <FlatList
-            data={opponents}
-            keyExtractor={(item) => item.userId.toString()}
-            renderItem={({ item }) => (
-              <View className="flex-row items-center bg-white p-4 rounded-lg shadow-md mb-3 border border-gray-300">
-                <Image
-                  source={{
-                    uri:
-                      item.avatarUrl ||
-                      "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
-                  }}
-                  className="w-12 h-12 rounded-full border-2 border-blue-500 mr-3"
-                />
-
-                <View className="flex-1">
-                  <Text className="text-lg font-semibold text-black">
-                    {item.fullName || "Không có tên"}
-                  </Text>
-                  <Text className="text-gray-500">Cấp bậc: {item.ranking}</Text>
-                </View>
-
-                {item.isInvited ? (
-                  <Text className="text-green-500 font-semibold">Đã mời</Text>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => handleInvite(item.userId)}
-                    className="p-2 bg-gray-200 rounded-full"
-                  >
-                    <Ionicons name="paper-plane" size={20} color="black" />
-                  </TouchableOpacity>
-                )}
-              </View>
+          <ScrollView>
+            {Object.entries(opponents).map(([rank, opponents]) =>
+              renderOpponentList(rank, opponents),
             )}
-          />
+          </ScrollView>
         )}
       </View>
     </SafeAreaView>

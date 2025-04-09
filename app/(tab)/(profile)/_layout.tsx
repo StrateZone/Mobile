@@ -12,6 +12,7 @@ import ApointmentHistory from "./appointment_history";
 import AppointmentDetail from "./appointment_history_detail";
 import BalanceMovementHistory from "./balance_movement_history";
 import Invitations from "./invitations";
+import InvitationsDetail from "./invitations_detail";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -82,6 +83,15 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="invitations"
         component={Invitations}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="invitations_detail"
+        component={InvitationsDetail}
         options={{
           headerShown: false,
           gestureEnabled: false,

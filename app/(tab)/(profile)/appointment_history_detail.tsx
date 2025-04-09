@@ -23,25 +23,25 @@ type Props = {
 };
 
 const statusColors: Record<string, string> = {
-  pending: "#b58900",
-  confirmed: "green",
-  checked_in: "teal",
-  completed: "blue",
-  cancelled: "red",
-  unpaid: "gray",
-  expired: "purple",
-  refunded: "orange",
+  pending: "#facc15",
+  confirmed: "#10b981",
+  incoming: "#0ea5e9",
+  completed: "#22c55e",
+  expired: "#64748b",
+  cancelled: "#6b7280",
+  refunded: "#8b5cf6",
+  incompleted: "#ef4444",
 };
 
 const statusTextMap: Record<string, string> = {
-  pending: "Chờ xác nhận",
-  confirmed: "Đã xác nhận",
-  checked_in: "Đã check-in",
+  pending: "Đang chờ thanh toán",
+  confirmed: "Đã thanh toán",
+  incoming: "Sắp diễn ra",
+  expired: "Hết hạn",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
-  unpaid: "Chưa thanh toán",
-  expired: "Đã hết hạn",
   refunded: "Đã hoàn tiền",
+  incompleted: "Chưa hoàn tất",
 };
 
 export default function AppointmentDetail({ route }: Props) {

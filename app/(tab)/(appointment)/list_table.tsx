@@ -30,8 +30,13 @@ export default function ListTableScreen({ route }: Props) {
   const { gameType, roomTypes, selectedDate, StartTime, EndTime } =
     route.params;
 
-  const [selectedTables, toggleTableSelection, clearSelectedTables] =
-    useContext(TableContext);
+  const [
+    selectedTables,
+    toggleTableSelection,
+    removeSelectedTable,
+    clearSelectedTables,
+    clearSelectedTablesWithNoInvite,
+  ] = useContext(TableContext);
 
   const selectedDateObj = new Date(selectedDate);
 

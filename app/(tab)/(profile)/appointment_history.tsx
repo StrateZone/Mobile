@@ -58,6 +58,7 @@ export default function AppointmentHistory() {
     confirmed: "green",
     checked_in: "teal",
     completed: "blue",
+    incompleted: "#ef4444",
     cancelled: "red",
     unpaid: "gray",
     expired: "purple",
@@ -69,6 +70,7 @@ export default function AppointmentHistory() {
     confirmed: "Đã xác nhận",
     checked_in: "Đã check-in",
     completed: "Hoàn thành",
+    incompleted: "Chưa hoàn thành",
     cancelled: "Đã hủy",
     unpaid: "Chưa thanh toán",
     expired: "Đã hết hạn",
@@ -84,11 +86,9 @@ export default function AppointmentHistory() {
         >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-
         <Text className="text-2xl font-bold text-center text-black mb-5">
           Lịch sử đặt bàn
         </Text>
-
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-1 mr-2"></View>
           <Button
@@ -103,7 +103,6 @@ export default function AppointmentHistory() {
             buttonStyle={{ backgroundColor: "black", borderRadius: 10 }}
           />
         </View>
-
         {isLoading ? (
           <View className="flex justify-center items-center">
             <Fold size={48} color="#000000" />
@@ -113,6 +112,7 @@ export default function AppointmentHistory() {
             {appointments.length > 0 ? (
               appointments.map((item) => {
                 const statusColor = statusColors[item.status] || "gray";
+
                 const statusText =
                   statusTextMap[item.status] || "Không xác định";
                 return (

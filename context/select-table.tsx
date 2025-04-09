@@ -70,13 +70,56 @@ export const TableProvider = ({ children }: any) => {
           return;
         }
 
-        updatedTables.push(table);
+        updatedTables.push({
+          ...table,
+          invitedUsers: [],
+        });
       }
 
       setSelectedTables(updatedTables);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTables));
     } catch (error) {
       console.error("Error toggling table selection:", error);
+    }
+  };
+
+  const addInvitedUser = async (tableId: number, userId: number) => {
+    try {
+      const updatedTables = selectedTables.map((table) => {
+        if (table.tableId === tableId) {
+          return {
+            ...table,
+            invitedUsers: [...(table.invitedUsers || []), userId],
+          };
+        }
+        return table;
+      });
+
+      setSelectedTables(updatedTables);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTables));
+    } catch (error) {
+      console.error("Error adding invited user:", error);
+    }
+  };
+
+  const removeInvitedUser = async (tableId: number, userId: number) => {
+    try {
+      const updatedTables = selectedTables.map((table) => {
+        if (table.tableId === tableId) {
+          return {
+            ...table,
+            invitedUsers: (table.invitedUsers || []).filter(
+              (id) => id !== userId,
+            ),
+          };
+        }
+        return table;
+      });
+
+      setSelectedTables(updatedTables);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTables));
+    } catch (error) {
+      console.error("Error removing invited user:", error);
     }
   };
 
@@ -93,21 +136,6 @@ export const TableProvider = ({ children }: any) => {
           text: "Đồng ý",
           onPress: async () => {
             try {
-              putRequest(
-                `/appointmentrequests/cancel-all/users/${user?.userId}/tables/${table.tableId}`,
-                {},
-              )
-                .then(() => {
-                  Toast.show({
-                    type: "success",
-                    text1: "Hủy thành công",
-                    text2: `Đã hủy chọn bàn ${table.tableId}`,
-                  });
-                })
-                .catch((e) => {
-                  console.error(e);
-                });
-
               const updatedTables = selectedTables.filter(
                 (t) =>
                   !(
@@ -145,21 +173,6 @@ export const TableProvider = ({ children }: any) => {
           text: "Đồng ý",
           onPress: async () => {
             try {
-              putRequest(
-                `/appointmentrequests/cancel-all/users/${user!.userId}`,
-                {},
-              )
-                .then(() => {
-                  Toast.show({
-                    type: "success",
-                    text1: "Hủy thành công",
-                    text2: `Đã hủy toàn bộ bàn đã chọn`,
-                  });
-                })
-                .catch((e) => {
-                  console.error(e);
-                });
-
               setSelectedTables([]);
               await AsyncStorage.removeItem(STORAGE_KEY);
             } catch (error) {
@@ -173,13 +186,25 @@ export const TableProvider = ({ children }: any) => {
     );
   };
 
+  const clearSelectedTablesWithNoInvite = async () => {
+    try {
+      setSelectedTables([]);
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error("Error clearing selected tables:", error);
+    }
+  };
+
   return (
     <TableContext.Provider
       value={[
         selectedTables,
         toggleTableSelection,
-        clearSelectedTables,
         removeSelectedTable,
+        clearSelectedTables,
+        clearSelectedTablesWithNoInvite,
+        addInvitedUser,
+        removeInvitedUser,
       ]}
     >
       {children}

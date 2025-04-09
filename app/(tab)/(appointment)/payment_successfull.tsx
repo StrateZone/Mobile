@@ -43,7 +43,7 @@ export default function PaymentSuccessScreen() {
           Tiếp tục đặt bàn
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         className="bg-green-500 px-6 py-3 rounded-full mt-6"
         onPress={() => {
           navigation.navigate("Profile", {
@@ -54,7 +54,7 @@ export default function PaymentSuccessScreen() {
         <Text className="text-white text-lg font-semibold">
           Lịch sử đặt bàn
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }

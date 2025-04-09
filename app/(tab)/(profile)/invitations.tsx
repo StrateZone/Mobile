@@ -4,16 +4,20 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth-context";
-import { getRequest } from "@/helpers/api-requests";
+import { getRequest, putRequest } from "@/helpers/api-requests";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Button, Icon } from "@rneui/themed";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Fold } from "react-native-animated-spinkit";
+import Toast from "react-native-toast-message";
+
+import PaymentDialogForInvited from "@/components/dialog/payment_dialog_for_invited";
 
 import { Apointment } from "@/constants/types/apointment";
 import { RootStackParamList } from "@/constants/types/root-stack";
@@ -28,51 +32,104 @@ export default function Invitations() {
   const [invitations, setInvitations] = useState<[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [orderBy, setOrderBy] = useState<string>("created-at-desc");
+  const [opneDialog, setOpenDialog] = useState(false);
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getRequest(
-          `/appointmentrequests/to/${user?.userId}`,
-          {
-            "page-size": 50,
-            "order-by": orderBy,
-          },
-        );
-        if (response?.pagedList) {
-          setInvitations(response?.pagedList);
-        }
-      } catch (error) {
-        console.error("Lỗi khi lấy lịch sử đặt bàn:", error);
-      } finally {
-        setIsLoading(false);
+  const fetchAppointments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getRequest(
+        `/appointmentrequests/to/${user?.userId}`,
+        {
+          "page-size": 50,
+          "order-by": orderBy,
+        },
+      );
+      if (response?.pagedList) {
+        setInvitations(response?.pagedList);
       }
-    };
-
+    } catch (error) {
+      console.error("Lỗi khi lấy lịch sử đặt bàn:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchAppointments();
   }, [user]);
 
+  const handleAccept = async (invitationId: number) => {
+    setIsLoading(true);
+    await putRequest(`/appointmentrequests/accept/${invitationId}`, {})
+      .then(() => {
+        setIsLoading(false);
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: `Đã đồng ý lời mời`,
+        });
+        fetchAppointments();
+      })
+
+      .catch((e) => {
+        setIsLoading(false);
+        console.error(e);
+      });
+  };
+
+  const handleReject = async (invitationId: number) => {
+    setIsLoading(true);
+    await putRequest(`/appointmentrequests/reject/${invitationId}`, {})
+      .then(() => {
+        setIsLoading(false);
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: `Đã từ chối lời mời`,
+        });
+        fetchAppointments();
+      })
+      .catch((e) => {
+        setIsLoading(false);
+        console.error(e);
+      });
+  };
+
+  const handlePayment = async (invitationId: number) => {
+    setIsLoading(true);
+    await putRequest(`/appointmentrequests/reject/${invitationId}`, {})
+      .then(() => {
+        setIsLoading(false);
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: `Đã từ chối lời mời`,
+        });
+        fetchAppointments();
+      })
+      .catch((e) => {
+        setIsLoading(false);
+        console.error(e);
+      });
+  };
+
   const statusColors: Record<string, string> = {
     pending: "#b58900",
-    confirmed: "green",
-    checked_in: "teal",
-    completed: "blue",
-    cancelled: "red",
-    unpaid: "gray",
+    accepted: "green",
+    rejected: "red",
+    cancelled: "gray",
     expired: "purple",
-    refunded: "orange",
+    payment_required: "orange",
+    await_appointment_creation: "blue",
   };
 
   const statusTextMap: Record<string, string> = {
-    pending: "Chờ xác nhận",
-    confirmed: "Đã xác nhận",
-    checked_in: "Đã check-in",
-    completed: "Hoàn thành",
+    pending: "Chờ xử lý",
+    accepted: "Đã chấp nhận",
+    rejected: "Bị từ chối",
     cancelled: "Đã hủy",
-    unpaid: "Chưa thanh toán",
     expired: "Đã hết hạn",
-    refunded: "Đã hoàn tiền",
+    payment_required: "Cần thanh toán",
+    await_appointment_creation: "Chờ tạo lịch hẹn",
   };
 
   return (
@@ -89,29 +146,14 @@ export default function Invitations() {
           Lời mời đặt bàn
         </Text>
 
-        <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-1 mr-2"></View>
-          <Button
-            icon={
-              <FontAwesome5
-                name="sort-amount-down-alt"
-                size={20}
-                type="feather"
-                color="white"
-              />
-            }
-            buttonStyle={{ backgroundColor: "black", borderRadius: 10 }}
-          />
-        </View>
-
         {isLoading ? (
-          <View className="flex justify-center items-center">
+          <View className="flex justify-center items-center mt-32">
             <Fold size={48} color="#000000" />
           </View>
         ) : (
-          <ScrollView className="flex-1">
+          <ScrollView className="flex-1 mt-10">
             {invitations.length > 0 ? (
-              invitations.map((item) => {
+              invitations.map((item: any) => {
                 const fullName = item.fromUserNavigation?.fullName;
                 const status = item.status;
                 const statusColor = statusColors[status];
@@ -140,11 +182,21 @@ export default function Invitations() {
                       <TouchableOpacity
                         className="flex-row items-center bg-black px-4 py-2 rounded-full"
                         onPress={() => {
-                          if (item.appointmentId) {
-                            navigation.navigate("appointment_detail", {
-                              appointmentId: item.appointmentId,
-                            });
-                          }
+                          navigation.navigate("invitations_detail", {
+                            invitationId: item.id,
+                            avatarUrl: item.fromUserNavigation.avatarUrl,
+                            fullName: item.fromUserNavigation.fullName,
+                            email: item.fromUserNavigation.email,
+                            phone: item.fromUserNavigation.phone,
+                            tableId: item.table.tableId,
+                            roomId: item.table.roomId,
+                            roomName: item.table.roomName,
+                            roomType: item.table.roomType,
+                            startTime: item.startTime,
+                            endTime: item.endTime,
+                            createdAt: item.createdAt,
+                            status: status,
+                          });
                         }}
                       >
                         <Ionicons
@@ -158,13 +210,11 @@ export default function Invitations() {
                         </Text>
                       </TouchableOpacity>
 
-                      {status === "active" && (
+                      {status === "pending" && (
                         <>
                           <TouchableOpacity
                             className="flex-row items-center bg-green-600 px-4 py-2 rounded-full"
-                            onPress={() => {
-                              console.log("Đồng ý lời mời", item.id);
-                            }}
+                            onPress={() => handleAccept(item.id)}
                           >
                             <FontAwesome5
                               name="check"
@@ -178,9 +228,7 @@ export default function Invitations() {
 
                           <TouchableOpacity
                             className="flex-row items-center bg-red-500 px-4 py-2 rounded-full"
-                            onPress={() => {
-                              console.log("Từ chối lời mời", item.id);
-                            }}
+                            onPress={() => handleReject(item.id)}
                           >
                             <FontAwesome5
                               name="times"
@@ -193,7 +241,50 @@ export default function Invitations() {
                           </TouchableOpacity>
                         </>
                       )}
+
+                      {status === "payment_required" && (
+                        <>
+                          <TouchableOpacity
+                            className="flex-row items-center bg-blue-600 px-4 py-2 rounded-full"
+                            onPress={() => {
+                              if (
+                                item.totalPrice > (user?.wallet.balance || 0)
+                              ) {
+                                Alert.alert("Số dư không đủ để thanh toán!");
+                              } else {
+                                setOpenDialog(true);
+                              }
+                            }}
+                          >
+                            <FontAwesome5
+                              name="credit-card"
+                              size={16}
+                              color="white"
+                            />
+                            <Text className="text-white font-semibold ml-2">
+                              Thanh toán
+                            </Text>
+                          </TouchableOpacity>
+
+                          <Text className="text-sm font-semibold text-blue-600 mt-2">
+                            Tổng tiền:{" "}
+                            {item.totalPrice?.toLocaleString("vi-VN")} VND
+                          </Text>
+                        </>
+                      )}
                     </View>
+
+                    <PaymentDialogForInvited
+                      visible={opneDialog}
+                      roomName={item.table.roomName}
+                      roomType={item.table.roomType}
+                      startTime={item.startTime}
+                      endTime={item.endTime}
+                      fullName={item.fromUserNavigation.fullName}
+                      onClose={() => setOpenDialog(false)}
+                      setIsLoading={setIsLoading}
+                      totalPrice={item.totalPrice}
+                    />
                   </View>
                 );
               })

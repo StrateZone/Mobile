@@ -19,9 +19,29 @@ export type RootStackParamList = {
   deposit: { returnUrl: string };
   appointment_detail: { appointmentId: number };
   balance_movement_history: undefined;
+  invitations_detail: {
+    invitationId: number;
+    avatarUrl: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    tableId: number;
+    roomId: number;
+    roomName: string;
+    roomType: string;
+    startTime: string;
+    endTime: string;
+    createdAt: string;
+    status: string;
+  };
   //appointment
   home_booking: undefined;
-  find_opponents: { tableId: number; startDate: string; endDate: string };
+  find_opponents: {
+    tableId: number;
+    startDate: string;
+    endDate: string;
+    tablePrice: number;
+  };
   opponent_invited: { tableId: number; startDate: string; endDate: string };
   booking_detail: undefined;
   table_detail: { tableId: number; startDate: string; endDate: string };

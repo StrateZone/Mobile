@@ -1,3 +1,4 @@
+import { ChessTable } from "./chess_table";
 import { GameType } from "./game_type";
 
 export type TablesAppointment = {
@@ -16,6 +17,8 @@ export type TablesAppointment = {
   roomTypePrice: number;
   durationInHours: number;
   price: number;
+  table: ChessTable;
+  status: string;
   totalPrice: number;
 };
 

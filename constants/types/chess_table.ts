@@ -14,4 +14,5 @@ export type ChessTable = {
   durationInHours: number;
   totalPrice: number;
   roomDescription?: string;
+  invitedUsers?: number[];
 };
