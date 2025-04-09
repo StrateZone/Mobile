@@ -2,6 +2,7 @@ import { ChessTable } from "./chess_table";
 import { GameType } from "./game_type";
 
 export type TablesAppointment = {
+  id: number;
   tableId: number;
   roomId: number;
   roomName: string;
@@ -23,6 +24,7 @@ export type TablesAppointment = {
 };
 
 export type Apointment = {
+  id: number;
   appointmentId: number;
   userId: number;
   totalPrice: number;

@@ -62,7 +62,6 @@ export default function PaymentDialog({
         tablesAppointmentRequests: selectedTables.map((table: any) => {
           const hasInvitedUsers =
             table.invitedUsers && table.invitedUsers.length > 0;
-
           return {
             price: hasInvitedUsers ? table.totalPrice / 2 : table.totalPrice,
             tableId: table.tableId,
@@ -73,6 +72,7 @@ export default function PaymentDialog({
         }),
         totalPrice: totalPrice,
       };
+
       const response = await postRequest("/payments/booking-payment", payload);
 
       if (response.status === 200) {
