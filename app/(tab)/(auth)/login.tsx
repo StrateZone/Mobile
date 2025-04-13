@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
 import TextInputComponent from "@/components/input";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";

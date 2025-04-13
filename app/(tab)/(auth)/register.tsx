@@ -4,13 +4,13 @@ import TextInputComponent from "@/components/input";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import DefaultButton from "@/components/button/button";
 import { postRequest } from "@/helpers/api-requests";
 import { CheckBox } from "@rneui/themed";
 
 import { RootStackParamList } from "../../../constants/types/root-stack";
-import Ionicons from "@expo/vector-icons/Ionicons";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

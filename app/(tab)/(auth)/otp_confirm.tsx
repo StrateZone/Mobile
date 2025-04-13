@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRoute } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -10,11 +9,16 @@ import { useAuth } from "@/context/auth-context";
 import { RootStackParamList } from "../../../constants/types/root-stack";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+export type ConfirmOtpRouteProp = RouteProp<RootStackParamList, "Otp">;
 
-export default function OtpConfirmScreen() {
-  const route = useRoute();
-  const { email } = route.params as { email: string };
+export default function OtpConfirmScreen({
+  route,
+}: {
+  route: ConfirmOtpRouteProp;
+}) {
   const navigation = useNavigation<NavigationProp>();
+  const { email } = route.params;
+
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef<Array<TextInput | null>>([]);
   const [timeLeft, setTimeLeft] = useState(300);
@@ -72,7 +76,9 @@ export default function OtpConfirmScreen() {
       const result = await onLogin!(email, otpString);
       if (result.success) {
         Toast.show({ type: "success", text1: "Đăng nhập thành công!" });
-        navigation.reset({ index: 0, routes: [{ name: "Profile" }] });
+        navigation.navigate("Profile", {
+          screen: "profile",
+        });
       } else {
         Toast.show({
           type: "error",
