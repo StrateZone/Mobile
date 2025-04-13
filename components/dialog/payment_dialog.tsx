@@ -1,12 +1,11 @@
 import { View, Text, Alert } from "react-native";
 import React, { useContext, useState } from "react";
-import { Button, Dialog } from "@rneui/themed";
-import { RouteProp, useNavigation } from "@react-navigation/native";
+import { Dialog } from "@rneui/themed";
+import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Fold } from "react-native-animated-spinkit";
 
 import { TableContext } from "@/context/select-table";
-import { ChessTable } from "@/constants/types/chess_table";
 import { useAuth } from "@/context/auth-context";
 import { postRequest } from "@/helpers/api-requests";
 import { RootStackParamList } from "@/constants/types/root-stack";
@@ -54,6 +53,11 @@ export default function PaymentDialog({
           [{ text: "Ok", style: "cancel" }],
         );
         return;
+      }
+
+      if (totalPrice > (user?.wallet.balance || 0)) {
+        onClose();
+        Alert.alert("Số dư không đủ để thanh toán!");
       }
 
       onClose();

@@ -10,7 +10,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth-context";
-import { getRequest, putRequest } from "@/helpers/api-requests";
+import { getRequest, postRequest, putRequest } from "@/helpers/api-requests";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Button, Icon } from "@rneui/themed";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -57,44 +57,7 @@ export default function Invitations() {
     fetchAppointments();
   }, [user]);
 
-  const handleAccept = async (invitationId: number) => {
-    setIsLoading(true);
-    await putRequest(`/appointmentrequests/accept/${invitationId}`, {})
-      .then(() => {
-        setIsLoading(false);
-        Toast.show({
-          type: "success",
-          text1: "Thành công",
-          text2: `Đã đồng ý lời mời`,
-        });
-        fetchAppointments();
-      })
-
-      .catch((e) => {
-        setIsLoading(false);
-        console.error(e);
-      });
-  };
-
   const handleReject = async (invitationId: number) => {
-    setIsLoading(true);
-    await putRequest(`/appointmentrequests/reject/${invitationId}`, {})
-      .then(() => {
-        setIsLoading(false);
-        Toast.show({
-          type: "success",
-          text1: "Thành công",
-          text2: `Đã từ chối lời mời`,
-        });
-        fetchAppointments();
-      })
-      .catch((e) => {
-        setIsLoading(false);
-        console.error(e);
-      });
-  };
-
-  const handlePayment = async (invitationId: number) => {
     setIsLoading(true);
     await putRequest(`/appointmentrequests/reject/${invitationId}`, {})
       .then(() => {
@@ -214,7 +177,15 @@ export default function Invitations() {
                         <>
                           <TouchableOpacity
                             className="flex-row items-center bg-green-600 px-4 py-2 rounded-full"
-                            onPress={() => handleAccept(item.id)}
+                            onPress={() => {
+                              if (
+                                item.totalPrice > (user?.wallet.balance || 0)
+                              ) {
+                                Alert.alert("Số dư không đủ để thanh toán!");
+                              } else {
+                                setOpenDialog(true);
+                              }
+                            }}
                           >
                             <FontAwesome5
                               name="check"
@@ -241,41 +212,13 @@ export default function Invitations() {
                           </TouchableOpacity>
                         </>
                       )}
-
-                      {status === "payment_required" && (
-                        <>
-                          <TouchableOpacity
-                            className="flex-row items-center bg-blue-600 px-4 py-2 rounded-full"
-                            onPress={() => {
-                              if (
-                                item.totalPrice > (user?.wallet.balance || 0)
-                              ) {
-                                Alert.alert("Số dư không đủ để thanh toán!");
-                              } else {
-                                setOpenDialog(true);
-                              }
-                            }}
-                          >
-                            <FontAwesome5
-                              name="credit-card"
-                              size={16}
-                              color="white"
-                            />
-                            <Text className="text-white font-semibold ml-2">
-                              Thanh toán
-                            </Text>
-                          </TouchableOpacity>
-
-                          <Text className="text-sm font-semibold text-blue-600 mt-2">
-                            Tổng tiền:{" "}
-                            {item.totalPrice?.toLocaleString("vi-VN")} VND
-                          </Text>
-                        </>
-                      )}
                     </View>
-
+                    {/* onPress={() => handleAccept(item.fromUser,item.table.tableId,item.appointmentId)} */}
                     <PaymentDialogForInvited
                       visible={opneDialog}
+                      fromUserId={item.fromUser}
+                      tableId={item.table.tableId}
+                      appointmentId={item.appointmentId}
                       roomName={item.table.roomName}
                       roomType={item.table.roomType}
                       startTime={item.startTime}
@@ -283,6 +226,7 @@ export default function Invitations() {
                       fullName={item.fromUserNavigation.fullName}
                       onClose={() => setOpenDialog(false)}
                       setIsLoading={setIsLoading}
+                      fetchAppointment={fetchAppointments}
                       totalPrice={item.totalPrice}
                     />
                   </View>

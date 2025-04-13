@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Card, Text, Button } from "@rneui/themed";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { RouteProp, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { ChessTable } from "@/constants/types/chess_table";
@@ -13,7 +13,6 @@ import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 import { RootStackParamList } from "@/constants/types/root-stack";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
 
 type TableCardProps = {
   table: ChessTable;

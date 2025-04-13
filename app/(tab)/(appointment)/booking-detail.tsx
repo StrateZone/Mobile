@@ -267,7 +267,8 @@ export default function BookingDetailScreen() {
                             if (!user) {
                               Toast.show({
                                 type: "error",
-                                text1: "Bạn cần đăng nhập để tiếp tục",
+                                text1: "Thất bại",
+                                text2: `Bạn cần đăng nhập để tiếp tục`,
                               });
                               return;
                             }
