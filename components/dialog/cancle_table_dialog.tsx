@@ -1,141 +1,120 @@
+import React, { useState } from "react";
 import { View, Text, Alert } from "react-native";
-import React, { useContext } from "react";
-import { Button, Dialog } from "@rneui/themed";
-import { RouteProp, useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Dialog, Button } from "@rneui/themed";
 import Toast from "react-native-toast-message";
 
-
-import { TableContext } from "@/context/select-table";
-import { ChessTable } from "@/constants/types/chess_table";
+import { putRequest } from "@/helpers/api-requests";
 import { useAuth } from "@/context/auth-context";
-import { postRequest, putRequest } from "@/helpers/api-requests";
-import { RootStackParamList } from "@/constants/types/root-stack";
-import { formatDateTime } from "@/helpers/format_time";
 
-export type DialogType = {
+type ConfirmCancelTableDialogProps = {
   visible: boolean;
-  price: number
-  checkTable:any
   onClose: () => void;
-  setIsLoading: (loading: boolean) => void;
+  data: {
+    refundStatus: number;
+    refundAmount: number;
+    message: string;
+    cancellationTime: string;
+    cancellation_Block_TimeGate?: string | null;
+    cancellation_PartialRefund_TimeGate?: string | null;
+  };
+  tableId: number;
+  onSuccess?: () => void;
 };
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function ConfirmCancelTableDialog({
   visible,
-  price,
-  checkTable,
   onClose,
-  setIsLoading,
-}: DialogType) {
+  data,
+  tableId,
+  onSuccess,
+}: ConfirmCancelTableDialogProps) {
   const { authState } = useAuth();
   const user = authState?.user;
-  const navigation = useNavigation<NavigationProp>();
 
-  
-// Enum refund status theo thứ tự
-const refundStatusEnum = [
-    "cancellation_fail",
-    "no_refund",
-    "no_refund_while_refund_for_invited_user",
-    "refund_50_percentage_of_total",
-    "refund_100_percentage_of_total",
-  ] as const;
-  
- 
-  const refundStatusMessageMap: Record<typeof refundStatusEnum[number], string> = {
-    cancellation_fail: "Hủy không thành công",
-    no_refund: "không được hoàn tiền",
-    no_refund_while_refund_for_invited_user: "không được hoàn tiền vì bàn có người được mời",
-    refund_50_percentage_of_total: "hoàn tiền 50%",
-    refund_100_percentage_of_total: "hoàn tiền 100%",
+  const formatDateTime = (iso: string) => {
+    const date = new Date(iso);
+    return date.toLocaleString("vi-VN", {
+      hour12: false,
+    });
   };
-  
-  
-  function getRefundStatusMessage(status: number | undefined): string {
-    if (status === undefined || status < 0 || status >= refundStatusEnum.length) {
-      return "Trạng thái hoàn tiền không xác định";
-    }
-  
-    const key = refundStatusEnum[status];
-    return refundStatusMessageMap[key];
-  }
-  
-  const message = getRefundStatusMessage(checkTable?.refundStatus);
 
-  const handleConfirm = async () => {
-    setIsLoading(true);
+  const handleConfirmCancel = async () => {
     try {
-
-      const response = await putRequest(`/tables-appointment/cancel/${checkTable.tablesAppointmentModel.id}/users/${user?.userId}`, {});
-
-      if (response.status === 200) {
-        Toast.show({
-            type: "succcess",
-            text1: "Thành công",
-            text2: "Đã hủy bàn",
-          });
-      }
-    } catch (error) {
-        Toast.show({
-            type: "error",
-            text1: "Lỗi",
-            text2: "Lỗi trong quá trình đặt bàn",
-          });
-    } finally {
-      setIsLoading(false);
-      onClose();
+      await putRequest(
+        `/tables-appointment/cancel/${tableId}/users/${user?.userId}`,
+        {},
+      );
+      Toast.show({
+        type: "success",
+        text1: "Thành công",
+        text2: "Đã hủy bàn",
+      });
+      onSuccess?.();
+    } catch (e) {
+      Alert.alert("Lỗi", "Không thể hủy bàn.");
     }
   };
 
   return (
-    <Dialog isVisible={visible} onBackdropPress={onClose}>
-  <Dialog.Title title="Xác nhận hủy bàn đã đặt" />
-  <View className="space-y-3">
-    <Text className="text-base text-black font-semibold">Thông tin</Text>
+    <Dialog
+      isVisible={visible}
+      onBackdropPress={onClose}
+      overlayStyle={{ borderRadius: 12 }}
+    >
+      <View className="space-y-4">
+        <Text className="text-xl font-bold text-center text-red-600">
+          Xác nhận huỷ bàn
+        </Text>
 
-    <Text className="text-base text-black">
-      Nếu hủy bàn này ở thời điểm hiện tại, bạn sẽ được{" "}
-      <Text className="text-gray-700">{message}</Text>
-    </Text>
+        <Text className="text-base text-black">
+          {data.message || "Thông tin hoàn tiền không khả dụng."}
+        </Text>
 
-    {checkTable?.refundAmount !== undefined && (
-      <Text className="text-base text-black">
-        <Text className="font-semibold">Số tiền nhận lại được:</Text>{" "}
-        {checkTable.refundAmount.toLocaleString("vi-VN")} đ
-      </Text>
-    )}
+        <View className="space-y-1">
+          <Text className="text-base text-black">
+            <Text className="font-semibold">Số tiền nhận lại:</Text>{" "}
+            {data.refundAmount.toLocaleString("vi-VN")} VND
+          </Text>
 
-{checkTable?.cancellationTime && (
-  <Text className="text-base text-black">
-    <Text className="font-semibold">Thời gian hủy của bạn là:</Text>{" "}
-    {formatDateTime(checkTable.cancellationTime).date} lúc {formatDateTime(checkTable.cancellationTime).time}
-  </Text>
-)}
+          <Text className="text-base text-black">
+            <Text className="font-semibold">Thời gian huỷ:</Text>{" "}
+            {formatDateTime(data.cancellationTime)}
+          </Text>
 
-{checkTable?.cancellation_Block_TimeGate && (
-  <Text className="text-base text-black">
-    <Text className="font-semibold">Hạn chót hủy đơn:</Text>{" "}
-    {formatDateTime(checkTable.cancellation_Block_TimeGate).date} lúc {formatDateTime(checkTable.cancellation_Block_TimeGate).time}
-  </Text>
-)}
+          {data.cancellation_PartialRefund_TimeGate && (
+            <Text className="text-base text-black">
+              <Text className="font-semibold">Hạn hoàn tiền một phần:</Text>{" "}
+              {formatDateTime(data.cancellation_PartialRefund_TimeGate)}
+            </Text>
+          )}
+        </View>
 
-{checkTable?.cancellation_PartialRefund_TimeGate && (
-  <Text className="text-base text-black">
-    <Text className="font-semibold">Hạn hoàn tiền một phần:</Text>{" "}
-    {formatDateTime(checkTable.cancellation_PartialRefund_TimeGate).date} lúc {formatDateTime(checkTable.cancellation_PartialRefund_TimeGate).time}
-  </Text>
-)}
-
-  </View>
-
-  <Dialog.Actions>
-    <Dialog.Button title="Huỷ" onPress={onClose} />
-    <Dialog.Button title="Xác nhận hủy bàn" onPress={handleConfirm} />
-  </Dialog.Actions>
-</Dialog>
-
+        <View className="flex-row justify-end gap-2 pt-4">
+          <Button
+            title="Đóng"
+            type="outline"
+            onPress={onClose}
+            buttonStyle={{
+              borderColor: "#6b7280",
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              minWidth: 100,
+            }}
+            titleStyle={{ color: "#6b7280", fontSize: 14 }}
+          />
+          <Button
+            title="Xác nhận huỷ"
+            onPress={handleConfirmCancel}
+            buttonStyle={{
+              backgroundColor: "#ef4444",
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              minWidth: 120,
+            }}
+            titleStyle={{ fontSize: 14 }}
+          />
+        </View>
+      </View>
+    </Dialog>
   );
 }

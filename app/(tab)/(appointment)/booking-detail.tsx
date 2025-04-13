@@ -263,16 +263,33 @@ export default function BookingDetailScreen() {
                         </View>
                       ) : (
                         <TouchableOpacity
-                          onPress={() =>
+                          onPress={() => {
+                            if (!user) {
+                              Toast.show({
+                                type: "error",
+                                text1: "Bạn cần đăng nhập để tiếp tục",
+                              });
+                              return;
+                            }
+
                             navigation.navigate("find_opponents", {
                               tableId: table.tableId,
                               startDate: table.startDate,
                               endDate: table.endDate,
                               tablePrice: table.totalPrice / 2,
-                            })
-                          }
+                            });
+                          }}
+                          className="relative"
                         >
                           <AntDesign name="adduser" size={30} color="black" />
+                          {table.invitedUsers &&
+                            table.invitedUsers.length > 0 && (
+                              <View className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 items-center justify-center">
+                                <Text className="text-white text-xs">
+                                  {table.invitedUsers.length}
+                                </Text>
+                              </View>
+                            )}
                         </TouchableOpacity>
                       )}
 

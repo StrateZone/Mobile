@@ -1,5 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { View, ScrollView, SafeAreaView, Animated } from "react-native";
+import {
+  View,
+  ScrollView,
+  SafeAreaView,
+  Animated,
+  TouchableOpacity,
+} from "react-native";
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -17,6 +23,7 @@ import {
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { ChessTable } from "@/constants/types/chess_table";
 import { TableContext } from "@/context/select-table";
+import { Ionicons } from "@expo/vector-icons";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
@@ -119,6 +126,12 @@ export default function ListTableScreen({ route }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="flex-1 p-4 mt-10">
+        <TouchableOpacity
+          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
         <Text className="text-2xl font-bold text-center text-black mb-5">
           {mapGameTypeToVietnamese(gameTypeFilter)}
         </Text>

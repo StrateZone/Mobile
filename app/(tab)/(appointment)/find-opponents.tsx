@@ -69,7 +69,6 @@ export default function FindOpponent({ route }: Props) {
     getRequest(`/users/by-ranking/random/${user?.userId}/tables/${tableId}`, {
       StartTime: startDate,
       EndTime: endDate,
-      ranking: user?.ranking,
       excludedIds,
       up: 1,
       down: 1,
@@ -96,13 +95,15 @@ export default function FindOpponent({ route }: Props) {
 
       const updatedOpponents = { ...opponents };
       Object.keys(updatedOpponents).forEach((rank) => {
-        updatedOpponents[rank as keyof MatchingOpponents] = updatedOpponents[
-          rank as keyof MatchingOpponents
-        ].map((opponent) =>
-          opponent.userId === toUserId
-            ? { ...opponent, isInvited: true }
-            : opponent,
-        );
+        const currentRank = rank as keyof MatchingOpponents;
+        if (updatedOpponents[currentRank]) {
+          updatedOpponents[currentRank] =
+            updatedOpponents[currentRank]?.map((opponent) =>
+              opponent.userId === toUserId
+                ? { ...opponent, isInvited: true }
+                : opponent,
+            ) || [];
+        }
       });
       setOpponents(updatedOpponents);
 
@@ -125,13 +126,13 @@ export default function FindOpponent({ route }: Props) {
     if (!opponents.length) return null;
 
     return (
-      <View className="mb-4">
+      <View key={rank} className="mb-4">
         <Text className="text-lg font-semibold text-black mb-2">
           Cấp bậc {rank.charAt(0).toUpperCase() + rank.slice(1)}
         </Text>
         {opponents.map((opponent) => (
           <View
-            key={opponent.userId}
+            key={`${rank}-${opponent.userId}`}
             className="flex-row items-center bg-white p-4 rounded-lg shadow-md mb-3 border border-gray-300"
           >
             <Image

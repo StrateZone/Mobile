@@ -80,7 +80,6 @@ export const putRequest = async (
   path: string,
   requestBody: Record<string, unknown>,
 ) => {
-  
   const { data } = await axios.put(
     `${config.BACKEND_API}/api${path}`,
     requestBody,
