@@ -24,6 +24,7 @@ import DefaultButton from "@/components/button/button";
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { useState } from "react";
 import { TableProvider } from "@/context/select-table";
+import NotificationLayout from "./(tab)/notification/_layout";
 
 const Drawer = createDrawerNavigator();
 
@@ -141,6 +142,17 @@ export default function RootLayout() {
               }}
             />
             <Drawer.Screen
+              name="Notification"
+              component={NotificationLayout}
+              options={{
+                headerShown: false,
+                drawerLabel: "Thông báo",
+                drawerIcon: ({ color }) => (
+                  <Ionicons name="person-circle" size={24} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Profile"
               component={ProfileLayout}
               options={{
@@ -247,6 +259,14 @@ function CustomDrawerContent({ navigation }: any) {
         >
           <FontAwesome name="users" size={24} color="#333" />
           <Text style={styles.menuText}>Cộng đồng</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Notification")}
+          style={styles.menuItem}
+        >
+          <FontAwesome name="bell" size={24} color="#333" />
+          <Text style={styles.menuText}>Thông báo</Text>
         </TouchableOpacity>
 
         {authState?.authenticated && (
