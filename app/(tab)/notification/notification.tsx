@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { ListItem } from "@rneui/themed";
 import { Fold } from "react-native-animated-spinkit";
@@ -6,17 +6,21 @@ import { Fold } from "react-native-animated-spinkit";
 import { useAuth } from "@/context/auth-context";
 import { getRequest } from "@/helpers/api-requests";
 import { Notification } from "@/constants/types/notification";
+import { useFocusEffect } from "expo-router";
 
 const NotificationsScreen = () => {
   const { authState } = useAuth();
   const user = authState?.user;
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [user?.userId]),
+  );
+
   const fetchNotifications = async () => {
     setIsLoading(true);
     try {
