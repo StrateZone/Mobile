@@ -23,6 +23,7 @@ interface AuthProps {
       };
       username: string;
       fullName: string;
+      avatarUrl: string;
       email: string;
       phone: string;
     };
@@ -61,6 +62,7 @@ export const AuthProvider = ({ children }: any) => {
       };
       username: string;
       fullName: string;
+      avatarUrl: string;
       email: string;
       phone: string;
     };
@@ -106,6 +108,7 @@ export const AuthProvider = ({ children }: any) => {
           wallet: response.data.data.wallet,
           username: response.data.data.username,
           fullName: response.data.data.fullName,
+          avatarUrl: response.data.data.avatarUrl,
           email: response.data.data.email,
           phone: response.data.data.phone,
         };

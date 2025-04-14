@@ -5,6 +5,8 @@ import {
   SafeAreaView,
   Animated,
   TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
@@ -66,6 +68,10 @@ export default function ListTableScreen({ route }: Props) {
     useState<Date>(defaultStartDate);
   const [endDateFilter, setEndDateFilter] = useState<Date>(defaultEndDate);
   const [filterVisible, setFilterVisible] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   const buttonAnim = useRef(new Animated.Value(0)).current;
 
@@ -73,7 +79,8 @@ export default function ListTableScreen({ route }: Props) {
     date ? date.toISOString().slice(0, 19) + "Z" : null;
 
   useEffect(() => {
-    fetchTables();
+    setPageNumber(1);
+    fetchTables(gameTypeFilter, roomType, startDateFilter, endDateFilter, 1);
   }, []);
 
   const fetchTables = async (
@@ -81,21 +88,50 @@ export default function ListTableScreen({ route }: Props) {
     roomTypesFilter = roomType,
     startDate = startDateFilter,
     endDate = endDateFilter,
+    page = 1,
   ) => {
-    setIsLoading(true);
+    if (page === 1) setIsLoading(true);
+    else setIsFetchingMore(true);
+
     try {
       const response = await getRequest("/tables/available/filter", {
         gameTypes: gameTypes,
         roomTypes: roomTypesFilter,
         StartTime: formatDateForApi(startDate),
         EndTime: formatDateForApi(endDate),
+        pageNumber: page,
+        pageSize: pageSize,
       });
-      setChessTable(response.pagedList);
+
+      const newData = response.pagedList || [];
+
+      if (page === 1) {
+        setChessTable(newData);
+      } else {
+        setChessTable((prev) => [...prev, ...newData]);
+      }
+
+      setTotalPages(response.totalPages || 1);
     } catch (error) {
       console.error("Error fetching tables", error);
     } finally {
       setIsLoading(false);
+      setIsFetchingMore(false);
     }
+  };
+
+  const handleLoadMore = () => {
+    if (isFetchingMore || pageNumber >= totalPages) return;
+
+    const nextPage = pageNumber + 1;
+    setPageNumber(nextPage);
+    fetchTables(
+      gameTypeFilter,
+      roomType,
+      startDateFilter,
+      endDateFilter,
+      nextPage,
+    );
   };
 
   useEffect(() => {
@@ -150,21 +186,31 @@ export default function ListTableScreen({ route }: Props) {
             <Fold size={48} color="#000000" />
           </View>
         ) : (
-          <ScrollView className="flex-1 mb-14">
-            {chessTables.map((table) => (
+          <FlatList
+            data={chessTables}
+            keyExtractor={(item, index) =>
+              `${item.tableId}-${item.startDate}-${item.endDate}-${index}`
+            }
+            renderItem={({ item }) => (
               <TableCard
-                key={table.tableId}
-                table={table}
+                table={item}
                 isSelected={selectedTables.some(
                   (t: any) =>
-                    t.tableId === table.tableId &&
-                    t.startDate === table.startDate &&
-                    t.endDate === table.endDate,
+                    t.tableId === item.tableId &&
+                    t.startDate === item.startDate &&
+                    t.endDate === item.endDate,
                 )}
-                onPress={() => handleToggleTable(table)}
+                onPress={() => handleToggleTable(item)}
               />
-            ))}
-          </ScrollView>
+            )}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.2}
+            ListFooterComponent={
+              isFetchingMore ? (
+                <ActivityIndicator size="small" color="#000" className="my-4" />
+              ) : null
+            }
+          />
         )}
 
         {selectedTables.length > 0 && (
@@ -229,7 +275,8 @@ export default function ListTableScreen({ route }: Props) {
             setRoomTypes(roomTypes);
             setStartDateFilter(startDate);
             setEndDateFilter(endDate);
-            fetchTables(gameTypes, roomTypes, startDate, endDate);
+            setPageNumber(1);
+            fetchTables(gameTypes, roomTypes, startDate, endDate, 1);
           }}
           onClose={() => setFilterVisible(false)}
         />

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Button, CheckBox } from "@rneui/themed";
@@ -10,6 +10,7 @@ import RNDateTimePicker from "@react-native-community/datetimepicker";
 
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 import { mapRoomTypesToVietnamese } from "@/helpers/map_room_type_by_language";
+import { getRequest } from "@/helpers/api-requests";
 
 type Props = {
   gameType: string;
@@ -59,6 +60,36 @@ export default function BottomSheetFilterTable({
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState<Date>(now);
   const [endTime, setEndTime] = useState<Date>(now);
+  const [openHour, setOpenHour] = useState<string>("");
+  const [closeHour, setCloseHour] = useState<string>("");
+
+  const formatDateForApi = (date: Date | null) =>
+    date ? date.toISOString().split("T")[0] : null;
+
+  useEffect(() => {
+    const fetchBusinessHours = async () => {
+      const formatDate = formatDateForApi(selectedDate);
+      try {
+        const [openResponse, closeResponse] = await Promise.all([
+          getRequest(`/system/1/open-hour/date`, { date: formatDate }),
+          getRequest(`/system/1/close-hour/date`, { date: formatDate }),
+        ]);
+
+        const openData = await openResponse;
+        const closeData = await closeResponse;
+        setOpenHour(openData);
+        setCloseHour(closeData);
+      } catch (error) {
+        console.error("Error fetching business hours:", error);
+      }
+    };
+
+    fetchBusinessHours();
+  }, []);
+
+  const getHourFromTimeString = (timeString: string): number => {
+    return parseInt(timeString.split(":")[0]);
+  };
 
   const handleSelectGameType = (game: string) => {
     setSelectedGameType(game);
@@ -104,8 +135,8 @@ export default function BottomSheetFilterTable({
     const endHour = endTimeUTC7.getUTCHours();
 
     const nowHour = nowUTC7.getHours();
-    const earliestHour = 6;
-    const latestHour = 22;
+    const earliestHour = getHourFromTimeString(openHour);
+    const latestHour = getHourFromTimeString(closeHour);
     const minStartHour = nowHour + 1;
 
     const isToday =
@@ -113,15 +144,25 @@ export default function BottomSheetFilterTable({
       nowUTC7.toISOString().split("T")[0];
 
     if (startHour < earliestHour || startHour > latestHour) {
-      Alert.alert("Lỗi", "Giờ bắt đầu phải từ 6:00 sáng đến 22:00!");
+      Alert.alert(
+        "Lỗi",
+        `Giờ bắt đầu phải từ ${openHour} giờ sáng đến ${closeHour} giờ!`,
+      );
       return;
     }
+
     if (isToday && startHour < minStartHour) {
       Alert.alert("Lỗi", "Giờ bắt đầu phải sau giờ hiện tại ít nhất 1 giờ!");
       return;
     }
+
     if (endHour <= startHour) {
       Alert.alert("Lỗi", "Giờ kết thúc phải sau giờ bắt đầu!");
+      return;
+    }
+
+    if (endHour > latestHour) {
+      Alert.alert("Lỗi", `Giờ kết thúc không được sau ${closeHour} giờ!`);
       return;
     }
     if (endHour > latestHour) {

@@ -232,27 +232,27 @@ function CustomDrawerContent({ navigation }: any) {
           <AntDesign name="calendar" size={24} color="#333" />
           <Text style={styles.menuText}>Đặt bàn</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("Products")}
           style={styles.menuItem}
         >
           <FontAwesome name="shopping-cart" size={24} color="#333" />
           <Text style={styles.menuText}>Sản phẩm</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("Courses")}
           style={styles.menuItem}
         >
           <MaterialIcons name="menu-book" size={24} color="#333" />
           <Text style={styles.menuText}>Khóa học</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("Tournaments")}
           style={styles.menuItem}
         >
           <Ionicons name="trophy" size={24} color="#333" />
           <Text style={styles.menuText}>Thi đấu</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           onPress={() => navigation.navigate("Community")}
           style={styles.menuItem}
