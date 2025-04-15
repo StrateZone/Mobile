@@ -53,4 +53,8 @@ export type RootStackParamList = {
     EndTime: string;
   };
   payment_successfull: undefined;
+  //community
+  home_community: undefined;
+  community_detail: { threadId: number };
+  create_thread: undefined;
 };

@@ -58,8 +58,8 @@ export default function CommunityCard({
 
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const [isLiked, setIsLiked] = useState(false);
 
+  const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
   const [likeId, setLikeId] = useState<number | undefined>(undefined);
 
@@ -113,7 +113,7 @@ export default function CommunityCard({
 
   const handleCardPress = () => {
     if (threadId) {
-      navigation.navigate("CommunityDetail", { threadId });
+      navigation.navigate("community_detail", { threadId: threadId });
     }
   };
 

@@ -21,6 +21,14 @@ const CommunityScreen = () => {
   const [pageSize] = useState(8);
   const [totalPages, setTotalPages] = useState(1);
   const [showTags, setShowTags] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setCurrentPage(1);
+    await fetchThreads(1, false);
+    setRefreshing(false);
+  };
 
   const fetchTags = async () => {
     try {
@@ -169,6 +177,8 @@ const CommunityScreen = () => {
           )}
           onEndReached={loadMoreThreads}
           onEndReachedThreshold={0.5}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
           ListFooterComponent={
             loadingMore ? (
               <ActivityIndicator size="small" color="#000" className="my-4" />

@@ -5,9 +5,12 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
 import CommunityScreen from "./index";
+import CommunityDetail from "./community_detail";
+import { RootStackParamList } from "@/constants/types/root-stack";
+import CreateThread from "./create_thread";
 
-const Stack = createStackNavigator();
-type NavigationProp = DrawerNavigationProp<any>;
+const Stack = createStackNavigator<RootStackParamList>();
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function CommunityLayout() {
   const navigation = useNavigation<NavigationProp>();
@@ -15,7 +18,7 @@ export default function CommunityLayout() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="index"
+        name="home_community"
         component={CommunityScreen}
         options={{
           headerLeft: () => (
@@ -34,6 +37,22 @@ export default function CommunityLayout() {
           headerStyle: {
             backgroundColor: "white",
           },
+        }}
+      />
+
+      <Stack.Screen
+        name="community_detail"
+        component={CommunityDetail}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="create_thread"
+        component={CreateThread}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

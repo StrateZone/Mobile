@@ -1,3 +1,4 @@
+import { Comment } from "./comment";
 import { ThreadTag } from "./thread_tag";
 
 export type Thread = {
@@ -13,5 +14,6 @@ export type Thread = {
     fullName: string;
     avatarUrl: string;
   };
-  likes?: Array<{ id: number; userId: number | null }>;
+  comments: Comment[];
+  likes?: Array<{ id: number; userId: number | null; threadId: number }>;
 };
