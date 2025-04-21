@@ -59,5 +59,5 @@ export type RootStackParamList = {
   community_detail: { threadId: number };
   create_thread: undefined;
   my_threads: undefined;
-  friend_list: undefined;
+  friend_managerment: undefined;
 };

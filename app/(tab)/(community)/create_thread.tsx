@@ -99,7 +99,6 @@ export default function CreateThread() {
 
   const uploadImage = async (threadId: number, image: any) => {
     const formData = new FormData();
-    console.log("uploadImage", threadId, image);
     formData.append("Type", "thread");
     formData.append("EntityId", threadId.toString());
     formData.append("ImageFile", {
@@ -119,7 +118,6 @@ export default function CreateThread() {
       });
 
       const data = await response.json();
-      console.log("last data: ", data);
       if (response.status === 201) {
         return data.url;
       } else {
@@ -162,9 +160,7 @@ export default function CreateThread() {
         content,
         tagIds: selectedTagIds,
       });
-      console.log("Data send", user?.userId, title, content, selectedTagIds);
       const threadId = threadRes.data.threadId;
-      console.log("response thread", threadId);
       await uploadImage(threadId, thumbnail);
 
       Toast.show({

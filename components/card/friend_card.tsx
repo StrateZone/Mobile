@@ -1,61 +1,34 @@
-// components/friend/FriendCard.tsx
-
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
+import { Avatar } from "@rneui/themed";
 
-import { Card, Button } from "@rneui/themed";
-import { Opponents } from "@/constants/types/opponent";
-
-type FriendCardProps = {
-  user: Opponents;
-  isFriend: boolean;
-  onAddFriend?: () => void;
+type Props = {
+  user: any;
+  buttons?: React.ReactNode;
 };
 
-const FriendCard: React.FC<FriendCardProps> = ({
-  user,
-  isFriend,
-  onAddFriend,
-}) => {
+export default function FriendCard({ user, buttons }: Props) {
   return (
-    <Card containerStyle={{ borderRadius: 16, padding: 16 }}>
-      <View className="flex-row items-center mb-4">
-        <Image
-          source={{ uri: user.avatarUrl || "https://via.placeholder.com/150" }}
-          className="w-16 h-16 rounded-full mr-4"
-          resizeMode="cover"
+    <View className="bg-white p-4 rounded-2xl shadow-md mb-4">
+      <View className="flex-row items-center mb-3">
+        <Avatar
+          source={{
+            uri:
+              user.avatarUrl ||
+              "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+          }}
+          rounded
+          size={50}
         />
-        <View>
-          <Text className="text-base font-semibold text-black">
-            {user.username}
-          </Text>
-          <Text className="text-sm text-gray-500">
-            {user.fullName || "No name provided"}
-          </Text>
-        </View>
+        <Text className="ml-4 font-semibold text-base text-black">
+          {user.username || user.fromUserNavigation?.username}
+        </Text>
       </View>
 
-      <View className="mb-4">
-        <Text className="text-sm text-gray-700">Points: {user.points}</Text>
-      </View>
-
-      {isFriend ? (
-        <Button
-          title="Đã kết bạn"
-          type="outline"
-          disabled
-          buttonStyle={{ borderColor: "#ccc" }}
-          titleStyle={{ color: "#777" }}
-        />
-      ) : (
-        <Button
-          title="Thêm bạn"
-          onPress={onAddFriend}
-          buttonStyle={{ backgroundColor: "#3b82f6", borderRadius: 8 }}
-        />
+      {/* Nút hành động */}
+      {buttons && (
+        <View className="mt-3 flex-row justify-end gap-2">{buttons}</View>
       )}
-    </Card>
+    </View>
   );
-};
-
-export default FriendCard;
+}

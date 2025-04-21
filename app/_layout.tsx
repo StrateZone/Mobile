@@ -11,6 +11,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Alert } from "react-native";
 import * as Linking from "expo-linking";
 import Toast from "react-native-toast-message";
+import { NavigationContainer } from "@react-navigation/native";
 
 import AppointmentLayout from "./(tab)/(appointment)/_layout";
 import ProfileLayout from "./(tab)/(profile)/_layout";
@@ -291,8 +292,8 @@ function CustomDrawerContent({ navigation }: any) {
 
       {authState?.authenticated ? (
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={24} color="#F05193" />
-          <Text style={{ fontSize: 16, color: "#F05193", marginLeft: 10 }}>
+          <Ionicons name="log-out-outline" size={24} color="black" />
+          <Text style={{ fontSize: 16, color: "black", marginLeft: 10 }}>
             Đăng xuất
           </Text>
         </TouchableOpacity>

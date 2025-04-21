@@ -8,9 +8,9 @@ import CommunityScreen from "./index";
 import CommunityDetail from "./community_detail";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import CreateThread from "./create_thread";
-import FriendList from "./friend_list";
 import MyThread from "./my_thread";
 import NotMember from "./not_member";
+import FriendManagementScreen from "./friend_managerment";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -68,8 +68,8 @@ export default function CommunityLayout() {
       />
 
       <Stack.Screen
-        name="friend_list"
-        component={FriendList}
+        name="friend_managerment"
+        component={FriendManagementScreen}
         options={{
           headerShown: false,
         }}

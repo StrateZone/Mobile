@@ -31,14 +31,31 @@ export const postRequest = async (
   requestBody?: Record<string, unknown>,
   query?: Record<string, unknown>,
 ) => {
-  const data = await axios.post(
-    `${config.BACKEND_API}/api${path}`,
-    requestBody,
-    {
-      params: query,
-    },
-  );
-  return data;
+  try {
+    const response = await axios.post(
+      `${config.BACKEND_API}/api${path}`,
+      requestBody,
+      {
+        params: query,
+      },
+    );
+    return response;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      console.error("POST Request Error:", {
+        url: `${config.BACKEND_API}/api${path}`,
+        requestBody,
+        query,
+        message: error.message,
+        responseData: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+      });
+    } else {
+      console.error("Unexpected error:", error);
+    }
+    throw error;
+  }
 };
 
 export const postPaymemtRequest = async (

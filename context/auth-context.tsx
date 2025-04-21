@@ -28,9 +28,14 @@ interface AuthProps {
       phone: string;
     };
   };
-  onLogin?: (email: string, otp: string) => Promise<any>;
+  onLogin?: (email: string, password: string) => Promise<any>;
   onUpdateUserBalance?: () => Promise<any>;
   onLogout?: () => Promise<any>;
+  setAuthState?: React.Dispatch<
+    React.SetStateAction<{
+      user?: any;
+    }>
+  >;
 }
 
 const TOKEN_KEY = "userAccessToken";
@@ -90,13 +95,12 @@ export const AuthProvider = ({ children }: any) => {
     loadToken();
   }, []);
 
-  const login = async (email: string, otp: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post(`${API_URL}/verify-otp`, {
+      const response = await axios.post(`${API_URL}/login`, {
         email,
-        otp,
+        password,
       });
-
       if (response.data.success) {
         const userData = {
           userId: response.data.data.userId,
@@ -189,6 +193,7 @@ export const AuthProvider = ({ children }: any) => {
     onLogout: logout,
     onUpdateUserBalance: updateUserBalance,
     authState,
+    setAuthState,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
