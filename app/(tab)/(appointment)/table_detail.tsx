@@ -114,7 +114,7 @@ export default function TableDetail({ route }: Props) {
           </Text>
           <View className="bg-white p-6 rounded-2xl shadow-md">
             <Text className="text-lg text-gray-700 mt-2">
-              <FontAwesome5 name="door-closed" size={18} color="black" /> Số
+              <FontAwesome5 name="door-closed" size={18} color="black" /> Tên
               phòng:{" "}
               <Text className="font-semibold">{tableDetail.roomName}</Text>
             </Text>

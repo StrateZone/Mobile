@@ -54,7 +54,10 @@ export type RootStackParamList = {
   };
   payment_successfull: undefined;
   //community
+  not_member: undefined;
   home_community: undefined;
   community_detail: { threadId: number };
   create_thread: undefined;
+  my_threads: undefined;
+  friend_list: undefined;
 };

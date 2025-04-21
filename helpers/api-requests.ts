@@ -60,17 +60,11 @@ export const postPaymemtRequest = async (
 
 export const patchRequest = async (
   path: string,
-  token: string,
   requestBody: Record<string, unknown>,
 ) => {
   const { data } = await axios.patch(
     `${config.BACKEND_API}/api${path}`,
     requestBody,
-    {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    },
   );
 
   return data;

@@ -144,9 +144,6 @@ export default function OpponentInvited({ route }: Props) {
                 <View className="flex-1">
                   <Text className="text-xl font-semibold">{item.fullName}</Text>
                   <Text className="text-sm text-gray-600">{item.email}</Text>
-                  <Text className="text-sm text-gray-600">
-                    Cấp bậc: {item.ranking}
-                  </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => handleRemoveInvite(item.userId)}

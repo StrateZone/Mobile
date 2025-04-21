@@ -2,15 +2,20 @@ import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, ActivityIndicator, FlatList } from "react-native";
 import { Button, Chip, Icon } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
+import { FAB } from "@rneui/themed";
 
 import CommunityCard from "@/components/card/community_card";
 import { getRequest } from "@/helpers/api-requests";
 
 import { Thread } from "@/constants/types/thread";
 import { Tag } from "@/constants/types/tag";
+import { RootStackParamList } from "@/constants/types/root-stack";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const CommunityScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
 
   const [threads, setThreads] = useState<Thread[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -112,21 +117,32 @@ const CommunityScreen = () => {
           <Button type="clear" title="Của Bạn Bè" />
         </View>
       </View>
-
-      {/* Tags */}
+      <Button
+        type="clear"
+        title="Bài viết của tôi"
+        onPress={() => navigation.navigate("my_threads")}
+        icon={<Icon name="user" type="feather" color="#333" />}
+      />
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-xl font-semibold text-black">Chủ Đề</Text>
-        <Button
-          type="clear"
-          onPress={() => setShowTags(!showTags)}
-          icon={
-            <Icon
-              name={showTags ? "chevron-up" : "chevron-down"}
-              type="feather"
-              color="#333"
-            />
-          }
-        />
+        <View className="flex-row items-center space-x-2">
+          <Button
+            type="clear"
+            onPress={() => setShowTags(!showTags)}
+            icon={
+              <Icon
+                name={showTags ? "chevron-up" : "chevron-down"}
+                type="feather"
+                color="#333"
+              />
+            }
+          />
+          <Button
+            type="clear"
+            onPress={() => navigation.navigate("friend_list")}
+            icon={<Icon name="users" type="feather" color="#333" />}
+          />
+        </View>
       </View>
 
       {showTags && (
@@ -191,6 +207,12 @@ const CommunityScreen = () => {
           }
         />
       )}
+      <FAB
+        placement="right"
+        icon={{ name: "plus", type: "feather", color: "white" }}
+        color="#007bff"
+        onPress={() => navigation.navigate("create_thread")}
+      />
     </View>
   );
 };

@@ -75,7 +75,9 @@ export default function TableCard({
         <View className="w-1/2">
           <View className="flex-row items-center mb-1">
             <Ionicons name="location-outline" size={16} color="gray" />
-            <Text className="text-gray-700 ml-2">Số phòng: {table.roomId}</Text>
+            <Text className="text-gray-700 ml-2">
+              Tên phòng: {table.roomName}
+            </Text>
           </View>
 
           <View className="flex-row items-center mb-1">

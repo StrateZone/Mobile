@@ -231,7 +231,7 @@ export default function BookingDetailScreen() {
                             size={16}
                             color="gray"
                           />
-                          Số phòng: {table.roomId}
+                          Tên phòng: {table.roomName}
                         </Text>
                         <Text className="text-gray-700 mb-2">
                           <Ionicons
