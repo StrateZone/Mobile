@@ -11,6 +11,7 @@ import CreateThread from "./create_thread";
 import MyThread from "./my_thread";
 import NotMember from "./not_member";
 import FriendManagementScreen from "./friend_managerment";
+import FriendDetail from "./friend_detail";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -78,6 +79,13 @@ export default function CommunityLayout() {
       <Stack.Screen
         name="not_member"
         component={NotMember}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="friend_detail"
+        component={FriendDetail}
         options={{
           headerShown: false,
         }}

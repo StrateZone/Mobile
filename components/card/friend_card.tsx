@@ -5,9 +5,9 @@ import { Avatar } from "@rneui/themed";
 type Props = {
   user: any;
   buttons?: React.ReactNode;
+  createdAt?: string;
 };
-
-export default function FriendCard({ user, buttons }: Props) {
+export default function FriendCard({ user, buttons, createdAt }: Props) {
   return (
     <View className="bg-white p-4 rounded-2xl shadow-md mb-4">
       <View className="flex-row items-center mb-3">
@@ -20,9 +20,16 @@ export default function FriendCard({ user, buttons }: Props) {
           rounded
           size={50}
         />
-        <Text className="ml-4 font-semibold text-base text-black">
-          {user.username || user.fromUserNavigation?.username}
-        </Text>
+        <View>
+          <Text className="ml-4 font-semibold text-base text-black">
+            {user.username || user.fromUserNavigation?.username}
+          </Text>
+          {createdAt && (
+            <Text className="ml-4">
+              Đã gửi {new Date(createdAt).toLocaleDateString()}
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Nút hành động */}

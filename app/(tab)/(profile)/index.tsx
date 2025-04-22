@@ -1,10 +1,17 @@
-import { ScrollView, View, Text, Image, TouchableOpacity } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
 import { useAuth } from "@/context/auth-context";
 import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 
@@ -16,11 +23,19 @@ export default function ProfileScreen() {
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchBalance = async () => {
+    setRefreshing(true);
+    if (onUpdateUserBalance) {
+      await onUpdateUserBalance();
+    }
+    setRefreshing(false);
+  };
+
   useFocusEffect(
     useCallback(() => {
-      if (onUpdateUserBalance) {
-        onUpdateUserBalance();
-      }
+      fetchBalance();
     }, []),
   );
 
@@ -28,6 +43,9 @@ export default function ProfileScreen() {
     <ScrollView
       className="flex-1 bg-gray-100"
       contentContainerStyle={{ flexGrow: 1, padding: 24 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={fetchBalance} />
+      }
       keyboardShouldPersistTaps="handled"
     >
       <View className="items-center mb-6 bg-white p-5 rounded-xl shadow-md">
@@ -54,8 +72,10 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Thông tin cá nhân */}
       <View className="bg-white p-5 rounded-xl shadow-md space-y-4">
         <Text className="text-black text-xl font-bold">Thông tin cá nhân</Text>
+
         <View className="flex-row items-center">
           <MaterialIcons name="email" size={20} color="#4B5563" />
           <Text className="text-gray-600 text-lg font-medium ml-2">Email</Text>
@@ -105,12 +125,23 @@ export default function ProfileScreen() {
         </Text>
       </View>
 
+      {/* Các tùy chọn khác */}
       <TouchableOpacity
         className="bg-white p-5 rounded-xl shadow-md flex-row justify-between items-center mt-6"
         onPress={() => navigation.navigate("invitations")}
       >
         <Text className="text-black text-lg font-semibold">
           Lời mời đặt bàn
+        </Text>
+        <Ionicons name="chevron-forward" size={24} color="black" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="bg-white p-5 rounded-xl shadow-md flex-row justify-between items-center mt-6"
+        onPress={() => navigation.navigate("appointment_ongoing")}
+      >
+        <Text className="text-black text-lg font-semibold">
+          Cuộc hẹn đang chờ
         </Text>
         <Ionicons name="chevron-forward" size={24} color="black" />
       </TouchableOpacity>

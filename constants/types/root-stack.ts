@@ -16,8 +16,10 @@ export type RootStackParamList = {
   invitations: undefined;
   profile: undefined;
   appointment_history: undefined;
+  appointment_ongoing: undefined;
   deposit: { returnUrl: string };
   appointment_detail: { appointmentId: number };
+  appointment_ongoing_detail: { appointmentId: number };
   balance_movement_history: undefined;
   invitations_detail: {
     invitationId: number;
@@ -60,4 +62,5 @@ export type RootStackParamList = {
   create_thread: undefined;
   my_threads: undefined;
   friend_managerment: undefined;
+  friend_detail: undefined;
 };

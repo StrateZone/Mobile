@@ -13,7 +13,12 @@ import {
 import { Avatar, Button, Tab, TabView, Card } from "@rneui/themed";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth-context";
-import { deleteRequest, getRequest, putRequest } from "@/helpers/api-requests";
+import {
+  deleteRequest,
+  getRequest,
+  postRequest,
+  putRequest,
+} from "@/helpers/api-requests";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -29,9 +34,9 @@ export default function FriendManagementScreen() {
   const userId = authState?.user?.userId;
 
   const [index, setIndex] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
   const [friendList, setFriendList] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshingFriends, setRefreshingFriends] = useState(false);
@@ -80,9 +85,10 @@ export default function FriendManagementScreen() {
     if (!searchTerm.trim()) return;
     try {
       setIsLoading(true);
-      const res = await getRequest(
-        `/users/${userId}/search-friends?username=${searchTerm}`,
-      );
+      const res = await getRequest(`/users/${userId}/search-friends`, {
+        username: searchTerm,
+      });
+
       setSearchResults(res.pagedList || []);
     } catch {
       Alert.alert("Lỗi", "Không tìm thấy người dùng");
@@ -124,6 +130,78 @@ export default function FriendManagementScreen() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const sendFriendRequest = async (targetUserId: number) => {
+    if (!userId) return;
+
+    setSearchResults((prevResults: any) =>
+      prevResults.map((user: any) =>
+        user.userId === targetUserId ? { ...user, friendStatus: 1 } : user,
+      ),
+    );
+    try {
+      const response = await postRequest(`/friendrequests`, {
+        fromUser: userId,
+        toUser: targetUserId,
+      });
+
+      if (response.status === 201) {
+        setSearchResults((prevResults: any) =>
+          prevResults.map((user: any) =>
+            user.userId === targetUserId ? { ...user, friendStatus: 0 } : user,
+          ),
+        );
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: "Đã gửi lời mời kết bạn",
+        });
+      }
+    } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Từ chối thất bại",
+        text2: "Không thể gửi lời mời này",
+      });
+    }
+  };
+
+  const cancelFriendRequest = async (receiverId: number) => {
+    if (!userId) return;
+
+    try {
+      setSearchResults((prevResults: any) =>
+        prevResults.map((user: any) =>
+          user.userId === receiverId ? { ...user, friendStatus: 0 } : user,
+        ),
+      );
+
+      const response = await deleteRequest(
+        `/friendrequests/sender/${userId}/receiver/${receiverId}`,
+      );
+
+      // if(response.status === 200){
+
+      Toast.show({
+        type: "success",
+        text1: "Thành công",
+        text2: "Đã gửi hủy kết bạn",
+      });
+
+      setSearchResults((prevResults: any) =>
+        prevResults.map((user: any) =>
+          user.userId === receiverId ? { ...user, friendStatus: 1 } : user,
+        ),
+      );
+      // }
+    } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Từ chối thất bại",
+        text2: "Không thể hủy lời mời này",
+      });
     }
   };
 
@@ -207,7 +285,7 @@ export default function FriendManagementScreen() {
                     buttons={
                       <>
                         <Button
-                          title="Xem chi tiết"
+                          title="Xem thông tin"
                           buttonStyle={{
                             backgroundColor: "#3b82f6",
                             borderRadius: 10,
@@ -262,6 +340,7 @@ export default function FriendManagementScreen() {
                   <FriendCard
                     key={req.id}
                     user={req.fromUserNavigation}
+                    createdAt={req.createdAt}
                     buttons={
                       <>
                         <Button
@@ -302,17 +381,18 @@ export default function FriendManagementScreen() {
                 />
               }
             >
-              <View className="flex-row items-center mb-4">
-                <Input
-                  className="flex-1 bg-white px-4 py-2 rounded-lg shadow-md"
+              <View className="flex-row items-center mb-4 px-2">
+                <TextInput
+                  className="flex-1 bg-white px-4 py-2 rounded-lg shadow-md text-black"
                   placeholder="Tìm người dùng..."
+                  placeholderTextColor="#999"
                   value={searchTerm}
                   onChangeText={setSearchTerm}
                   onSubmitEditing={handleSearch}
                 />
                 <TouchableOpacity
                   onPress={handleSearch}
-                  className="ml-2 p-2 bg-green-500 rounded-lg"
+                  className="ml-2 p-2 bg-black rounded-lg"
                 >
                   <Ionicons name="search" size={20} color="white" />
                 </TouchableOpacity>
@@ -332,9 +412,44 @@ export default function FriendManagementScreen() {
                     key={user.userId}
                     user={user}
                     buttons={
-                      <Text className="text-sm italic text-gray-500 mt-2">
-                        (Không có hành động khả dụng)
-                      </Text>
+                      <>
+                        <Button
+                          title="Xem thông tin"
+                          buttonStyle={{
+                            backgroundColor: "#3b82f6",
+                            borderRadius: 10,
+                            paddingHorizontal: 16,
+                          }}
+                          titleStyle={{ fontSize: 14 }}
+                          onPress={() => {
+                            // navigation.navigate("FriendDetailScreen", { friendId: user.userId });
+                          }}
+                        />
+
+                        {user.friendStatus === 1 ? (
+                          <Button
+                            title="Hủy yêu cầu"
+                            buttonStyle={{
+                              backgroundColor: "#f97316",
+                              borderRadius: 10,
+                              paddingHorizontal: 16,
+                            }}
+                            titleStyle={{ fontSize: 14 }}
+                            onPress={() => cancelFriendRequest(user.userId)}
+                          />
+                        ) : (
+                          <Button
+                            title="Thêm bạn bè"
+                            buttonStyle={{
+                              backgroundColor: "#ef4444", // đỏ
+                              borderRadius: 10,
+                              paddingHorizontal: 16,
+                            }}
+                            titleStyle={{ fontSize: 14 }}
+                            onPress={() => sendFriendRequest(user.userId)}
+                          />
+                        )}
+                      </>
                     }
                   />
                 ))

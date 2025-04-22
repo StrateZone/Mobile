@@ -21,13 +21,17 @@ import { useAuth } from "@/context/auth-context";
 import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type ListTableRouteProp = RouteProp<RootStackParamList, "appointment_detail">;
+type ListTableRouteProp = RouteProp<
+  RootStackParamList,
+  "appointment_ongoing_detail"
+>;
 type Props = {
   route: ListTableRouteProp;
 };
 
 const getStatusStyles = (status: string) => {
-  switch (status.toLowerCase()) {
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
     case "pending":
       return {
         bg: "bg-yellow-100",
@@ -56,7 +60,7 @@ const getStatusStyles = (status: string) => {
       return {
         bg: "bg-purple-100",
         text: "text-purple-800",
-        display: "Đã Hoàn thành",
+        display: "Hoàn thành",
       };
     case "cancelled":
       return {
@@ -70,11 +74,11 @@ const getStatusStyles = (status: string) => {
         text: "text-indigo-800",
         display: "Đã hoàn tiền",
       };
-    case "unfinished":
+    case "incompleted":
       return {
         bg: "bg-orange-100",
         text: "text-orange-800",
-        display: "Không hoàn thành",
+        display: "Chưa hoàn thành",
       };
     default:
       return {
@@ -85,7 +89,7 @@ const getStatusStyles = (status: string) => {
   }
 };
 
-export default function AppointmentDetail({ route }: Props) {
+export default function AppointmentOnGoingDetail({ route }: Props) {
   const navigation = useNavigation<NavigationProp>();
   const { appointmentId } = route.params;
   const { authState } = useAuth();
@@ -127,6 +131,7 @@ export default function AppointmentDetail({ route }: Props) {
         `/tables-appointment/cancel-check/${tablesAppointmentId}/users/${user?.userId}`,
         { CancelTime: nowUTC7.toISOString() },
       );
+
       setCheckTable(response);
       setOpenDialog(true);
     } catch (error) {

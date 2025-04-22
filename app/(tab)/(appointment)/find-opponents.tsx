@@ -66,6 +66,18 @@ export default function FindOpponent({ route }: Props) {
   const handleInvite = async (toUserId: number) => {
     if (!user) return;
 
+    const table = selectedTables.find((t: ChessTable) => t.tableId === tableId);
+    const currentInvitedCount = table?.invitedUsers?.length || 0;
+
+    if (currentInvitedCount >= 6) {
+      Toast.show({
+        type: "error",
+        text1: "Quá giới hạn",
+        text2: "Chỉ được phép mời tối đa 6 người",
+      });
+      return;
+    }
+
     try {
       await addInvitedUser(tableId, toUserId);
 

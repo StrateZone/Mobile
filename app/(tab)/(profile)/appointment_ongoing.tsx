@@ -20,7 +20,7 @@ import { RootStackParamList } from "@/constants/types/root-stack";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function AppointmentHistory() {
+export default function AppointmentOnGoing() {
   const { authState } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
@@ -54,7 +54,8 @@ export default function AppointmentHistory() {
   }, [user]);
 
   const getStatusStyles = (status: string) => {
-    switch (status.toLowerCase()) {
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
       case "pending":
         return {
           bg: "bg-yellow-100",
@@ -83,7 +84,7 @@ export default function AppointmentHistory() {
         return {
           bg: "bg-purple-100",
           text: "text-purple-800",
-          display: "Đã Hoàn thành",
+          display: "Hoàn thành",
         };
       case "cancelled":
         return {
@@ -97,11 +98,11 @@ export default function AppointmentHistory() {
           text: "text-indigo-800",
           display: "Đã hoàn tiền",
         };
-      case "unfinished":
+      case "incompleted":
         return {
           bg: "bg-orange-100",
           text: "text-orange-800",
-          display: "Không hoàn thành",
+          display: "Chưa hoàn thành",
         };
       default:
         return {
@@ -122,7 +123,7 @@ export default function AppointmentHistory() {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-2xl font-bold text-center text-black mb-5">
-          Lịch sử đặt bàn
+          Cuộc hẹn đang chờ
         </Text>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-1 mr-2"></View>
@@ -146,11 +147,7 @@ export default function AppointmentHistory() {
           <ScrollView className="flex-1">
             {appointments.length > 0 ? (
               appointments
-                .filter(
-                  (item) =>
-                    item.status.toLowerCase() === "completed" ||
-                    item.status.toLowerCase() === "unfinished",
-                )
+                .filter((item) => item.status.toLowerCase() === "incompleted")
                 .map((item) => {
                   const { bg, text, display } = getStatusStyles(item.status);
 
@@ -179,7 +176,7 @@ export default function AppointmentHistory() {
                       <TouchableOpacity
                         className="mt-3 bg-black text-white px-4 py-2 rounded-full"
                         onPress={() =>
-                          navigation.navigate("appointment_detail", {
+                          navigation.navigate("appointment_ongoing_detail", {
                             appointmentId: item.appointmentId,
                           })
                         }
