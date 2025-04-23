@@ -27,7 +27,7 @@ export default function MembershipUpgradeDialog({
 }: MembershipUpgradeDialogProps) {
   const { authState } = useAuth();
   const user = authState?.user;
-
+  console.log(membershipPrice);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleUpgradeClick = () => {
@@ -60,7 +60,7 @@ export default function MembershipUpgradeDialog({
     { icon: "message-circle", text: "Tạo và tham gia thảo luận" },
     { icon: "users", text: "Bình luận và tương tác" },
     { icon: "shield", text: "Kết nối cộng đồng" },
-    { icon: "gift", text: "Ưu đãi đặc biệt" },
+    // { icon: "gift", text: "Ưu đãi đặc biệt" },
   ];
 
   return (

@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Fold } from "react-native-animated-spinkit";
 import { useAuth } from "@/context/auth-context";
 import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
+import OpponentsListDialog from "@/components/dialog/opponents_list";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "appointment_detail">;
@@ -96,6 +97,8 @@ export default function AppointmentDetail({ route }: Props) {
   const [opneDialog, setOpenDialog] = useState(false);
   const [checkTable, setCheckTable] = useState<any>(null);
   const [selectedTableId, setSelectedTableId] = useState<number>(0);
+  const [openPlayerDialog, setOpenPlayerDialog] = useState(false);
+  const [playersOfTable, setPlayersOfTable] = useState<any[]>([]);
 
   const now = new Date();
   const convertToUTC7 = (date: Date): Date => {
@@ -136,6 +139,18 @@ export default function AppointmentDetail({ route }: Props) {
     }
   };
 
+  const handleShowPlayers = (tableId: number) => {
+    const players = appointment?.appointmentrequests
+      .filter((req: any) => req.tableId === tableId && req.toUserNavigation)
+      .map((req: any) => ({
+        ...req,
+        toUser: req.toUserNavigation,
+      }));
+
+    setPlayersOfTable(players || []);
+    setOpenPlayerDialog(true);
+  };
+
   const { bg, text, display } = appointment
     ? getStatusStyles(appointment.status)
     : { bg: "", text: "", display: "" };
@@ -164,13 +179,16 @@ export default function AppointmentDetail({ route }: Props) {
                 className={`p-4 shadow-md mb-4 border-l-4 rounded-lg bg-white ${text}`}
               >
                 <Text className="text-xl font-semibold mb-2">
-                  Chi tiết đơn đặt bàn
+                  Chi tiết đơn đặt hẹn
                 </Text>
                 <Text className="text-md mb-4">
                   Dưới đây là các thông tin chi tiết về đơn đặt của bạn:
                 </Text>
 
                 <View className="mb-3">
+                  <Text className="text-lg font-semibold">
+                    Mã đơn: {appointment?.appointmentId}
+                  </Text>
                   <Text className="text-lg font-semibold">
                     Số lượng bàn: {appointment?.tablesAppointments.length} bàn
                   </Text>
@@ -185,7 +203,7 @@ export default function AppointmentDetail({ route }: Props) {
 
                 <View className="mb-4">
                   <Text className={`text-lg font-semibold ${text}`}>
-                    Trạng thái: {display}
+                    Trạng thái đơn: {display}
                   </Text>
                 </View>
               </View>
@@ -207,7 +225,7 @@ export default function AppointmentDetail({ route }: Props) {
                         <Text className="text-lg font-semibold">
                           Số phòng: {table.table.tableId}
                         </Text>
-                        <Text className="text-lg">Số bàn: {table.tableId}</Text>
+                        <Text className="text-lg">Mã bàn: {table.tableId}</Text>
                         <Text className="text-lg">
                           Bắt đầu:{" "}
                           {new Date(table.scheduleTime).toLocaleTimeString()}
@@ -217,8 +235,18 @@ export default function AppointmentDetail({ route }: Props) {
                           {new Date(table.endTime).toLocaleTimeString()}
                         </Text>
                         <Text className="text-lg">
-                          Trạng thái: {tableStyles.display}
+                          Trạng thái bàn: {tableStyles.display}
                         </Text>
+
+                        <TouchableOpacity
+                          className="self-start flex-row items-center bg-blue-500 px-2 py-1 rounded-md"
+                          onPress={() => handleShowPlayers(table.tableId)}
+                        >
+                          <Ionicons name="people" size={16} color="white" />
+                          <Text className="ml-1 text-white text-sm">
+                            Xem đối thủ đã mời
+                          </Text>
+                        </TouchableOpacity>
 
                         <Text className="text-lg font-semibold text-right mt-2">
                           Đơn giá: {table.price.toLocaleString()} VND
@@ -272,6 +300,11 @@ export default function AppointmentDetail({ route }: Props) {
             </>
           )}
         </View>
+        <OpponentsListDialog
+          visible={openPlayerDialog}
+          onClose={() => setOpenPlayerDialog(false)}
+          players={playersOfTable}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

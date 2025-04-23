@@ -70,7 +70,7 @@ export default function FriendManagementScreen() {
     try {
       await deleteRequest(`/friendlists/${id}`);
       await fetchFriends();
-      Toast.show({ type: "success", text1: `Đã hủy kết bạn với ${name}` });
+      Toast.show({ type: "success", text1: `Đã xóa bạn với ${name}` });
     } catch {
       Toast.show({
         type: "error",
@@ -298,7 +298,7 @@ export default function FriendManagementScreen() {
                           }}
                         />
                         <Button
-                          title="Hủy kết bạn"
+                          title="Xóa bạn"
                           buttonStyle={{
                             backgroundColor: "#ef4444",
                             borderRadius: 10,

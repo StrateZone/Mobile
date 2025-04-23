@@ -34,7 +34,9 @@ export default function CreateThread() {
 
   const fetchTags = async () => {
     try {
-      const response = await getRequest("/tags");
+      const response = await getRequest(`/tags/by-role`, {
+        role: "Member",
+      });
       setTags(response);
     } catch (error) {
       console.error("Error fetching tags", error);
@@ -212,6 +214,7 @@ export default function CreateThread() {
           >
             {tags.map((tag) => (
               <Chip
+                className="p-1"
                 key={tag.tagId}
                 title={tag.tagName}
                 onPress={() => handleTagSelect(tag.tagId)}

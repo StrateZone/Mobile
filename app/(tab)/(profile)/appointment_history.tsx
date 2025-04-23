@@ -122,7 +122,7 @@ export default function AppointmentHistory() {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-2xl font-bold text-center text-black mb-5">
-          Lịch sử đặt bàn
+          Lịch sử đặt hẹn
         </Text>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-1 mr-2"></View>
@@ -193,7 +193,7 @@ export default function AppointmentHistory() {
                 })
             ) : (
               <Text className="text-center text-gray-500">
-                Chưa có lịch sử đặt bàn.
+                Chưa có lịch sử đặt hẹn.
               </Text>
             )}
           </ScrollView>

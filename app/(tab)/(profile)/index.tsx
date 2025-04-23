@@ -131,7 +131,7 @@ export default function ProfileScreen() {
         onPress={() => navigation.navigate("invitations")}
       >
         <Text className="text-black text-lg font-semibold">
-          Lời mời đặt bàn
+          Lời mời đặt hẹn
         </Text>
         <Ionicons name="chevron-forward" size={24} color="black" />
       </TouchableOpacity>
@@ -151,7 +151,7 @@ export default function ProfileScreen() {
         onPress={() => navigation.navigate("appointment_history")}
       >
         <Text className="text-black text-lg font-semibold">
-          Lịch sử đặt bàn
+          Lịch sử đặt hẹn
         </Text>
         <Ionicons name="chevron-forward" size={24} color="black" />
       </TouchableOpacity>

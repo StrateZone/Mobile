@@ -106,7 +106,7 @@ export default function Invitations() {
         </TouchableOpacity>
 
         <Text className="text-2xl font-bold text-center text-black mb-5">
-          Lời mời đặt bàn
+          Lời mời đặt hẹn
         </Text>
 
         {isLoading ? (

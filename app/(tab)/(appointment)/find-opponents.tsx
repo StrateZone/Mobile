@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  TextInput,
 } from "react-native";
 import React, { useEffect, useState, useContext } from "react";
 import { RouteProp, useNavigation } from "@react-navigation/native";
@@ -38,6 +39,7 @@ export default function FindOpponent({ route }: Props) {
   const [opponents, setOpponents] = useState<Opponents[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleGetUserForInvite = async () => {
     setIsLoading(true);
@@ -48,6 +50,7 @@ export default function FindOpponent({ route }: Props) {
         excludedIds,
         up: 1,
         down: 1,
+        searchTerm,
       });
 
       setOpponents(response.matchingOpponents || []);
@@ -95,7 +98,11 @@ export default function FindOpponent({ route }: Props) {
         text2: `Đã gửi lời mời cho đối thủ`,
       });
     } catch (error) {
-      console.error("Lỗi khi gửi lời mời:", error);
+      Toast.show({
+        type: "error",
+        text1: "Thất bạn",
+        text2: `Không thể gửi lời mời này`,
+      });
     }
   };
 
@@ -147,6 +154,20 @@ export default function FindOpponent({ route }: Props) {
             onPress={handleGetUserForInvite}
           >
             <Ionicons name="refresh" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-row items-center bg-white rounded-full px-3 py-2 mb-4 border border-gray-300">
+          <TextInput
+            placeholder="Tìm đối thủ..."
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            className="flex-1 text-black"
+            returnKeyType="search"
+            onSubmitEditing={handleGetUserForInvite}
+          />
+          <TouchableOpacity onPress={handleGetUserForInvite}>
+            <Ionicons name="search" size={24} color="black" />
           </TouchableOpacity>
         </View>
 

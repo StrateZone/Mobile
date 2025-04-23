@@ -4,6 +4,8 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator as RNActivityIndicator,
+  TextInput,
+  RefreshControl,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,6 +21,7 @@ import {
   Button,
 } from "@rneui/themed";
 import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { deleteRequest, getRequest, postRequest } from "@/helpers/api-requests";
@@ -60,21 +63,46 @@ export default function CommunityDetail({ route }: Props) {
     fullName: "",
     avatarUrl: "",
   });
+  const [mainCommentContent, setMainCommentContent] = useState("");
+  const [replyContent, setReplyContent] = useState("");
+  const [replyToCommentId, setReplyToCommentId] = useState<number | null>(null);
+  const [replyingToName, setReplyingToName] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [commenting, setCommenting] = useState(false);
+  const [replying, setReplying] = useState<{
+    commentId: number;
+    userName: string;
+  } | null>(null);
 
+  const handleCommentClick = () => {
+    setCommenting(true);
+    setReplying(null);
+  };
+
+  const handleReplyClick = (commentId: number, userName: string) => {
+    setReplying({ commentId, userName });
+    setCommenting(true);
+  };
+
+  const handleCancelReply = () => {
+    setReplying(null);
+    setCommenting(false);
+  };
+
+  const fetchThread = async () => {
+    setLoading(true);
+    try {
+      const response = await getRequest(`/threads/${threadId}`);
+      setThread(response);
+      setLikeCount(response.likes?.length || 0);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu thread:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchThread = async () => {
-      setLoading(true);
-      try {
-        const response = await getRequest(`/threads/${threadId}`);
-        setThread(response);
-        setLikeCount(response.likes?.length || 0);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu thread:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchThread();
   }, []);
 
@@ -87,6 +115,12 @@ export default function CommunityDetail({ route }: Props) {
       });
     }
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchThread();
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     if (thread?.likes && currentUser.userId) {
@@ -123,6 +157,47 @@ export default function CommunityDetail({ route }: Props) {
     }
   };
 
+  const handleSubmitComment = async () => {
+    if (!currentUser.userId || submitting) return;
+    const isReply = replyToCommentId !== null;
+    const content = isReply ? replyContent : mainCommentContent;
+
+    if (!content.trim()) return;
+
+    setSubmitting(true);
+    try {
+      await postRequest("/comments", {
+        threadId,
+        userId: currentUser.userId,
+        content,
+        replyTo: replyToCommentId,
+      });
+
+      setMainCommentContent("");
+      setReplyContent("");
+      setReplyToCommentId(null);
+      setReplyingToName(null);
+
+      const response = await getRequest(`/threads/${threadId}`);
+      setThread(response);
+    } catch (err) {
+      console.error("Gửi bình luận lỗi:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReply = (commentId: number, userName: string) => {
+    setReplyToCommentId(commentId);
+    setReplyingToName(userName);
+  };
+
+  const cancelReply = () => {
+    setReplyToCommentId(null);
+    setReplyingToName(null);
+    setReplyContent("");
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 p-4 mt-10">
@@ -134,7 +209,12 @@ export default function CommunityDetail({ route }: Props) {
         </TouchableOpacity>
 
         {thread ? (
-          <ScrollView className="px-4 ">
+          <ScrollView
+            className="px-4"
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
             <Card containerStyle={{ borderRadius: 12, paddingBottom: 12 }}>
               {/* Tác giả */}
               <View className="flex-row items-center mb-8">
@@ -214,7 +294,56 @@ export default function CommunityDetail({ route }: Props) {
 
             {/* Bình luận */}
             <Text className="text-lg font-semibold mt-4 mb-2">Bình luận</Text>
-            {renderComments(thread.comments)}
+            {/* Ô nhập bình luận */}
+            <View className="mt-4 px-2">
+              {replyingToName && (
+                <View className="flex-row justify-between items-center mb-1">
+                  <Text className="text-sm text-gray-500 italic">
+                    Đang trả lời {replyingToName}
+                  </Text>
+                  <TouchableOpacity onPress={cancelReply}>
+                    <Text className="text-xs text-red-500">Hủy</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            <View className="bg-gray-100 rounded-xl flex-row items-center px-3 py-2">
+              <TextInput
+                placeholder="Nhập bình luận..."
+                multiline
+                value={replyToCommentId ? replyContent : mainCommentContent}
+                onChangeText={(text) =>
+                  replyToCommentId
+                    ? setReplyContent(text)
+                    : setMainCommentContent(text)
+                }
+                className="flex-1 text-base text-gray-800 pr-2"
+              />
+              <TouchableOpacity
+                onPress={handleSubmitComment}
+                disabled={
+                  submitting ||
+                  !(replyToCommentId
+                    ? replyContent.trim()
+                    : mainCommentContent.trim())
+                }
+              >
+                <Feather
+                  name="send"
+                  size={20}
+                  color={
+                    submitting ||
+                    !(replyToCommentId
+                      ? replyContent.trim()
+                      : mainCommentContent.trim())
+                      ? "#ccc"
+                      : "#007AFF"
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+
+            {renderComments(thread.comments, handleReply)}
           </ScrollView>
         ) : (
           <View className="flex-1 justify-center items-center">
@@ -226,7 +355,10 @@ export default function CommunityDetail({ route }: Props) {
   );
 }
 
-const renderComments = (comments: any[]) => {
+const renderComments = (
+  comments: any[],
+  handleReply: (commentId: number, userName: string) => void,
+) => {
   const parentComments = comments.filter((c) => c.replyTo === null);
 
   return parentComments.map((parent) => {
@@ -251,6 +383,13 @@ const renderComments = (comments: any[]) => {
               </View>
             </View>
           </View>
+          {/* Nút trả lời */}
+          <Text
+            className="text-xs text-blue-500 mt-2"
+            onPress={() => handleReply(parent.commentId, parent.user.fullName)}
+          >
+            Trả lời
+          </Text>
         </Card>
 
         {/* Nhóm các reply */}
