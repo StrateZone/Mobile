@@ -1,6 +1,6 @@
 import { View, Text, Alert } from "react-native";
 import React, { useContext, useState } from "react";
-import { Dialog } from "@rneui/themed";
+import { Dialog, Button } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Fold } from "react-native-animated-spinkit";
@@ -27,11 +27,12 @@ export default function PaymentDialog({
   tableOpponents,
   onClose,
   setIsPaymentSuccessful,
-  setIsLoading,
 }: DialogType) {
   const { authState } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
+
+  const [loading, setIsLoading] = useState(false);
 
   const [
     selectedTables,
@@ -45,8 +46,8 @@ export default function PaymentDialog({
     setIsLoading(true);
     try {
       if (!user) {
-        onClose();
         setIsLoading(false);
+        onClose();
         Alert.alert(
           "Bạn chưa đăng nhập",
           "Bạn cần đăng nhập để tiếp tục thanh toán",
@@ -56,11 +57,12 @@ export default function PaymentDialog({
       }
 
       if (totalPrice > (user?.wallet.balance || 0)) {
+        setIsLoading(false);
         onClose();
         Alert.alert("Số dư không đủ để thanh toán!");
+        return;
       }
 
-      onClose();
       const payload = {
         userId: user.userId,
         tablesAppointmentRequests: selectedTables.map((table: any) => {
@@ -79,21 +81,58 @@ export default function PaymentDialog({
 
       const response = await postRequest("/payments/booking-payment", payload);
 
+      if (response.success === false) {
+        if (response.error.message === "Some tables are not available") {
+          const unavailableList = response.error.unavailable_tables || [];
+
+          const tableMessages = unavailableList.map((table: any) => {
+            const startDate = new Date(table.start_time);
+            const endDate = new Date(table.end_time);
+
+            const dateStr = startDate.toLocaleDateString("vi-VN", {
+              weekday: "long",
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            });
+
+            const startTime = startDate.toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            const endTime = endDate.toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+
+            return `• Bàn ${table.table_id} (${startTime} - ${endTime}, ${dateStr})`;
+          });
+
+          const message =
+            "Một số bàn đã có người đặt:\n\n" + tableMessages.join("\n");
+
+          Alert.alert("Không thể đặt bàn", message, [
+            {
+              text: "Đặt bàn khác",
+              style: "cancel",
+            },
+          ]);
+          return;
+        } else {
+          Alert.alert("Lỗi", response.error?.message || "Đã xảy ra lỗi");
+          return;
+        }
+      }
+
+      // ✅ Trường hợp thành công
       if (response.status === 200) {
         navigation.navigate("payment_successfull");
         setIsPaymentSuccessful(true);
         await clearSelectedTablesWithNoInvite();
       }
     } catch (error) {
-      Alert.alert("Lỗi đặt bàn", "Đã có người đặt bàn này", [
-        {
-          text: "Đặt bàn khác",
-          onPress: () => {
-            navigation.goBack();
-          },
-          style: "cancel",
-        },
-      ]);
+      console.error("Lỗi không xác định:", error);
+      Alert.alert("Lỗi không xác định", "Vui lòng thử lại sau");
     } finally {
       setIsLoading(false);
       onClose();
@@ -116,7 +155,7 @@ export default function PaymentDialog({
 
           const opponentStatusText = (() => {
             if (table.invitedUsers && table.invitedUsers.length > 0)
-              return "Đã mời đối thủ";
+              return "Chọn đối thủ để mời";
             return "Không mời đối thủ";
           })();
 
@@ -156,8 +195,22 @@ export default function PaymentDialog({
         })}
 
         <Dialog.Actions>
-          <Dialog.Button title="Xác nhận" onPress={handleConfirm} />
-          <Dialog.Button title="Hủy" onPress={onClose} />
+          <Button
+            title={loading ? "Đang xử lý..." : "Xác nhận"}
+            onPress={handleConfirm}
+            disabled={loading}
+            loading={loading}
+            buttonStyle={{ backgroundColor: "#22c55e" }}
+            titleStyle={{ fontWeight: "600" }}
+          />
+          <Button
+            title="Hủy"
+            onPress={onClose}
+            type="outline"
+            buttonStyle={{ borderColor: "#6b7280" }}
+            titleStyle={{ color: "#6b7280" }}
+            disabled={loading}
+          />
         </Dialog.Actions>
       </>
     </Dialog>

@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  RefreshControl,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -33,10 +34,11 @@ export default function Invitations() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [orderBy, setOrderBy] = useState<string>("created-at-desc");
   const [opneDialog, setOpenDialog] = useState(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const fetchAppointments = async () => {
     try {
-      setIsLoading(true);
+      if (!refreshing) setIsLoading(true);
       const response = await getRequest(
         `/appointmentrequests/to/${user?.userId}`,
         {
@@ -51,6 +53,7 @@ export default function Invitations() {
       console.error("Lỗi khi lấy lịch sử đặt bàn:", error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
   useEffect(() => {
@@ -75,24 +78,121 @@ export default function Invitations() {
       });
   };
 
-  const statusColors: Record<string, string> = {
-    pending: "#b58900",
-    accepted: "green",
-    rejected: "red",
-    cancelled: "gray",
-    expired: "purple",
-    payment_required: "orange",
-    await_appointment_creation: "blue",
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchAppointments();
+    setRefreshing(false);
   };
 
-  const statusTextMap: Record<string, string> = {
-    pending: "Chờ xử lý",
-    accepted: "Đã chấp nhận",
-    rejected: "Bị từ chối",
-    cancelled: "Đã hủy",
-    expired: "Đã hết hạn",
-    payment_required: "Cần thanh toán",
-    await_appointment_creation: "Chờ tạo lịch hẹn",
+  const getStatusColor = (status: string) => {
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case "pending":
+        return {
+          bg: "bg-yellow-100",
+          text: "text-yellow-700",
+          border: "border-yellow-500",
+          display: "Chờ Phản Hồi",
+          icon: (
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color="#b58900"
+              className="mr-1"
+            />
+          ),
+        };
+      case "accepted":
+        return {
+          bg: "bg-blue-100",
+          text: "text-blue-700",
+          border: "border-blue-500",
+          display: "Đã Chấp Nhận Lời Mời",
+          icon: (
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={16}
+              color="blue"
+              className="mr-1"
+            />
+          ),
+        };
+      case "rejected":
+        return {
+          bg: "bg-red-100",
+          text: "text-red-700",
+          border: "border-red-500",
+          display: "Đã Từ Chối Lời Mời",
+          icon: (
+            <Ionicons
+              name="close-circle-outline"
+              size={16}
+              color="red"
+              className="mr-1"
+            />
+          ),
+        };
+      case "expired":
+        return {
+          bg: "bg-orange-100",
+          text: "text-orange-600",
+          border: "border-orange-500",
+          display: "Lời Mời Đã Hết Hạn",
+          icon: (
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color="#fb923c"
+              className="mr-1"
+            />
+          ),
+        };
+      case "cancelled":
+        return {
+          bg: "bg-gray-100",
+          text: "text-gray-600",
+          border: "border-gray-400",
+          display: "Lời Mời Đã Bị Hủy",
+          icon: (
+            <Ionicons
+              name="close-circle-outline"
+              size={16}
+              color="gray"
+              className="mr-1"
+            />
+          ),
+        };
+      case "accepted_by_others":
+        return {
+          bg: "bg-pink-100",
+          text: "text-pink-700",
+          border: "border-pink-500",
+          display: "Lời Mời Đã Được Người Khác Chấp Nhận",
+          icon: (
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={16}
+              color="#db2777"
+              className="mr-1"
+            />
+          ),
+        };
+      default:
+        return {
+          bg: "bg-gray-100",
+          text: "text-gray-800",
+          border: "border-gray-400",
+          display: status,
+          icon: (
+            <Ionicons
+              name="ellipse-outline"
+              size={16}
+              color="gray"
+              className="mr-1"
+            />
+          ),
+        };
+    }
   };
 
   return (
@@ -114,19 +214,22 @@ export default function Invitations() {
             <Fold size={48} color="#000000" />
           </View>
         ) : (
-          <ScrollView className="flex-1 mt-10">
+          <ScrollView
+            className="flex-1 mt-10"
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
             {invitations.length > 0 ? (
               invitations.map((item: any) => {
                 const fullName = item.fromUserNavigation?.fullName;
                 const status = item.status;
-                const statusColor = statusColors[status];
-                const statusText = statusTextMap[status];
+                const statusInfo = getStatusColor(status);
 
                 return (
                   <View
                     key={item.id}
-                    className="bg-white p-4 rounded-lg shadow-md mb-4 border-l-4"
-                    style={{ borderColor: statusColor }}
+                    className={`bg-white p-4 rounded-lg shadow-md mb-4 border-l-4 ${statusInfo.border}`}
                   >
                     <Text className="text-lg font-bold text-gray-900">
                       Người gửi: {fullName}
@@ -134,12 +237,12 @@ export default function Invitations() {
                     <Text className="text-sm text-gray-600">
                       Ngày gửi: {new Date(item.createdAt).toLocaleString()}
                     </Text>
-                    <Text
-                      className="text-sm font-bold mb-2"
-                      style={{ color: statusColor }}
-                    >
-                      Trạng thái: {statusText}
-                    </Text>
+                    <View className="flex-row items-center mb-2">
+                      {statusInfo.icon}
+                      <Text className={`text-sm font-bold ${statusInfo.text}`}>
+                        {statusInfo.display}
+                      </Text>
+                    </View>
 
                     <View className="flex-row flex-wrap gap-2 justify-start items-center">
                       <TouchableOpacity
@@ -213,7 +316,7 @@ export default function Invitations() {
                         </>
                       )}
                     </View>
-                    {/* onPress={() => handleAccept(item.fromUser,item.table.tableId,item.appointmentId)} */}
+
                     <PaymentDialogForInvited
                       visible={opneDialog}
                       fromUserId={item.fromUser}
@@ -225,7 +328,6 @@ export default function Invitations() {
                       endTime={item.endTime}
                       fullName={item.fromUserNavigation.fullName}
                       onClose={() => setOpenDialog(false)}
-                      setIsLoading={setIsLoading}
                       fetchAppointment={fetchAppointments}
                       totalPrice={item.totalPrice}
                     />

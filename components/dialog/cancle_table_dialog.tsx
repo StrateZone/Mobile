@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Alert } from "react-native";
 import { Dialog, Button } from "@rneui/themed";
 import Toast from "react-native-toast-message";
+import { Fold } from "react-native-animated-spinkit";
 
 import { putRequest } from "@/helpers/api-requests";
 import { useAuth } from "@/context/auth-context";
@@ -31,6 +32,8 @@ export default function ConfirmCancelTableDialog({
   const { authState } = useAuth();
   const user = authState?.user;
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const formatDateTime = (iso: string) => {
     const date = new Date(iso);
     return date.toLocaleString("vi-VN", {
@@ -39,6 +42,7 @@ export default function ConfirmCancelTableDialog({
   };
 
   const handleConfirmCancel = async () => {
+    setIsLoading(true);
     try {
       await putRequest(
         `/tables-appointment/cancel/${tableId}/users/${user?.userId}`,
@@ -50,8 +54,11 @@ export default function ConfirmCancelTableDialog({
         text2: "Đã hủy bàn",
       });
       onSuccess?.();
+      onClose();
     } catch (e) {
       Alert.alert("Lỗi", "Không thể hủy bàn.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -101,9 +108,19 @@ export default function ConfirmCancelTableDialog({
               minWidth: 100,
             }}
             titleStyle={{ color: "#6b7280", fontSize: 14 }}
+            disabled={isLoading}
           />
           <Button
-            title="Xác nhận huỷ"
+            title={
+              isLoading ? (
+                <View className="flex-row items-center justify-center gap-2">
+                  <Fold size={16} color="black" />
+                  <Text className="text-black text-sm">Đang xử lý</Text>
+                </View>
+              ) : (
+                "Xác nhận huỷ"
+              )
+            }
             onPress={handleConfirmCancel}
             buttonStyle={{
               backgroundColor: "#ef4444",
@@ -112,6 +129,7 @@ export default function ConfirmCancelTableDialog({
               minWidth: 120,
             }}
             titleStyle={{ fontSize: 14 }}
+            disabled={isLoading}
           />
         </View>
       </View>

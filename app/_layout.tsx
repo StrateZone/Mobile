@@ -186,8 +186,15 @@ function CustomDrawerContent({ navigation }: any) {
         },
         {
           text: "Đăng xuất",
-          onPress: onLogout,
           style: "destructive",
+          onPress: async () => {
+            if (onLogout) {
+              await onLogout();
+            }
+            navigation.navigate("Auth", {
+              screen: "login",
+            });
+          },
         },
       ],
     );

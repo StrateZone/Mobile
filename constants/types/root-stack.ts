@@ -1,8 +1,12 @@
 export type RootStackParamList = {
   //auth
   login: undefined;
+  LoginByOtp: undefined;
   Otp: { email: string };
   Register: undefined;
+  Auth: {
+    screen: "login";
+  };
   //profile
   Profile: {
     screen:

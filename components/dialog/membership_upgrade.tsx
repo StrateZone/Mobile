@@ -27,7 +27,7 @@ export default function MembershipUpgradeDialog({
 }: MembershipUpgradeDialogProps) {
   const { authState } = useAuth();
   const user = authState?.user;
-  console.log(membershipPrice);
+
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleUpgradeClick = () => {
@@ -47,7 +47,7 @@ export default function MembershipUpgradeDialog({
 
   const cancelConfirm = () => setShowConfirm(false);
   const confirmUpgrade = () => {
-    if (membershipPrice!.price1 > user!.wallet.balance) {
+    if (80000 > user!.wallet.balance) {
       onClose();
       Alert.alert("Số dư không đủ để thanh toán!");
     }
@@ -85,7 +85,7 @@ export default function MembershipUpgradeDialog({
               </Text>
               {membershipPrice && (
                 <Text className="text-2xl font-bold text-green-600 mb-2">
-                  {membershipPrice.price1.toLocaleString()}₫{" "}
+                  80,000₫{" "}
                   <Text className="text-base text-gray-500 font-normal">
                     /{" "}
                     {membershipPrice.unit === "per month"

@@ -140,8 +140,8 @@ export default function RegisterScreen() {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
-        <Text className="text-2xl  font-bold text-center text-black mb-5">
-          Đăng Ký
+        <Text className="text-2xl font-bold text-center text-black mb-5 mt-3">
+          Đăng Ký Tài Khoản
         </Text>
       </View>
 

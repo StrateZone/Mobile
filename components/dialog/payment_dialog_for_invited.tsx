@@ -1,5 +1,5 @@
 import { View, Text, Alert } from "react-native";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Button, Dialog } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -8,6 +8,7 @@ import {
   Feather,
   FontAwesome5,
 } from "@expo/vector-icons";
+import { Fold } from "react-native-animated-spinkit";
 
 import { TableContext } from "@/context/select-table";
 import { useAuth } from "@/context/auth-context";
@@ -27,7 +28,6 @@ export type DialogType = {
   fullName: string;
   totalPrice: number;
   onClose: () => void;
-  setIsLoading: (loading: boolean) => void;
   fetchAppointment: () => void;
 };
 
@@ -45,21 +45,21 @@ export default function PaymentDialogForInvited({
   fullName,
   totalPrice,
   onClose,
-  setIsLoading,
   fetchAppointment,
 }: DialogType) {
   const { authState } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
-
   const [selectedTables] = useContext(TableContext);
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
       if (!user) {
         onClose();
-        setIsLoading(false);
+        setIsLoading(s);
         Toast.show({
           type: "error",
           text1: "Thất bại",
@@ -112,14 +112,24 @@ export default function PaymentDialogForInvited({
         {/* 1. Thông tin bàn chơi */}
         <View className="space-y-1">
           <View className="flex-row items-center">
-            <FontAwesome5 name="chess-board" size={18} color="#374151" />
-            <Text className="ml-2 font-semibold text-base text-gray-800">
+            <FontAwesome5 name="chess-board" size={23} color="#374151" />
+            <Text className="ml-2 font-semibold text-md text-gray-800">
               Thông tin bàn chơi
             </Text>
           </View>
           <Text className="text-gray-700">
-            <Text className="font-medium">Phòng:</Text> {roomName} ({roomType})
+            <Text className="font-medium">Phòng:</Text> {roomName}
           </Text>
+
+          <Text className="text-gray-700">
+            <Text className="font-medium">Loại phòng:</Text>{" "}
+            {{
+              basic: "Cơ bản",
+              openspaced: "Không gian mở",
+              premium: "Cao cấp",
+            }[roomType] || roomType}
+          </Text>
+
           <Text className="text-gray-700">
             <Text className="font-medium">Thời gian:</Text> {startTime} -{" "}
             {endTime}
@@ -129,8 +139,8 @@ export default function PaymentDialogForInvited({
         {/* 2. Người mời */}
         <View className="space-y-1">
           <View className="flex-row items-center">
-            <Feather name="user" size={18} color="#374151" />
-            <Text className="ml-2 font-semibold text-base text-gray-800">
+            <Feather name="user" size={23} color="#374151" />
+            <Text className="ml-2 font-semibold text-md text-gray-800">
               Người mời
             </Text>
           </View>
@@ -150,16 +160,38 @@ export default function PaymentDialogForInvited({
         {/* 4. Nút hành động */}
         <View className="flex-row justify-end space-x-3 pt-1">
           <Button
-            title="Hủy"
+            title="Đóng"
             type="outline"
-            buttonStyle={{ borderColor: "#6b7280", marginRight: 10 }}
-            titleStyle={{ color: "#6b7280" }}
             onPress={onClose}
+            buttonStyle={{
+              borderColor: "#6b7280",
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              minWidth: 100,
+            }}
+            titleStyle={{ color: "#6b7280", fontSize: 14 }}
+            disabled={isLoading}
           />
           <Button
-            title="Đồng ý"
-            buttonStyle={{ backgroundColor: "#22c55e" }}
+            title={
+              isLoading ? (
+                <View className="flex-row items-center justify-center gap-2">
+                  <Fold size={16} color="black" />
+                  <Text className="text-black text-sm">Đang xử lý</Text>
+                </View>
+              ) : (
+                "Thanh toán"
+              )
+            }
             onPress={handleConfirm}
+            buttonStyle={{
+              backgroundColor: "#22c55e",
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              minWidth: 120,
+            }}
+            titleStyle={{ fontSize: 14 }}
+            disabled={isLoading}
           />
         </View>
       </View>

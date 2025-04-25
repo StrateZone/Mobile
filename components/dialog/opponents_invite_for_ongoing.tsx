@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { Dialog, Tab, TabView, CheckBox } from "@rneui/themed";
-import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/auth-context";
 import { getRequest, postRequest } from "@/helpers/api-requests";
@@ -35,6 +34,7 @@ export const InviteOpponentDialogForOnGoing = ({
   const [markedOpponents, setMarkedOpponents] = useState<any[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,6 +103,7 @@ export const InviteOpponentDialogForOnGoing = ({
   };
 
   const handleSendInvitations = async () => {
+    setSending(true);
     try {
       const payload = {
         fromUser: user?.userId,
@@ -122,6 +123,9 @@ export const InviteOpponentDialogForOnGoing = ({
         text2: "Đã gửi lời mời đến đối thủ",
       });
 
+      setSelectedUsers([]);
+      await AsyncStorage.removeItem("selectedOpponents");
+
       onClose();
       loadAppointmentData();
     } catch (err) {
@@ -130,6 +134,8 @@ export const InviteOpponentDialogForOnGoing = ({
         text1: "Thất bại",
         text2: "Gửi lời mời thất bại",
       });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -205,7 +211,7 @@ export const InviteOpponentDialogForOnGoing = ({
                 >
                   {markedFriends.length === 0 ? (
                     <Text className="text-center text-gray-500 p-4">
-                      Không có bạn bè nào
+                      Chưa có bạn bè nào
                     </Text>
                   ) : (
                     markedFriends.map(renderUser)
@@ -218,7 +224,11 @@ export const InviteOpponentDialogForOnGoing = ({
           <TabView.Item
             style={{ width: "100%", display: index === 1 ? "flex" : "none" }}
           >
-            {index === 1 && (
+            {loading ? (
+              <View className="flex justify-center items-center mt-32">
+                <Fold size={48} color="#000000" />
+              </View>
+            ) : (
               <View style={{ flex: 1 }}>
                 <ScrollView
                   style={{ flex: 1 }}
@@ -260,12 +270,24 @@ export const InviteOpponentDialogForOnGoing = ({
         </TabView>
         {selectedUsers.length > 0 && (
           <TouchableOpacity
-            className="bg-blue-600 mx-4 my-4 py-3 rounded-xl"
+            disabled={sending}
+            className={`mx-4 my-4 py-3 rounded-xl ${
+              sending ? "bg-gray-400" : "bg-blue-600"
+            }`}
             onPress={handleSendInvitations}
           >
-            <Text className="text-center text-white font-semibold text-base">
-              Mời {selectedUsers.length} đối thủ
-            </Text>
+            {sending ? (
+              <View className="flex flex-row justify-center items-center">
+                <Fold size={18} color="#ffffff" />
+                <Text className="text-white font-semibold text-base ml-2">
+                  Đang gửi...
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-center text-white font-semibold text-base">
+                Mời {selectedUsers.length} đối thủ
+              </Text>
+            )}
           </TouchableOpacity>
         )}
       </View>

@@ -22,6 +22,7 @@ import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 import { formatDateTime } from "@/helpers/format_time";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
+import { Fold } from "react-native-animated-spinkit";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "table_detail">;
@@ -37,8 +38,8 @@ export default function TableDetail({ route }: Props) {
   const [
     selectedTables,
     toggleTableSelection,
-    clearSelectedTables,
     removeSelectedTable,
+    clearSelectedTables,
     clearSelectedTablesWithNoInvite,
   ] = useContext(TableContext);
 
@@ -205,8 +206,8 @@ export default function TableDetail({ route }: Props) {
           </View>
         </ScrollView>
       ) : (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="black" />
+        <View className="flex justify-center items-center mt-32">
+          <Fold size={48} color="#000000" />
         </View>
       )}
 

@@ -9,6 +9,7 @@ import OtpConfirmScreen from "./otp_confirm";
 import RegisterScreen from "./register";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
+import LoginByOtpScreen from "./login_by_otp";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -43,6 +44,13 @@ export default function AuthLayout() {
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="LoginByOtp"
+        component={LoginByOtpScreen}
         options={{
           headerShown: false,
         }}

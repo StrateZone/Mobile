@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { View, Image, Animated, ActivityIndicator, Text } from "react-native";
+import { View, Image, Animated } from "react-native";
 
 import icon from "../assets/images/splash-icon.webp";
 import { Chase } from "react-native-animated-spinkit";

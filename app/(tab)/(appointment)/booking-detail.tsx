@@ -318,17 +318,19 @@ export default function BookingDetailScreen() {
               })}
             </ScrollView>
             <View className="bg-white p-4 rounded-xl mt-4 shadow">
-              <TouchableOpacity className="flex-row items-center mb-4">
+              {/* <TouchableOpacity className="flex-row items-center mb-4">
                 <FontAwesome5 name="tags" size={20} color="black" />
                 <Text className="ml-2">Áp dụng ưu đãi</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
 
-              <View className="flex-row items-center">
-                <FontAwesome5 name="wallet" size={20} color="black" />
-                <Text className="text-lg font-bold text-gray-700 ml-2">
-                  Số dư: {user?.wallet.balance.toLocaleString("vi-VN")} VND
-                </Text>
-              </View>
+              {user && (
+                <View className="flex-row items-center">
+                  <FontAwesome5 name="wallet" size={20} color="black" />
+                  <Text className="text-lg font-bold text-gray-700 ml-2">
+                    Số dư: {user.wallet.balance.toLocaleString("vi-VN")} VND
+                  </Text>
+                </View>
+              )}
 
               <Text className="text-xl font-bold text-right text-green-700 mb-4">
                 Tổng tiền: {totalPrice.toLocaleString("vi-VN")} VND

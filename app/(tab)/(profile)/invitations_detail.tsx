@@ -22,26 +22,74 @@ type Props = {
   route: InvitationsDetailRouteProp;
 };
 
-const statusColors: Record<string, string> = {
-  pending: "#b58900",
-  accepted: "green",
-  rejected: "red",
-  cancelled: "gray",
-  expired: "purple",
-  payment_required: "orange",
-  await_appointment_creation: "blue",
-  active: "#0ea5e9",
-};
-
-const statusTextMap: Record<string, string> = {
-  pending: "Chờ xử lý",
-  accepted: "Đã chấp nhận",
-  rejected: "Bị từ chối",
-  cancelled: "Đã hủy",
-  expired: "Đã hết hạn",
-  payment_required: "Cần thanh toán",
-  await_appointment_creation: "Chờ tạo lịch hẹn",
-  active: "Đang chờ bạn phản hồi",
+const getStatusColor = (status: string) => {
+  const statusLower = status.toLowerCase();
+  switch (statusLower) {
+    case "pending":
+      return {
+        bg: "#FEF3C7",
+        text: "#B45309",
+        border: "#D97706",
+        display: "Chờ Phản Hồi",
+        icon: <Ionicons name="time-outline" size={16} color="#b58900" />,
+      };
+    case "accepted":
+      return {
+        bg: "#DBEAFE",
+        text: "#1D4ED8",
+        border: "#3B82F6",
+        display: "Đã Chấp Nhận Lời Mời",
+        icon: (
+          <Ionicons name="checkmark-circle-outline" size={16} color="#1D4ED8" />
+        ),
+      };
+    case "rejected":
+      return {
+        bg: "#FECACA",
+        text: "#DC2626",
+        border: "#EF4444",
+        display: "Đã Từ Chối Lời Mời",
+        icon: (
+          <Ionicons name="close-circle-outline" size={16} color="#DC2626" />
+        ),
+      };
+    case "expired":
+      return {
+        bg: "#FFEDD5",
+        text: "#EA580C",
+        border: "#FB923C",
+        display: "Lời Mời Đã Hết Hạn",
+        icon: <Ionicons name="time-outline" size={16} color="#fb923c" />,
+      };
+    case "cancelled":
+      return {
+        bg: "#F3F4F6",
+        text: "#6B7280",
+        border: "#9CA3AF",
+        display: "Lời Mời Đã Bị Hủy",
+        icon: (
+          <Ionicons name="close-circle-outline" size={16} color="#6B7280" />
+        ),
+      };
+    case "accepted_by_others":
+      return {
+        bg: "#FCE7F3",
+        text: "#BE185D",
+        border: "#DB2777",
+        display: "Lời Mời Đã Được Người Khác Chấp Nhận",
+        icon: (
+          <Ionicons name="checkmark-circle-outline" size={16} color="#DB2777" />
+        ),
+      };
+    default:
+      return {
+        bg: "#E5E7EB",
+        text: "#374151",
+        border: "#9CA3AF",
+        display: status,
+        icon: <Ionicons name="ellipse-outline" size={16} color="gray" />,
+      };
+  }
 };
 
 export default function InvitationsDetail({ route }: Props) {
@@ -66,90 +114,96 @@ export default function InvitationsDetail({ route }: Props) {
 
   const startDate = formatDateTime(startTime);
   const endDate = formatDateTime(endTime);
-  const statusColor = statusColors[status] || "gray";
-  const statusText = statusTextMap[status] || status;
-
-  const handleAccept = async (invitationId: number) => {
-    setIsLoading(true);
-    await putRequest(`/appointmentrequests/accept/${invitationId}`, {})
-      .then(() => {
-        setIsLoading(false);
-        Toast.show({
-          type: "success",
-          text1: "Thành công",
-          text2: `Đã đồng ý lời mời`,
-        });
-      })
-
-      .catch((e) => {
-        setIsLoading(false);
-        console.error(e);
-      });
-  };
-
-  const handleReject = async (invitationId: number) => {
-    setIsLoading(true);
-    await putRequest(`/appointmentrequests/reject/${invitationId}`, {})
-      .then(() => {
-        setIsLoading(false);
-        Toast.show({
-          type: "success",
-          text1: "Thành công",
-          text2: `Đã từ chối lời mời`,
-        });
-      })
-      .catch((e) => {
-        setIsLoading(false);
-        console.error(e);
-      });
-  };
+  const statusInfo = getStatusColor(status);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="flex-1 p-4 mt-10">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
+      <View style={{ flex: 1, padding: 16, marginTop: 40 }}>
         <TouchableOpacity
-          className="absolute left-4 top-2 p-2 mt-2 bg-gray-300 rounded-full z-10"
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 16,
+            backgroundColor: "#D1D5DB",
+            padding: 8,
+            borderRadius: 999,
+            zIndex: 10,
+          }}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
-        <Text className="text-2xl font-bold text-center text-black mb-5">
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "black",
+            marginBottom: 20,
+          }}
+        >
           Lời mời đặt hẹn
         </Text>
 
         <View
-          className="self-center px-4 py-2 rounded-full mb-5"
           style={{
-            backgroundColor: statusColor + "20",
-            borderColor: statusColor,
+            alignSelf: "center",
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 999,
+            marginBottom: 20,
             borderWidth: 1,
+            backgroundColor: statusInfo.bg,
+            borderColor: statusInfo.border,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
+          {statusInfo.icon}
           <Text
-            className="text-base font-semibold text-center"
-            style={{ color: statusColor }}
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              color: statusInfo.text,
+              marginLeft: 8,
+            }}
           >
-            {statusText}
+            {statusInfo.display}
           </Text>
         </View>
 
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+          {/* Card 1: Sender Info */}
           <Card
             containerStyle={{
               borderRadius: 12,
               paddingVertical: 16,
-              borderColor: statusColor,
+              borderColor: statusInfo.border,
             }}
           >
-            <View className="flex-row items-center mb-3">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 12,
+              }}
+            >
               <FontAwesome5 name="user" size={20} color="#4B5563" />
-              <Text className="text-xl font-bold text-black ml-3">
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "bold",
+                  color: "#000",
+                  marginLeft: 12,
+                }}
+              >
                 Thông tin người gửi
               </Text>
             </View>
 
-            <View className="items-center mb-4">
+            <View style={{ alignItems: "center", marginBottom: 16 }}>
               <Avatar
                 rounded
                 size={100}
@@ -160,84 +214,118 @@ export default function InvitationsDetail({ route }: Props) {
                 }}
                 containerStyle={{ marginBottom: 12 }}
               />
-              <Text className="text-xl font-semibold text-black">
+              <Text style={{ fontSize: 18, fontWeight: "600", color: "black" }}>
                 {fullName}
               </Text>
             </View>
 
             <Divider />
 
-            <View className="flex-row items-center mt-4">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 16,
+              }}
+            >
               <Ionicons name="mail" size={20} color="#4B5563" />
-              <Text className="text-base text-gray-700 ml-3">{email}</Text>
+              <Text style={{ fontSize: 16, color: "#374151", marginLeft: 12 }}>
+                {email}
+              </Text>
             </View>
 
-            <View className="flex-row items-center mt-3">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 12,
+              }}
+            >
               <Ionicons name="call" size={20} color="#4B5563" />
-              <Text className="text-base text-gray-700 ml-3">{phone}</Text>
+              <Text style={{ fontSize: 16, color: "#374151", marginLeft: 12 }}>
+                {phone}
+              </Text>
             </View>
           </Card>
 
+          {/* Card 2: Table Info */}
           <Card
             containerStyle={{
               borderRadius: 12,
               paddingVertical: 16,
-              borderColor: statusColor,
+              borderColor: statusInfo.border,
             }}
           >
-            <View className="flex-row items-center mb-3">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 12,
+              }}
+            >
               <FontAwesome5 name="chess-board" size={20} color="#4B5563" />
-              <Text className="text-xl font-bold text-black ml-3">
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "bold",
+                  color: "#000",
+                  marginLeft: 12,
+                }}
+              >
                 Thông tin bàn cờ
               </Text>
             </View>
-            <Text className="text-base text-gray-700 mb-1">Bàn: {tableId}</Text>
-            <Text className="text-base text-gray-700 mb-1">
+            <Text style={{ fontSize: 16, color: "#374151", marginBottom: 4 }}>
+              Bàn: {tableId}
+            </Text>
+            <Text style={{ fontSize: 16, color: "#374151", marginBottom: 4 }}>
               Phòng: {roomId} - {roomName}
             </Text>
-            <Text className="text-base text-gray-700">
-              Loại phòng: {roomType}
+            <Text style={{ fontSize: 16, color: "#374151" }}>
+              Loại phòng:{" "}
+              {{
+                basic: "Cơ bản",
+                openspaced: "Không gian mở",
+                premium: "Cao cấp",
+              }[roomType] || roomType}
             </Text>
           </Card>
 
+          {/* Card 3: Time Info */}
           <Card
             containerStyle={{
               borderRadius: 12,
               paddingVertical: 16,
-              borderColor: statusColor,
+              borderColor: statusInfo.border,
             }}
           >
-            <View className="flex-row items-center mb-3">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 12,
+              }}
+            >
               <Ionicons name="time-outline" size={20} color="#4B5563" />
-              <Text className="text-xl font-bold text-black ml-3">
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "bold",
+                  color: "#000",
+                  marginLeft: 12,
+                }}
+              >
                 Thời gian
               </Text>
             </View>
-            <Text className="text-base text-gray-700 mb-1">
+            <Text style={{ fontSize: 16, color: "#374151", marginBottom: 4 }}>
               Ngày chơi: {startDate.date}
             </Text>
-            <Text className="text-base text-gray-700">
+            <Text style={{ fontSize: 16, color: "#374151" }}>
               Giờ chơi: {startDate.time} - {endDate.time}
             </Text>
           </Card>
         </ScrollView>
-        {/* {status === "pending" && (
-            <View className="flex-row justify-around mt-6">
-              <Button
-                title="Từ chối"
-                buttonStyle={{ backgroundColor: "#dc2626", paddingHorizontal: 24 }}
-                icon={<Ionicons name="close-circle" size={20} color="white" />}
-                onPress={() => handleReject(invitationId)}
-              />
-              <Button
-                title="Đồng ý"
-                buttonStyle={{ backgroundColor: "#16a34a", paddingHorizontal: 24 }}
-                icon={<Ionicons name="checkmark-circle" size={20} color="white" />}
-              
-                onPress={() => handleAccept(invitationId)}
-              />
-            </View>
-          )} */}
       </View>
     </SafeAreaView>
   );

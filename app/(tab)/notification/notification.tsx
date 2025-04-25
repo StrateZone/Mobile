@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { ListItem } from "@rneui/themed";
 import { Fold } from "react-native-animated-spinkit";
@@ -17,6 +17,7 @@ const NotificationsScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
+      if (!user?.userId) return; // 👈 Không có user -> không fetch
       fetchNotifications();
     }, [user?.userId]),
   );
@@ -29,7 +30,7 @@ const NotificationsScreen = () => {
         setNotifications(response.pagedList);
       }
     } catch (error) {
-      console.error("Error fetching tables", error);
+      console.error("Error fetching notifications", error);
     } finally {
       setIsLoading(false);
     }
@@ -57,28 +58,35 @@ const NotificationsScreen = () => {
       </ListItem.Content>
     </ListItem>
   );
-  return (
-    <>
-      {isLoading ? (
-        <View className="flex justify-center items-center mt-32">
-          <Fold size={48} color="#000000" />
+
+  if (!user?.userId) {
+    return (
+      <View className="flex-1 items-center justify-center p-6">
+        <Text className="text-base text-gray-600 text-center">
+          Bạn cần đăng nhập để xem các thông báo.
+        </Text>
+      </View>
+    );
+  }
+
+  return isLoading ? (
+    <View className="flex justify-center items-center mt-32">
+      <Fold size={48} color="#000000" />
+    </View>
+  ) : (
+    <FlatList
+      data={notifications}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={renderItem}
+      contentContainerStyle={{ paddingVertical: 16 }}
+      ListEmptyComponent={
+        <View className="items-center justify-center mt-20">
+          <Text className="text-gray-500 text-base">
+            Không có thông báo nào
+          </Text>
         </View>
-      ) : (
-        <FlatList
-          data={notifications}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingVertical: 16 }}
-          ListEmptyComponent={
-            <View className="items-center justify-center mt-20">
-              <Text className="text-gray-500 text-base">
-                Không có thông báo nào
-              </Text>
-            </View>
-          }
-        />
-      )}
-    </>
+      }
+    />
   );
 };
 

@@ -3,6 +3,7 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 import { config } from "../config";
+import Toast from "react-native-toast-message";
 
 interface AuthProps {
   authState?: {
@@ -29,6 +30,7 @@ interface AuthProps {
     };
   };
   onLogin?: (email: string, password: string) => Promise<any>;
+  onLoginByOtp?: (email: string, otp: string) => Promise<any>;
   onUpdateUserBalance?: () => Promise<any>;
   onLogout?: () => Promise<any>;
   setAuthState?: React.Dispatch<
@@ -148,6 +150,59 @@ export const AuthProvider = ({ children }: any) => {
     }
   };
 
+  const loginByOtp = async (email: string, otp: string) => {
+    try {
+      const response = await axios.post(`${API_URL}/verify-otp`, {
+        email,
+        otp,
+      });
+      if (response.data.success) {
+        const userData = {
+          userId: response.data.data.userId,
+          userRole: response.data.data.userRole,
+          status: response.data.data.status,
+          gender: response.data.data.gender,
+          skillLevel: response.data.data.skillLevel,
+          ranking: response.data.data.ranking,
+          wallet: response.data.data.wallet,
+          username: response.data.data.username,
+          fullName: response.data.data.fullName,
+          avatarUrl: response.data.data.avatarUrl,
+          email: response.data.data.email,
+          phone: response.data.data.phone,
+        };
+
+        setAuthState({
+          token: response.data.data.accessToken,
+          authenticated: true,
+          user: userData,
+        });
+
+        axios.defaults.headers.common["Authorization"] =
+          `Bearer ${response.data.data.accessToken}`;
+
+        await SecureStore.setItemAsync(
+          TOKEN_KEY,
+          response.data.data.accessToken,
+        );
+        await SecureStore.setItemAsync(
+          REFRESH_TOKEN_KEY,
+          response.data.data.refreshToken,
+        );
+        await SecureStore.setItemAsync(USER_DATA_KEY, JSON.stringify(userData));
+
+        return { success: true, message: "Đăng nhập thành công!" };
+      }
+
+      return { error: true, msg: "Đăng nhập thất bại!" };
+    } catch (e) {
+      return {
+        error: true,
+        msg: (e as any).response?.data?.message || "Lỗi kết nối!",
+      };
+    }
+  };
+
   const updateUserBalance = async () => {
     if (!authState.user) return;
     try {
@@ -175,6 +230,11 @@ export const AuthProvider = ({ children }: any) => {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
       await SecureStore.deleteItemAsync(USER_DATA_KEY);
+      Toast.show({
+        type: "success",
+        text1: "Thành công",
+        text2: "Đăng xuất thành công",
+      });
     } catch (error) {
       console.error("Error deleting tokens:", error);
     }
@@ -191,6 +251,7 @@ export const AuthProvider = ({ children }: any) => {
   const value = {
     onLogin: login,
     onLogout: logout,
+    onLoginByOtp: loginByOtp,
     onUpdateUserBalance: updateUserBalance,
     authState,
     setAuthState,

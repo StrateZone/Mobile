@@ -52,8 +52,10 @@ export default function OpponentsListForOnGoingDialog({
   );
   const noPending = !players.some((p) => p.status === "pending");
   const showInviteButton =
-    tableStatus === "confirmed" && allInvalid && noPending;
-
+    tableStatus === "confirmed" &&
+    allInvalid &&
+    noPending &&
+    players.length > 0;
   const onInviteMore = () => {
     setInviteDialogVisible(true);
   };
@@ -129,8 +131,9 @@ export default function OpponentsListForOnGoingDialog({
           </Text>
         </View>
       )}
-      {players.map((p) => (
+      {players.map((p, index) => (
         <InviteOpponentDialogForOnGoing
+          key={index}
           visible={inviteDialogVisible}
           loadAppointmentData={loadAppointmentData}
           onClose={() => setInviteDialogVisible(false)}

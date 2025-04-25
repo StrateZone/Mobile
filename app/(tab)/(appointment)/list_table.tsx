@@ -72,6 +72,7 @@ export default function ListTableScreen({ route }: Props) {
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const buttonAnim = useRef(new Animated.Value(0)).current;
 
@@ -89,9 +90,17 @@ export default function ListTableScreen({ route }: Props) {
     startDate = startDateFilter,
     endDate = endDateFilter,
     page = 1,
+    isRefreshing = false,
   ) => {
-    if (page === 1) setIsLoading(true);
-    else setIsFetchingMore(true);
+    if (page === 1) {
+      if (isRefreshing) {
+        setRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+    } else {
+      setIsFetchingMore(true);
+    }
 
     try {
       const response = await getRequest("/tables/available/filter", {
@@ -116,8 +125,20 @@ export default function ListTableScreen({ route }: Props) {
       console.error("Error fetching tables", error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
       setIsFetchingMore(false);
     }
+  };
+  const handleRefresh = () => {
+    setPageNumber(1);
+    fetchTables(
+      gameTypeFilter,
+      roomType,
+      startDateFilter,
+      endDateFilter,
+      1,
+      true,
+    );
   };
 
   const handleLoadMore = () => {
@@ -210,6 +231,8 @@ export default function ListTableScreen({ route }: Props) {
                 <ActivityIndicator size="small" color="#000" className="my-4" />
               ) : null
             }
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
           />
         )}
 

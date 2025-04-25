@@ -33,54 +33,63 @@ const getStatusStyles = (status: string) => {
       return {
         bg: "bg-yellow-100",
         text: "text-yellow-800",
+        border: "border-yellow-800",
         display: "Đang chờ thanh toán",
       };
     case "confirmed":
       return {
         bg: "bg-green-100",
         text: "text-green-800",
+        border: "border-green-800",
         display: "Đã thanh toán",
       };
     case "incoming":
       return {
         bg: "bg-blue-100",
         text: "text-blue-800",
+        border: "border-blue-800",
         display: "Sắp diễn ra",
       };
     case "expired":
       return {
         bg: "bg-gray-100",
         text: "text-gray-800",
+        border: "border-gray-800",
         display: "Hết hạn",
       };
     case "completed":
       return {
         bg: "bg-purple-100",
         text: "text-purple-800",
+        border: "border-purple-800",
         display: "Đã Hoàn thành",
       };
     case "cancelled":
       return {
         bg: "bg-red-100",
         text: "text-red-800",
+        border: "border-red-800",
         display: "Đã hủy",
       };
     case "refunded":
       return {
         bg: "bg-indigo-100",
         text: "text-indigo-800",
+        border: "border-indigo-800",
         display: "Đã hoàn tiền",
       };
-    case "unfinished":
+    case "incompleted":
       return {
         bg: "bg-orange-100",
         text: "text-orange-800",
+        border: "border-orange-800",
         display: "Không hoàn thành",
       };
     default:
       return {
         bg: "bg-gray-100",
         text: "text-gray-800",
+        border: "border-gray-800",
         display: status,
       };
   }
@@ -151,7 +160,7 @@ export default function AppointmentDetail({ route }: Props) {
     setOpenPlayerDialog(true);
   };
 
-  const { bg, text, display } = appointment
+  const { bg, border, text, display } = appointment
     ? getStatusStyles(appointment.status)
     : { bg: "", text: "", display: "" };
 
@@ -176,7 +185,7 @@ export default function AppointmentDetail({ route }: Props) {
           ) : (
             <>
               <View
-                className={`p-4 shadow-md mb-4 border-l-4 rounded-lg bg-white ${text}`}
+                className={`p-4 shadow-md mb-4 border-l-4 rounded-lg bg-white ${border}`}
               >
                 <Text className="text-xl font-semibold mb-2">
                   Chi tiết đơn đặt hẹn

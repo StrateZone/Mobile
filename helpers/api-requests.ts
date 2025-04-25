@@ -42,19 +42,19 @@ export const postRequest = async (
     return response;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      console.error("POST Request Error:", {
-        url: `${config.BACKEND_API}/api${path}`,
-        requestBody,
-        query,
-        message: error.message,
-        responseData: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers,
-      });
+      return {
+        success: false,
+        error: error.response?.data.error || "Đã xảy ra lỗi không xác định.",
+        status: error.response?.status || 500,
+      };
     } else {
       console.error("Unexpected error:", error);
+      return {
+        success: false,
+        error: "Lỗi không xác định.",
+        status: 500,
+      };
     }
-    throw error;
   }
 };
 

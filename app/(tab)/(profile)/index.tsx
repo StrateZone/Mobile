@@ -104,25 +104,25 @@ export default function ProfileScreen() {
           {user?.gender === "male" ? "Nam" : "Nữ"}
         </Text>
 
-        <View className="flex-row items-center">
+        {/* <View className="flex-row items-center">
           <FontAwesome5 name="medal" size={20} color="#4B5563" />
           <Text className="text-gray-600 text-lg font-medium ml-2">
             Cấp bậc
           </Text>
-        </View>
-        <Text className="text-gray-800 text-base">
+        </View> */}
+        {/* <Text className="text-gray-800 text-base">
           {user?.ranking || "Chưa có xếp hạng"}
-        </Text>
+        </Text> */}
 
-        <View className="flex-row items-center">
+        {/* <View className="flex-row items-center">
           <MaterialIcons name="school" size={20} color="#4B5563" />
           <Text className="text-gray-600 text-lg font-medium ml-2">
             Trình độ
           </Text>
-        </View>
-        <Text className="text-gray-800 text-base">
+        </View> */}
+        {/* <Text className="text-gray-800 text-base">
           {user?.skillLevel || "Chưa xác định"}
-        </Text>
+        </Text> */}
       </View>
 
       {/* Các tùy chọn khác */}

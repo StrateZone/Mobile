@@ -25,6 +25,7 @@ export type TablesAppointment = {
 
 export type Apointment = {
   id: number;
+  tablesCount: number;
   appointmentId: number;
   userId: number;
   totalPrice: number;

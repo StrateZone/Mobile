@@ -1,5 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Toast from "react-native-toast-message";
@@ -7,6 +13,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { useAuth } from "@/context/auth-context";
 import { RootStackParamList } from "../../../constants/types/root-stack";
+import { Fold } from "react-native-animated-spinkit";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export type ConfirmOtpRouteProp = RouteProp<RootStackParamList, "Otp">;
@@ -23,6 +30,7 @@ export default function OtpConfirmScreen({
   const inputRefs = useRef<Array<TextInput | null>>([]);
   const [timeLeft, setTimeLeft] = useState(300);
   const [isExpired, setIsExpired] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -59,7 +67,7 @@ export default function OtpConfirmScreen({
     }
   };
 
-  const { onLogin } = useAuth();
+  const { onLoginByOtp } = useAuth();
   const otpString = otp.join("");
 
   const login = async () => {
@@ -72,8 +80,9 @@ export default function OtpConfirmScreen({
       return;
     }
 
+    setLoading(true);
     try {
-      const result = await onLogin!(email, otpString);
+      const result = await onLoginByOtp!(email, otpString);
       if (result.success) {
         Toast.show({ type: "success", text1: "Đăng nhập thành công!" });
         navigation.navigate("Profile", {
@@ -92,6 +101,8 @@ export default function OtpConfirmScreen({
         text1: "Lỗi hệ thống",
         text2: "Vui lòng thử lại sau.",
       });
+    } finally {
+      setLoading(false); // Đặt loading thành false khi hoàn tất
     }
   };
 
@@ -138,11 +149,15 @@ export default function OtpConfirmScreen({
       </View>
 
       <TouchableOpacity
-        className={`w-14 h-14 rounded-full flex items-center justify-center ${isExpired ? "bg-gray-300" : "bg-gray-400"}`}
+        className={`w-14 h-14 rounded-full flex items-center justify-center ${isExpired || loading ? "bg-gray-300" : "bg-gray-400"}`}
         onPress={login}
-        disabled={isExpired}
+        disabled={isExpired || loading}
       >
-        <Ionicons name="arrow-forward" size={24} color="white" />
+        {loading ? (
+          <Fold size={18} color="#000000" />
+        ) : (
+          <Ionicons name="arrow-forward" size={24} color="white" />
+        )}
       </TouchableOpacity>
 
       {isExpired && (

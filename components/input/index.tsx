@@ -9,6 +9,7 @@ type TextInputProps = {
   errorMessage?: string;
   onChangeText?: (text: string) => void;
   placeholder?: string;
+  rightIcon?: any;
 };
 
 export default function TextInputComponent({
@@ -18,6 +19,7 @@ export default function TextInputComponent({
   errorMessage,
   onChangeText,
   placeholder,
+  rightIcon,
 }: TextInputProps) {
   return (
     <View style={{ marginVertical: 8 }}>
@@ -28,6 +30,7 @@ export default function TextInputComponent({
         onChangeText={onChangeText}
         secureTextEntry={secureTextEntry}
         errorMessage={errorMessage}
+        rightIcon={rightIcon}
         containerStyle={{ paddingHorizontal: 0 }}
         inputContainerStyle={{
           borderBottomWidth: 1,
