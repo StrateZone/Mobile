@@ -59,13 +59,18 @@ export default function PaymentDialogForInvited({
     try {
       if (!user) {
         onClose();
-        setIsLoading(s);
+        setIsLoading(true);
         Toast.show({
           type: "error",
           text1: "Thất bại",
           text2: `Bạn cần đăng nhập để tiếp tục`,
         });
         return;
+      }
+
+      if (totalPrice > user!.wallet.balance) {
+        onClose();
+        Alert.alert("Số dư không đủ để thanh toán!");
       }
 
       const payload = {

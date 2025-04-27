@@ -5,7 +5,14 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
 import { InviteOpponentDialogForOnGoing } from "./opponents_invite_for_ongoing";
 
-type PlayerStatus = "pending" | "accepted" | "accepted_by_others" | "rejected";
+type PlayerStatus =
+  | "pending"
+  | "accepted"
+  | "accepted_by_others"
+  | "rejected"
+  | "cancelled"
+  | "expired"
+  | "table_cancelled";
 
 const getStatusStyle = (status: PlayerStatus) => {
   switch (status) {
@@ -27,8 +34,36 @@ const getStatusStyle = (status: PlayerStatus) => {
         text: "text-pink-700",
         label: "Lời mời đã có người chấp nhận",
       };
+    case "cancelled":
+      return {
+        bg: "bg-red-100",
+        text: "text-red-700",
+        label: "Đã hủy bàn",
+      };
+    case "expired":
+      return {
+        bg: "bg-red-100",
+        text: "text-red-700",
+        label: "Lời mời hết hạn",
+      };
+    case "rejected":
+      return {
+        bg: "bg-gray-200",
+        text: "text-red-700",
+        label: "Đã từ chối lời mời",
+      };
+    case "table_cancelled":
+      return {
+        bg: "bg-red-200",
+        text: "text-red-800",
+        label: "Bàn đã bị hủy",
+      };
     default:
-      return { bg: "bg-red-100", text: "text-red-700", label: "Đã từ chối" };
+      return {
+        bg: "bg-gray-100",
+        text: "text-gray-500",
+        label: "Không xác định",
+      };
   }
 };
 

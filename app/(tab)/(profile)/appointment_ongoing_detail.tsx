@@ -87,7 +87,22 @@ const getStatusStyles = (status: string) => {
         bg: "bg-orange-100",
         text: "text-orange-800",
         border: "border-orange-800",
-        display: "Không hoàn thành",
+        display: "Chưa hoàn thành",
+      };
+
+    case "checked_in":
+      return {
+        bg: "bg-teal-100",
+        text: "text-teal-800",
+        border: "border-teal-800",
+        display: "Đã check-in",
+      };
+
+    case "incompleted":
+      return {
+        bg: "bg-orange-100",
+        text: "text-orange-800",
+        display: "Chưa hoàn thành",
       };
     default:
       return {
@@ -241,7 +256,7 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
                         style={{ borderColor: tableStyles.text }}
                       >
                         <Text className="text-lg font-semibold">
-                          Số phòng: {table.table.tableId}
+                          Tên phòng: {table.table.roomName}
                         </Text>
                         <Text className="text-lg">Mã bàn: {table.tableId}</Text>
                         <Text className="text-lg">

@@ -90,7 +90,7 @@ export default function PaymentDialog({
         };
         status: number;
       };
-      console.log(responseData);
+
       if (responseData.success === false) {
         if (responseData.error?.message === "Some tables are not available") {
           const unavailableList = responseData.error.unavailable_tables || [];
@@ -165,7 +165,7 @@ export default function PaymentDialog({
 
           const opponentStatusText = (() => {
             if (table.invitedUsers && table.invitedUsers.length > 0)
-              return "Chọn đối thủ để mời";
+              return "Đã chọn đối thủ để mời";
             return "Không mời đối thủ";
           })();
 

@@ -78,6 +78,13 @@ const getStatusStyles = (status: string) => {
         border: "border-indigo-800",
         display: "Đã hoàn tiền",
       };
+    case "unfinished":
+      return {
+        bg: "bg-orange-100",
+        text: "text-orange-800",
+        border: "border-orange-800",
+        display: "Không hoàn thành",
+      };
     case "incompleted":
       return {
         bg: "bg-orange-100",
@@ -175,7 +182,7 @@ export default function AppointmentDetail({ route }: Props) {
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-center text-black mb-5">
-            Chi tiết đặt bàn
+            Chi tiết đặt hẹn
           </Text>
 
           {isLoading ? (
@@ -224,7 +231,6 @@ export default function AppointmentDetail({ route }: Props) {
                 {appointment!.tablesAppointments.map(
                   (table: TablesAppointment, index) => {
                     const tableStyles = getStatusStyles(table.status);
-
                     return (
                       <View
                         key={index}
@@ -232,7 +238,7 @@ export default function AppointmentDetail({ route }: Props) {
                         style={{ borderColor: tableStyles.text }}
                       >
                         <Text className="text-lg font-semibold">
-                          Số phòng: {table.table.tableId}
+                          Tên phòng: {table.table.roomName}
                         </Text>
                         <Text className="text-lg">Mã bàn: {table.tableId}</Text>
                         <Text className="text-lg">

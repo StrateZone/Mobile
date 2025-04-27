@@ -44,17 +44,40 @@ export default function ConfirmCancelTableDialog({
   const handleConfirmCancel = async () => {
     setIsLoading(true);
     try {
-      await putRequest(
+      const response = await putRequest(
         `/tables-appointment/cancel/${tableId}/users/${user?.userId}`,
         {},
       );
-      Toast.show({
-        type: "success",
-        text1: "Thành công",
-        text2: "Đã hủy bàn",
-      });
-      onSuccess?.();
-      onClose();
+
+      const responseData = response as any as {
+        success: boolean;
+        error?: {
+          message: string;
+          unavailable_tables?: any[];
+        };
+        status: number;
+      };
+
+      if (
+        responseData.error ===
+        "Cancellation failed: Cannot cancel incoming appointments."
+      ) {
+        Toast.show({
+          type: "error",
+          text1: "Thất bại",
+          text2: "Bàn này không thể hủy vì sắp tới giờ chơi",
+        });
+      }
+
+      if (responseData.status === 200) {
+        Toast.show({
+          type: "success",
+          text1: "Thành công",
+          text2: "Đã hủy bàn",
+        });
+        onSuccess?.();
+        onClose();
+      }
     } catch (e) {
       Alert.alert("Lỗi", "Không thể hủy bàn.");
     } finally {

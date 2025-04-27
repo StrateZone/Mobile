@@ -116,7 +116,7 @@ export default function AppointmentOnGoing() {
           bg: "bg-orange-100",
           text: "text-orange-800",
           border: "border-orange-800",
-          display: "Không hoàn thành",
+          display: "Chưa hoàn thành",
         };
       default:
         return {
