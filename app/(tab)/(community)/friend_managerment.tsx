@@ -26,6 +26,7 @@ import { RootStackParamList } from "@/constants/types/root-stack";
 import { Fold } from "react-native-animated-spinkit";
 import { Input, Icon } from "@rneui/themed";
 import FriendCard from "@/components/card/friend_card";
+import LoadingButton from "@/components/button/loading_button";
 
 export default function FriendManagementScreen() {
   const navigation =
@@ -42,6 +43,9 @@ export default function FriendManagementScreen() {
   const [refreshingFriends, setRefreshingFriends] = useState(false);
   const [refreshingRequests, setRefreshingRequests] = useState(false);
   const [refreshingSearch, setRefreshingSearch] = useState(false);
+  const [loadingStates, setLoadingStates] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const fetchFriends = async () => {
     try {
@@ -64,9 +68,13 @@ export default function FriendManagementScreen() {
     }
   };
 
+  const setLoading = (key: string, value: boolean) => {
+    setLoadingStates((prev) => ({ ...prev, [key]: value }));
+  };
+
   const removeFriend = async (id: number, name: string) => {
     if (!userId) return;
-    setIsLoading(true);
+    setLoading(`remove_${id}`, true);
     try {
       await deleteRequest(`/friendlists/${id}`);
       await fetchFriends();
@@ -77,7 +85,7 @@ export default function FriendManagementScreen() {
         text1: "Có lỗi xảy ra trong quá trình hủy kết bạn",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(`remove_${id}`, false);
     }
   };
 
@@ -98,8 +106,8 @@ export default function FriendManagementScreen() {
   };
 
   const acceptFriend = async (id: number) => {
+    setLoading(`accept_${id}`, true);
     try {
-      setIsLoading(true);
       await putRequest(`/friendrequests/accept/${id}`, {});
       Toast.show({ type: "success", text1: "Đã chấp nhận lời mời kết bạn" });
       await fetchFriendRequests();
@@ -111,13 +119,13 @@ export default function FriendManagementScreen() {
         text2: error?.response?.data?.message || "Có lỗi xảy ra",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(`accept_${id}`, false);
     }
   };
 
   const rejectFriend = async (id: number) => {
+    setLoading(`reject_${id}`, true);
     try {
-      setIsLoading(true);
       await putRequest(`/friendrequests/reject/${id}`, {});
       Toast.show({ type: "success", text1: "Đã từ chối lời mời kết bạn" });
       await fetchFriendRequests();
@@ -129,18 +137,14 @@ export default function FriendManagementScreen() {
         text2: error?.response?.data?.message || "Có lỗi xảy ra",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(`reject_${id}`, false);
     }
   };
 
   const sendFriendRequest = async (targetUserId: number) => {
     if (!userId) return;
+    setLoading(`send_${targetUserId}`, true);
 
-    setSearchResults((prevResults: any) =>
-      prevResults.map((user: any) =>
-        user.userId === targetUserId ? { ...user, friendStatus: 1 } : user,
-      ),
-    );
     try {
       const response = await postRequest(`/friendrequests`, {
         fromUser: userId,
@@ -148,16 +152,12 @@ export default function FriendManagementScreen() {
       });
 
       if (response.status === 201) {
-        setSearchResults((prevResults: any) =>
-          prevResults.map((user: any) =>
-            user.userId === targetUserId ? { ...user, friendStatus: 0 } : user,
-          ),
-        );
         Toast.show({
           type: "success",
           text1: "Thành công",
           text2: "Đã gửi lời mời kết bạn",
         });
+        await handleSearch();
       }
     } catch (err) {
       Toast.show({
@@ -165,24 +165,19 @@ export default function FriendManagementScreen() {
         text1: "Từ chối thất bại",
         text2: "Không thể gửi lời mời này",
       });
+    } finally {
+      setLoading(`send_${targetUserId}`, false);
     }
   };
 
   const cancelFriendRequest = async (receiverId: number) => {
     if (!userId) return;
+    setLoading(`cancel_${receiverId}`, true);
 
     try {
-      setSearchResults((prevResults: any) =>
-        prevResults.map((user: any) =>
-          user.userId === receiverId ? { ...user, friendStatus: 0 } : user,
-        ),
-      );
-
       const response = await deleteRequest(
         `/friendrequests/sender/${userId}/receiver/${receiverId}`,
       );
-
-      // if(response.status === 200){
 
       Toast.show({
         type: "success",
@@ -190,18 +185,15 @@ export default function FriendManagementScreen() {
         text2: "Đã gửi hủy kết bạn",
       });
 
-      setSearchResults((prevResults: any) =>
-        prevResults.map((user: any) =>
-          user.userId === receiverId ? { ...user, friendStatus: 1 } : user,
-        ),
-      );
-      // }
+      await handleSearch();
     } catch (err) {
       Toast.show({
         type: "error",
         text1: "Từ chối thất bại",
         text2: "Không thể hủy lời mời này",
       });
+    } finally {
+      setLoading(`cancel_${receiverId}`, false);
     }
   };
 
@@ -284,30 +276,32 @@ export default function FriendManagementScreen() {
                     user={item.friend}
                     buttons={
                       <>
-                        <Button
+                        <LoadingButton
                           title="Xem thông tin"
+                          onPress={() => {
+                            navigation.navigate("friend_detail", {
+                              friendId: item.friend?.userId,
+                            });
+                          }}
                           buttonStyle={{
                             backgroundColor: "#3b82f6",
                             borderRadius: 10,
                             paddingHorizontal: 16,
                           }}
                           titleStyle={{ fontSize: 14 }}
-                          onPress={() => {
-                            // Điều hướng sang màn chi tiết nếu cần
-                            // navigation.navigate("FriendDetailScreen", { friendId: item.friend?.userId })
-                          }}
                         />
-                        <Button
+                        <LoadingButton
                           title="Xóa bạn"
+                          onPress={() =>
+                            removeFriend(item.id, item.friend?.username)
+                          }
+                          isLoading={loadingStates[`remove_${item.id}`]}
                           buttonStyle={{
                             backgroundColor: "#ef4444",
                             borderRadius: 10,
                             paddingHorizontal: 16,
                           }}
                           titleStyle={{ fontSize: 14 }}
-                          onPress={() =>
-                            removeFriend(item.id, item.friend?.username)
-                          }
                         />
                       </>
                     }
@@ -343,25 +337,27 @@ export default function FriendManagementScreen() {
                     createdAt={req.createdAt}
                     buttons={
                       <>
-                        <Button
+                        <LoadingButton
                           title="Chấp nhận"
+                          onPress={() => acceptFriend(req.id)}
+                          isLoading={loadingStates[`accept_${req.id}`]}
                           buttonStyle={{
-                            backgroundColor: "#10b981",
+                            backgroundColor: "#3b82f6",
                             borderRadius: 10,
                             paddingHorizontal: 16,
                           }}
                           titleStyle={{ fontSize: 14 }}
-                          onPress={() => acceptFriend(req.id)}
                         />
-                        <Button
+                        <LoadingButton
                           title="Từ chối"
+                          onPress={() => rejectFriend(req.id)}
+                          isLoading={loadingStates[`reject_${req.id}`]}
                           buttonStyle={{
                             backgroundColor: "#ef4444",
                             borderRadius: 10,
                             paddingHorizontal: 16,
                           }}
                           titleStyle={{ fontSize: 14 }}
-                          onPress={() => rejectFriend(req.id)}
                         />
                       </>
                     }
@@ -413,40 +409,50 @@ export default function FriendManagementScreen() {
                     user={user}
                     buttons={
                       <>
-                        <Button
+                        <LoadingButton
                           title="Xem thông tin"
-                          buttonStyle={{
-                            backgroundColor: "#3b82f6",
-                            borderRadius: 10,
-                            paddingHorizontal: 16,
-                          }}
-                          titleStyle={{ fontSize: 14 }}
                           onPress={() => {
                             // navigation.navigate("FriendDetailScreen", { friendId: user.userId });
+                          }}
+                          buttonStyle={{
+                            backgroundColor: "#ffffff",
+                            borderRadius: 10,
+                            paddingHorizontal: 16,
+                            borderWidth: 1,
+                            borderColor: "#9ca3af",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                          titleStyle={{
+                            fontSize: 14,
+                            color: "#6b7280",
                           }}
                         />
 
                         {user.friendStatus === 1 ? (
-                          <Button
+                          <LoadingButton
                             title="Hủy yêu cầu"
+                            onPress={() => cancelFriendRequest(user.userId)}
+                            isLoading={loadingStates[`cancel_${user.userId}`]}
                             buttonStyle={{
-                              backgroundColor: "#f97316",
+                              backgroundColor: "#ef4444",
                               borderRadius: 10,
                               paddingHorizontal: 16,
                             }}
                             titleStyle={{ fontSize: 14 }}
-                            onPress={() => cancelFriendRequest(user.userId)}
                           />
                         ) : (
-                          <Button
+                          <LoadingButton
                             title="Thêm bạn bè"
+                            onPress={() => sendFriendRequest(user.userId)}
+                            isLoading={loadingStates[`send_${user.userId}`]}
                             buttonStyle={{
-                              backgroundColor: "#ef4444", // đỏ
+                              backgroundColor: "#3b82f6",
                               borderRadius: 10,
                               paddingHorizontal: 16,
                             }}
                             titleStyle={{ fontSize: 14 }}
-                            onPress={() => sendFriendRequest(user.userId)}
                           />
                         )}
                       </>

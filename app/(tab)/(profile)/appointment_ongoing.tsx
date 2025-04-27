@@ -128,6 +128,10 @@ export default function AppointmentOnGoing() {
     }
   };
 
+  const incompletedAppointments = appointments.filter(
+    (item) => item.status.toLowerCase() === "incompleted",
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="flex-1 p-4 mt-10">
@@ -166,53 +170,51 @@ export default function AppointmentOnGoing() {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           >
-            {appointments.length > 0 ? (
-              appointments
-                .filter((item) => item.status.toLowerCase() === "incompleted")
-                .map((item) => {
-                  const { bg, text, border, display } = getStatusStyles(
-                    item.status,
-                  );
+            {incompletedAppointments.length > 0 ? (
+              incompletedAppointments.map((item) => {
+                const { bg, text, border, display } = getStatusStyles(
+                  item.status,
+                );
 
-                  return (
-                    <View
-                      key={item.appointmentId}
-                      className={`bg-white p-4 rounded-lg shadow-md mb-4 border-l-4 ${border}`}
+                return (
+                  <View
+                    key={item.appointmentId}
+                    className={`bg-white p-4 rounded-lg shadow-md mb-4 border-l-4 ${border}`}
+                  >
+                    <Text className="text-lg font-bold text-gray-900">
+                      Mã đơn: {item.appointmentId}
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      Ngày tạo: {new Date(item.createdAt).toLocaleString()}
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      Số bàn: {item.tablesCount}
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      Tổng giá: {item.totalPrice.toLocaleString()} VND
+                    </Text>
+                    <Text className={`text-sm font-bold ${text}`}>
+                      Trạng thái: {display}
+                    </Text>
+
+                    <TouchableOpacity
+                      className="mt-3 bg-black text-white px-4 py-2 rounded-full"
+                      onPress={() =>
+                        navigation.navigate("appointment_ongoing_detail", {
+                          appointmentId: item.appointmentId,
+                        })
+                      }
                     >
-                      <Text className="text-lg font-bold text-gray-900">
-                        Mã đơn: {item.appointmentId}
+                      <Text className="text-white text-center font-semibold">
+                        Xem chi tiết
                       </Text>
-                      <Text className="text-sm text-gray-600">
-                        Ngày tạo: {new Date(item.createdAt).toLocaleString()}
-                      </Text>
-                      <Text className="text-sm text-gray-600">
-                        Số bàn: {item.tablesCount}
-                      </Text>
-                      <Text className="text-sm text-gray-600">
-                        Tổng giá: {item.totalPrice.toLocaleString()} VND
-                      </Text>
-                      <Text className={`text-sm font-bold ${text}`}>
-                        Trạng thái: {display}
-                      </Text>
-
-                      <TouchableOpacity
-                        className="mt-3 bg-black text-white px-4 py-2 rounded-full"
-                        onPress={() =>
-                          navigation.navigate("appointment_ongoing_detail", {
-                            appointmentId: item.appointmentId,
-                          })
-                        }
-                      >
-                        <Text className="text-white text-center font-semibold">
-                          Xem chi tiết
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })
+                    </TouchableOpacity>
+                  </View>
+                );
+              })
             ) : (
               <Text className="text-center text-gray-500">
-                Chưa có lịch sử đặt bàn.
+                Chưa có lịch hẹn đang chờ.
               </Text>
             )}
           </ScrollView>

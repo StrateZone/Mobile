@@ -46,7 +46,7 @@ export default function BottomSheetFilterTable({
   };
 
   const roomTypeMap: { [key: string]: string } = {
-    "Phòng cơ bản": "basic",
+    "Phòng thường": "basic",
     "Phòng không gian mở": "openspaced",
     "Phòng cao cấp": "premium",
   };

@@ -26,14 +26,14 @@ export default function BookingFormScreen() {
   };
 
   const roomTypeMap: { [key: string]: string } = {
-    "Phòng cơ bản": "basic",
+    "Phòng thường": "basic",
     "Phòng không gian mở": "openspaced",
     "Phòng cao cấp": "premium",
   };
 
   const navigation = useNavigation<NavigationProp>();
   const [gameType, setGameType] = useState<string>("Cờ vua");
-  const [roomType, setRoomTypes] = useState<string[]>(["Phòng cơ bản"]);
+  const [roomType, setRoomTypes] = useState<string[]>(["Phòng thường"]);
   const [selectedDate, setSelectedDate] = useState<Date>(now);
   const [startTime, setStartTime] = useState<Date>(now);
   const [endTime, setEndTime] = useState<Date>(now);

@@ -4,6 +4,7 @@ import { Dialog, Button } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Fold } from "react-native-animated-spinkit";
+import { IconNode } from "@rneui/base";
 
 import { TableContext } from "@/context/select-table";
 import { useAuth } from "@/context/auth-context";
@@ -81,9 +82,18 @@ export default function PaymentDialog({
 
       const response = await postRequest("/payments/booking-payment", payload);
 
-      if (response.success === false) {
-        if (response.error.message === "Some tables are not available") {
-          const unavailableList = response.error.unavailable_tables || [];
+      const responseData = response as any as {
+        success: boolean;
+        error?: {
+          message: string;
+          unavailable_tables?: any[];
+        };
+        status: number;
+      };
+      console.log(responseData);
+      if (responseData.success === false) {
+        if (responseData.error?.message === "Some tables are not available") {
+          const unavailableList = responseData.error.unavailable_tables || [];
 
           const tableMessages = unavailableList.map((table: any) => {
             const startDate = new Date(table.start_time);
@@ -119,13 +129,13 @@ export default function PaymentDialog({
           ]);
           return;
         } else {
-          Alert.alert("Lỗi", response.error?.message || "Đã xảy ra lỗi");
+          Alert.alert("Lỗi", responseData.error?.message || "Đã xảy ra lỗi");
           return;
         }
       }
 
       // ✅ Trường hợp thành công
-      if (response.status === 200) {
+      if (responseData.status === 200) {
         navigation.navigate("payment_successfull");
         setIsPaymentSuccessful(true);
         await clearSelectedTablesWithNoInvite();
@@ -202,6 +212,11 @@ export default function PaymentDialog({
             loading={loading}
             buttonStyle={{ backgroundColor: "#22c55e" }}
             titleStyle={{ fontWeight: "600" }}
+            icon={
+              loading ? (
+                <Fold size={16} color="white" style={{ marginRight: 8 }} />
+              ) : undefined
+            }
           />
           <Button
             title="Hủy"

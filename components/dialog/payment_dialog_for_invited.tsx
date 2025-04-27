@@ -124,7 +124,7 @@ export default function PaymentDialogForInvited({
           <Text className="text-gray-700">
             <Text className="font-medium">Loại phòng:</Text>{" "}
             {{
-              basic: "Cơ bản",
+              basic: "Thường",
               openspaced: "Không gian mở",
               premium: "Cao cấp",
             }[roomType] || roomType}

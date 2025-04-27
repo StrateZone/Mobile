@@ -284,7 +284,7 @@ export default function InvitationsDetail({ route }: Props) {
             <Text style={{ fontSize: 16, color: "#374151" }}>
               Loại phòng:{" "}
               {{
-                basic: "Cơ bản",
+                basic: "Thường",
                 openspaced: "Không gian mở",
                 premium: "Cao cấp",
               }[roomType] || roomType}

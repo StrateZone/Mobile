@@ -37,6 +37,7 @@ type CommunityCardProps = {
     tag?: {
       tagId: number;
       tagName: string;
+      tagColor: number;
     };
   }>;
 };
@@ -69,21 +70,6 @@ export default function CommunityCard({
     fullName: "",
     avatarUrl: "",
   });
-
-  const buttonColors: { [key: string]: string } = {
-    "cờ vua": "bg-gray-900 text-white",
-    "cờ tướng": "bg-red-700 text-white",
-    "cờ vây": "bg-yellow-600 text-black",
-    "chiến thuật": "bg-blue-600 text-white",
-    gambit: "bg-indigo-600 text-white",
-    mẹo: "bg-purple-500 text-white",
-    "thảo luận": "bg-green-600 text-white",
-    "trò chuyện": "bg-teal-500 text-white",
-    "ngoài lề": "bg-pink-500 text-white",
-    "thông báo": "bg-orange-500 text-white",
-    "quan trọng": "bg-red-600 text-white",
-    default: "bg-gray-500 text-white",
-  };
 
   useEffect(() => {
     if (user) {
@@ -179,10 +165,14 @@ export default function CommunityCard({
               {tags.map((tag) => (
                 <Text
                   key={tag.id}
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    buttonColors[tag.tag?.tagName || theme] ||
-                    buttonColors.default
-                  }`}
+                  style={{
+                    backgroundColor: tag.tag?.tagColor || "#6B7280",
+                    color: "#fff",
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 999,
+                    fontSize: 12,
+                  }}
                 >
                   {tag.tag?.tagName}
                 </Text>

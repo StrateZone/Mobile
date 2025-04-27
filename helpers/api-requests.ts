@@ -58,6 +58,40 @@ export const postRequest = async (
   }
 };
 
+export const postRequestComment = async (
+  path: string,
+  requestBody?: Record<string, unknown>,
+  query?: Record<string, unknown>,
+) => {
+  try {
+    const response = await axios.post(
+      `${config.BACKEND_API}/api${path}`,
+      requestBody,
+      {
+        params: query,
+      },
+    );
+    return response;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const errData = error.response?.data;
+      return {
+        success: false,
+        error:
+          errData?.error || errData?.message || "Đã xảy ra lỗi không xác định.",
+        status: error.response?.status || 500,
+      };
+    } else {
+      console.error("Unexpected error:", error);
+      return {
+        success: false,
+        error: "Lỗi không xác định.",
+        status: 500,
+      };
+    }
+  }
+};
+
 export const postPaymemtRequest = async (
   path: string,
   requestBody?: Record<string, unknown>,
@@ -91,12 +125,31 @@ export const putRequest = async (
   path: string,
   requestBody: Record<string, unknown>,
 ) => {
-  const { data } = await axios.put(
-    `${config.BACKEND_API}/api${path}`,
-    requestBody,
-  );
+  try {
+    const { data } = await axios.put(
+      `${config.BACKEND_API}/api${path}`,
+      requestBody,
+    );
 
-  return data;
+    return data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const errData = error.response?.data;
+      return {
+        success: false,
+        error:
+          errData?.error || errData?.message || "Đã xảy ra lỗi không xác định.",
+        status: error.response?.status || 500,
+      };
+    } else {
+      console.error("Unexpected error:", error);
+      return {
+        success: false,
+        error: "Lỗi không xác định.",
+        status: 500,
+      };
+    }
+  }
 };
 
 export const deleteRequest = async (

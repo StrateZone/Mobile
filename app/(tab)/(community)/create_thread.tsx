@@ -1,5 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -15,11 +22,17 @@ import { Tag } from "@/constants/types/tag";
 import { config } from "@/config";
 import { TouchableOpacity } from "react-native";
 import { useAuth } from "@/context/auth-context";
+import QuillEditor, { QuillToolbar } from "react-native-cn-quill";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+const CustomQuillToolbar = ({ editor, options, theme }: any) => {
+  return <QuillToolbar editor={editor} options={options} theme={theme} />;
+};
+
 export default function CreateThread() {
   const navigation = useNavigation<NavigationProp>();
+  const editorRef = useRef<QuillEditor>(null);
 
   const { authState } = useAuth();
   const user = authState?.user;
@@ -154,6 +167,15 @@ export default function CreateThread() {
         text2: "Vui lòng chọn ít nhất 1 thể loại.",
       });
 
+    const plainText = content.replace(/<[^>]+>/g, "").trim();
+    if (!plainText || plainText.length < 500) {
+      return Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Nội dung bài viết phải có ít nhất 500 ký tự.",
+      });
+    }
+
     setIsLoading(true);
     try {
       const threadRes = await postRequest("/threads", {
@@ -179,82 +201,118 @@ export default function CreateThread() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
-      <View style={{ padding: 16 }}>
-        <TouchableOpacity
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            zIndex: 10,
-            padding: 12,
-          }}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={{ padding: 16 }}>
-        <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 16 }}>
-          Tạo Bài Viết
-        </Text>
-
-        <Card containerStyle={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600" }}>Tiêu đề *</Text>
-          <Input
-            placeholder="Nhập tiêu đề bài viết"
-            value={title}
-            onChangeText={setTitle}
-            containerStyle={{ marginBottom: 16 }}
-          />
-
-          <Text style={{ fontSize: 16, fontWeight: "600" }}>Thể loại *</Text>
-          <View
-            style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View style={{ padding: 16 }}>
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              zIndex: 10,
+              padding: 12,
+            }}
+            onPress={() => navigation.goBack()}
           >
-            {tags.map((tag) => (
-              <Chip
-                className="p-1"
-                key={tag.tagId}
-                title={tag.tagName}
-                onPress={() => handleTagSelect(tag.tagId)}
-                type={selectedTagIds.includes(tag.tagId) ? "solid" : "outline"}
-                color={
-                  selectedTagIds.includes(tag.tagId) ? "primary" : "default"
-                }
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          style={{ padding: 16 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 16 }}>
+            Tạo Bài Viết
+          </Text>
+
+          <Card containerStyle={{ marginBottom: 16 }}>
+            <Text style={{ fontSize: 16, fontWeight: "600" }}>Tiêu đề *</Text>
+            <Input
+              placeholder="Nhập tiêu đề bài viết"
+              value={title}
+              onChangeText={setTitle}
+              containerStyle={{ marginBottom: 16 }}
+            />
+
+            <Text style={{ fontSize: 16, fontWeight: "600" }}>Thể loại *</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                marginBottom: 16,
+              }}
+            >
+              {tags.map((tag) => (
+                <Chip
+                  className="p-1"
+                  key={tag.tagId}
+                  title={tag.tagName}
+                  onPress={() => handleTagSelect(tag.tagId)}
+                  type={
+                    selectedTagIds.includes(tag.tagId) ? "solid" : "outline"
+                  }
+                  color={
+                    selectedTagIds.includes(tag.tagId) ? "primary" : "default"
+                  }
+                />
+              ))}
+            </View>
+
+            <Button title="Chọn ảnh đại diện" onPress={pickImage} />
+            {thumbnail && (
+              <Avatar
+                size={200}
+                source={{ uri: thumbnail }}
+                containerStyle={{ marginVertical: 16 }}
               />
-            ))}
+            )}
+          </Card>
+
+          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>
+            Nội dung * (tối thiểu 500 ký tự)
+          </Text>
+          <View style={{ marginBottom: 16 }}>
+            <CustomQuillToolbar
+              editor={editorRef}
+              options={[
+                ["bold", "italic", "underline", "strike"],
+                [{ header: [1, 2, 3, false] }],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["link", "image"],
+                ["clean"],
+              ]}
+              theme="light"
+            />
+          </View>
+          <View
+            style={{
+              height: 300,
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              marginBottom: 16,
+            }}
+          >
+            <QuillEditor
+              ref={editorRef}
+              style={{ flex: 1, padding: 8 }}
+              initialHtml={content}
+              onHtmlChange={(html) => setContent(html.html)}
+            />
           </View>
 
-          <Button title="Chọn ảnh đại diện" onPress={pickImage} />
-          {thumbnail && (
-            <Avatar
-              size={200}
-              source={{ uri: thumbnail }}
-              containerStyle={{ marginVertical: 16 }}
-            />
-          )}
-        </Card>
-
-        <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>
-          Nội dung *
-        </Text>
-        <Input
-          placeholder="Nhập nội dung bài viết"
-          value={content}
-          onChangeText={setContent}
-          multiline
-          numberOfLines={4}
-          containerStyle={{ marginBottom: 16 }}
-        />
-
-        <Button
-          title={isLoading ? "Đang đăng..." : "Đăng bài"}
-          loading={isLoading}
-          onPress={handleSubmit}
-          buttonStyle={{ backgroundColor: "#007BFF", borderRadius: 8 }}
-        />
-      </ScrollView>
+          <Button
+            title={isLoading ? "Đang đăng..." : "Đăng bài"}
+            loading={isLoading}
+            onPress={handleSubmit}
+            buttonStyle={{ backgroundColor: "#007BFF", borderRadius: 8 }}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -66,5 +66,6 @@ export type RootStackParamList = {
   create_thread: undefined;
   my_threads: undefined;
   friend_managerment: undefined;
-  friend_detail: undefined;
+  friend_detail: { friendId: number };
+  edit_thread: { thread: any };
 };

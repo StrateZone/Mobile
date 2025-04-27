@@ -186,7 +186,7 @@ export default function BookingDetailScreen() {
                       <Text className="text-gray-700 ml-2">
                         Phòng:{" "}
                         {{
-                          basic: "Cơ bản",
+                          basic: "thường",
                           openspaced: "Không gian mở",
                           premium: "Cao cấp",
                         }[table.roomType] || table.roomType}{" "}

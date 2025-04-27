@@ -26,6 +26,9 @@ import { AuthProvider, useAuth } from "@/context/auth-context";
 import { useState } from "react";
 import { TableProvider } from "@/context/select-table";
 import NotificationLayout from "./(tab)/notification/_layout";
+import { LogBox } from "react-native";
+
+LogBox.ignoreAllLogs();
 
 const Drawer = createDrawerNavigator();
 

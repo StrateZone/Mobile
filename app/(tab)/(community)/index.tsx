@@ -44,6 +44,9 @@ const CommunityScreen = () => {
   const [showMembershipDialog, setShowMembershipDialog] =
     useState<boolean>(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [orderBy, setOrderBy] = useState<
+    "created-at-desc" | "popularity" | "friends"
+  >("created-at-desc");
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -101,12 +104,23 @@ const CommunityScreen = () => {
     page === 1 ? setLoading(true) : setLoadingMore(true);
 
     try {
-      const response = await getRequest("/threads/filter/statuses-and-tags", {
+      const params: any = {
         statuses: "published",
         TagIds: selectedTags,
         pageNumber: page,
         pageSize,
-      });
+        "order-by": orderBy, // truyền orderBy
+      };
+
+      // Nếu là friends thì thêm userId
+      if (orderBy === "friends" && user?.userId) {
+        params.userId = user.userId;
+      }
+
+      const response = await getRequest(
+        "/threads/filter/statuses-and-tags",
+        params,
+      );
 
       setTotalPages(response.totalPages || 1);
 
@@ -126,7 +140,7 @@ const CommunityScreen = () => {
   useEffect(() => {
     setCurrentPage(1);
     fetchThreads(1, false);
-  }, [selectedTags]);
+  }, [orderBy, selectedTags]);
 
   useEffect(() => {
     fetchTags();
@@ -205,12 +219,35 @@ const CommunityScreen = () => {
     <View className="bg-white flex-1 px-4 py-6">
       {user?.userRole === "Member" ? (
         <>
-          {/* Header */}
           <View className="flex-row justify-between items-center mb-4">
             <View className="flex-row gap-2">
-              <Button type="clear" title="Mới Nhất" />
-              <Button type="clear" title="Phổ Biến" />
-              <Button type="clear" title="Của Bạn Bè" />
+              <Button
+                type="clear"
+                title="Mới Nhất"
+                onPress={() => {
+                  setOrderBy("created-at-desc");
+                  setCurrentPage(1);
+                  fetchThreads(1, false);
+                }}
+              />
+              <Button
+                type="clear"
+                title="Phổ Biến"
+                onPress={() => {
+                  setOrderBy("popularity");
+                  setCurrentPage(1);
+                  fetchThreads(1, false);
+                }}
+              />
+              <Button
+                type="clear"
+                title="Của Bạn Bè"
+                onPress={() => {
+                  setOrderBy("friends");
+                  setCurrentPage(1);
+                  fetchThreads(1, false);
+                }}
+              />
             </View>
           </View>
 

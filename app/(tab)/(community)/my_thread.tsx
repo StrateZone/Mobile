@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -10,11 +10,13 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { useAuth } from "@/context/auth-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Button, Card, Badge } from "@rneui/themed";
+import { WebView } from "react-native-webview";
+import { useWindowDimensions } from "react-native";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -47,6 +49,7 @@ export default function MyThread() {
   const navigation = useNavigation<NavigationProp>();
   const { authState } = useAuth();
   const user = authState?.user;
+  const { width } = useWindowDimensions();
 
   const [threads, setThreads] = useState<Thread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +87,12 @@ export default function MyThread() {
     setRefreshing(false);
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchThreads();
+    }, []),
+  );
+
   const handleDelete = (threadId: number) => {
     Alert.alert("Xác nhận", "Bạn muốn xóa bài viết này?", [
       { text: "Hủy" },
@@ -96,9 +105,7 @@ export default function MyThread() {
               { method: "DELETE" },
             );
             if (response.ok) {
-              setThreads((prev) =>
-                prev.filter((thread) => thread.threadId !== threadId),
-              );
+              await fetchThreads();
             } else {
               alert("Failed to delete post");
             }
@@ -110,32 +117,86 @@ export default function MyThread() {
     ]);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "published":
-        return <Badge value="Đã đăng" status="success" />;
-      case "pending":
-        return <Badge value="Đang duyệt" status="warning" />;
-      case "rejected":
-      case "deleted":
-        return (
-          <Badge
-            value={status === "rejected" ? "Từ chối" : "Đã bị xóa"}
-            status="error"
-          />
-        );
-      default:
-        return <Badge value="Unknown" status="error" />;
-    }
+  const statusColors: {
+    [key: string]: { backgroundColor: string; color: string };
+  } = {
+    published: { backgroundColor: "#22C55E", color: "#fff" }, // Xanh lá
+    pending: { backgroundColor: "#3B82F6", color: "#fff" }, // Xanh dương
+    edit_pending: { backgroundColor: "#F59E0B", color: "#000" }, // Cam vàng
+    rejected: { backgroundColor: "#EF4444", color: "#fff" }, // Đỏ
+    deleted: { backgroundColor: "#9CA3AF", color: "#fff" }, // Xám
+    default: { backgroundColor: "#6B7280", color: "#fff" }, // Xám đậm
   };
 
-  if (isLoading) {
+  const statusTexts: { [key: string]: string } = {
+    published: "Đã đăng",
+    pending: "Chờ duyệt",
+    edit_pending: "Chỉnh sửa chờ duyệt",
+    rejected: "Bị từ chối",
+    deleted: "Đã xóa",
+    default: "Không xác định",
+  };
+
+  const getStatusBadge = (status: string) => {
+    const { backgroundColor, color } =
+      statusColors[status] || statusColors.default;
+    const text = statusTexts[status] || statusTexts.default;
+
     return (
-      <SafeAreaView className="flex-1 bg-gray-100 justify-center items-center">
-        <ActivityIndicator size="large" color="#000" className="mt-12" />
-      </SafeAreaView>
+      <Badge
+        value={text}
+        badgeStyle={{
+          backgroundColor,
+          borderRadius: 8,
+        }}
+        textStyle={{
+          color,
+          fontWeight: "bold",
+          fontSize: 12,
+        }}
+      />
     );
-  }
+  };
+
+  const renderHtmlContent = (html: string) => {
+    const htmlContent = `
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              font-size: 16px;
+              line-height: 1.5;
+              color: #333;
+              padding: 16px;
+            }
+            p {
+              margin-bottom: 16px;
+            }
+            strong {
+              font-weight: bold;
+            }
+            em {
+              font-style: italic;
+            }
+            ul, ol {
+              margin-left: 20px;
+              margin-bottom: 16px;
+            }
+            h1, h2, h3 {
+              margin-top: 24px;
+              margin-bottom: 16px;
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `;
+    return htmlContent;
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -151,7 +212,11 @@ export default function MyThread() {
           Bài Viết Của Tôi
         </Text>
 
-        {threads.length === 0 ? (
+        {isLoading ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#000" />
+          </View>
+        ) : threads.length === 0 ? (
           <Text className="text-center text-gray-500">
             Không tìm thấy bài viết nào.
           </Text>
@@ -207,11 +272,29 @@ export default function MyThread() {
                     </Text>
                   )}
 
-                  <Text className="text-gray-700 mt-2" numberOfLines={3}>
-                    {thread.content}
-                  </Text>
+                  <View style={{ height: 200, marginTop: 8 }}>
+                    <WebView
+                      source={{ html: renderHtmlContent(thread.content) }}
+                      style={{ flex: 1 }}
+                      scrollEnabled={false}
+                    />
+                  </View>
 
-                  <View className="flex-row justify-end mt-10">
+                  <View className="flex-row justify-between mt-10">
+                    <Button
+                      title="Chỉnh sửa"
+                      onPress={() =>
+                        navigation.navigate("edit_thread", { thread })
+                      }
+                      buttonStyle={{
+                        backgroundColor: "#2ecc71",
+                        borderRadius: 8,
+                        paddingHorizontal: 20,
+                        paddingVertical: 8,
+                      }}
+                      titleStyle={{ fontWeight: "bold" }}
+                    />
+
                     <Button
                       title="Xóa bài"
                       onPress={() => handleDelete(thread.threadId)}
