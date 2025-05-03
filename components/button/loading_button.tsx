@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Fold } from "react-native-animated-spinkit";
+import LoadingForButton from "../loading/loading_button";
 
 type LoadingButtonProps = {
   title: string;
@@ -40,7 +41,7 @@ export default function LoadingButton({
     >
       {isLoading ? (
         <>
-          <Fold size={20} color="white" />
+          <LoadingForButton />
           <Text style={[{ marginLeft: 8, color: "white" }, titleStyle]}>
             {loadingText}
           </Text>

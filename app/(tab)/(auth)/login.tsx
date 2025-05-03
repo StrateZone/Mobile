@@ -1,15 +1,21 @@
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import React, { useState } from "react";
 import TextInputComponent from "@/components/input";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
-import { Ionicons } from "@expo/vector-icons"; // Thư viện icon
-
+import { Ionicons } from "@expo/vector-icons";
 import DefaultButton from "@/components/button/button";
 import { RootStackParamList } from "../../../constants/types/root-stack";
 import { useAuth } from "@/context/auth-context";
 import { Fold } from "react-native-animated-spinkit";
+import LoadingForButton from "@/components/loading/loading_button";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -20,8 +26,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // 👁️
-  const [loading, setLoading] = useState(false); // 🔄
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const validatePassword = (password: string): string | null => {
     if (!password) return "Mật khẩu không được để trống.";
@@ -76,65 +82,73 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 p-4 bg-white">
-      <View className="p-5 rounded-lg">
-        <View className="m-3">
-          <TextInputComponent
-            label="Email"
-            placeholder="Nhập email"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
+    <View className="flex-1 p-4">
+      <View className="flex-1 justify-center items-center">
+        <View className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+          <Text className="text-black text-4xl font-bold mb-6">Stratezone</Text>
 
-        <View className="m-3">
-          <TextInputComponent
-            label="Mật khẩu"
-            placeholder="Nhập mật khẩu"
-            value={password}
-            onChangeText={handlePasswordChange}
-            secureTextEntry={!showPassword}
-            rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={22}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            }
-          />
-          {passwordError ? (
-            <Text className="text-red-500">{passwordError}</Text>
-          ) : null}
-        </View>
+          <Text className="text-black text-xl mb-4">Chào mừng quay lại!</Text>
 
-        <View className="flex flex-row justify-center mt-4">
-          <DefaultButton
-            title={loading ? "Đang xử lý..." : "Đăng nhập"}
-            backgroundColor="black"
-            onPress={handleLogin}
-            disabled={loading}
-            icon={loading ? <Fold size={18} color="#000000" /> : undefined}
-          />
-        </View>
+          <View className="m-3">
+            <TextInputComponent
+              label="Email"
+              placeholder="Nhập email"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
 
-        <View className="flex flex-row justify-center">
-          <TouchableOpacity
-            className="text-blue-600 underline pt-3"
-            onPress={() => navigation.navigate("Register")}
-          >
-            <Text>Bạn chưa có tài khoản ?</Text>
-          </TouchableOpacity>
-        </View>
+          <View className="m-3">
+            <TextInputComponent
+              label="Mật khẩu"
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChangeText={handlePasswordChange}
+              secureTextEntry={!showPassword}
+              rightIcon={
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={22}
+                    color="gray"
+                  />
+                </TouchableOpacity>
+              }
+            />
+            {passwordError ? (
+              <Text className="text-red-500">{passwordError}</Text>
+            ) : null}
+          </View>
 
-        <View className="flex flex-row justify-center">
-          <TouchableOpacity
-            className="text-blue-600 underline pt-2"
-            onPress={() => navigation.navigate("LoginByOtp")}
-          >
-            <Text>Đăng nhập bằng mã OTP</Text>
-          </TouchableOpacity>
+          <View className="flex flex-row justify-center mt-4">
+            <DefaultButton
+              title={loading ? "Đang xử lý..." : "Đăng nhập"}
+              backgroundColor="black"
+              onPress={handleLogin}
+              disabled={loading}
+              icon={loading ? <LoadingForButton /> : undefined}
+            />
+          </View>
+
+          <View className="flex flex-row justify-center">
+            <TouchableOpacity
+              className="text-blue-600 underline pt-3"
+              onPress={() => navigation.navigate("Register")}
+            >
+              <Text>Bạn chưa có tài khoản ?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="flex flex-row justify-center">
+            <TouchableOpacity
+              className="text-blue-600 underline pt-2"
+              onPress={() => navigation.navigate("LoginByOtp")}
+            >
+              <Text>Đăng nhập bằng mã OTP</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

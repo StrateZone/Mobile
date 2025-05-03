@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
@@ -26,6 +28,8 @@ import { RootStackParamList } from "@/constants/types/root-stack";
 import { ChessTable } from "@/constants/types/chess_table";
 import { TableContext } from "@/context/select-table";
 import { Ionicons } from "@expo/vector-icons";
+import BackButton from "@/components/BackButton";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
@@ -181,19 +185,35 @@ export default function ListTableScreen({ route }: Props) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="flex-1 p-4 mt-10">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#F9FAFB" /* neutral-50 */ }}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          {mapGameTypeToVietnamese(gameTypeFilter)}
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#111827" /* neutral-900 */,
+            }}
+          >
+            {mapGameTypeToVietnamese(gameTypeFilter)}
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between mb-4 mr-5">
           <View className="flex-1 mr-2"></View>
           <Button
             icon={<Icon name="filter" type="feather" color="white" />}
@@ -203,9 +223,7 @@ export default function ListTableScreen({ route }: Props) {
         </View>
 
         {isLoading ? (
-          <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
-          </View>
+          <LoadingPage />
         ) : (
           <FlatList
             data={chessTables}
@@ -228,7 +246,11 @@ export default function ListTableScreen({ route }: Props) {
             onEndReachedThreshold={0.2}
             ListFooterComponent={
               isFetchingMore ? (
-                <ActivityIndicator size="small" color="#000" className="my-4" />
+                <ActivityIndicator
+                  size="small"
+                  color="#3B82F6"
+                  className="my-4"
+                />
               ) : null
             }
             refreshing={refreshing}
@@ -265,7 +287,7 @@ export default function ListTableScreen({ route }: Props) {
                 title="Xóa hết"
                 onPress={handleClearTables}
                 buttonStyle={{
-                  backgroundColor: "red",
+                  backgroundColor: "#EF4444", // error color
                   borderRadius: 10,
                   paddingVertical: 10,
                 }}
@@ -275,7 +297,7 @@ export default function ListTableScreen({ route }: Props) {
                 title={`Chọn ${selectedTables.length} bàn`}
                 onPress={() => navigation.navigate("booking_detail")}
                 buttonStyle={{
-                  backgroundColor: "black",
+                  backgroundColor: "#3B82F6", // primary color
                   borderRadius: 10,
                   paddingVertical: 12,
                 }}
@@ -288,7 +310,7 @@ export default function ListTableScreen({ route }: Props) {
             </View>
           </Animated.View>
         )}
-      </View>
+      </KeyboardAvoidingView>
       {filterVisible && (
         <BottomSheetFilterTable
           gameType={gameTypeFilter}
@@ -304,6 +326,44 @@ export default function ListTableScreen({ route }: Props) {
           onClose={() => setFilterVisible(false)}
         />
       )}
+    </SafeAreaView>
+  );
+}
+
+function AppointmentLayout() {
+  const navigation = useNavigation();
+
+  return (
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#F9FAFB" /* neutral-50 */ }}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#111827" /* neutral-900 */,
+            }}
+          >
+            Lịch hẹn
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
+
+        {/* Nội dung màn hình */}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

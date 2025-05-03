@@ -36,6 +36,7 @@ import {
 import { Thread } from "@/constants/types/thread";
 import { useAuth } from "@/context/auth-context";
 import Toast from "react-native-toast-message";
+import BackButton from "@/components/BackButton";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "community_detail">;
@@ -261,173 +262,185 @@ export default function CommunityDetail({ route }: Props) {
   `;
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" /* neutral */ }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <View className="flex-1 p-4 mt-10">
-          <TouchableOpacity
-            className="absolute left-4 p-2 bg-gray-300 rounded-full z-10"
-            onPress={() => navigation.goBack()}
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#212529" /* neutral-900 */,
+            }}
           >
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
+            Chi tiết bài viết
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
-          {thread ? (
-            <ScrollView
-              className="px-4"
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-              keyboardShouldPersistTaps="handled"
-            >
-              <Card containerStyle={{ borderRadius: 12, paddingBottom: 12 }}>
-                {/* Tác giả */}
-                <View className="flex-row items-center mb-8">
-                  <Avatar
-                    rounded
-                    size={40}
-                    source={{
-                      uri:
-                        thread.createdByNavigation?.avatarUrl ||
-                        "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
-                    }}
-                  />
-                  <View className="ml-3">
-                    <Text className="text-base font-semibold">
-                      {thread.createdByNavigation?.fullName}
-                    </Text>
-                    <Text className="text-xs text-gray-500">
-                      {new Date(thread.createdAt).toLocaleString()}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Tag */}
-                <View className="flex-row flex-wrap mb-4">
-                  {thread.threadsTags!.map((item) => {
-                    const tag = item.tag?.tagName?.toLowerCase() || "default";
-                    return (
-                      <Chip
-                        key={item.id}
-                        title={item!.tag!.tagName}
-                        containerStyle={{ marginRight: 8, marginBottom: 8 }}
-                        buttonStyle={{
-                          backgroundColor: tagColors[tag] || tagColors.default,
-                        }}
-                        titleStyle={{
-                          color: tag === "cờ vây" ? "black" : "white",
-                        }}
-                      />
-                    );
-                  })}
-                </View>
-
-                {/* Tiêu đề */}
-                <Text className="text-xl font-bold mb-3">{thread.title}</Text>
-
-                {/* Ảnh */}
-                {thread.thumbnailUrl && (
-                  <Image
-                    source={{ uri: thread.thumbnailUrl }}
-                    containerStyle={{ borderRadius: 12, marginBottom: 12 }}
-                    style={{ width: "100%", height: 200 }}
-                  />
-                )}
-
-                {/* Nội dung */}
-                <View style={{ marginBottom: 16 }}>
-                  <WebView
-                    source={{ html: renderHtmlContent(thread.content) }}
-                    style={{ height: contentHeight || 200 }}
-                    scrollEnabled={false}
-                    injectedJavaScript={injectedJavaScript}
-                    onMessage={(event) => {
-                      setContentHeight(Number(event.nativeEvent.data));
-                    }}
-                  />
-                </View>
-
-                {/* Like */}
-                <Button
-                  type={isLiked ? "solid" : "outline"}
-                  icon={{
-                    name: "heart",
-                    type: "feather",
-                    color: isLiked ? "white" : "red",
+        {thread ? (
+          <ScrollView
+            className="px-4"
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            keyboardShouldPersistTaps="handled"
+          >
+            <Card containerStyle={{ borderRadius: 12, paddingBottom: 12 }}>
+              {/* Tác giả */}
+              <View className="flex-row items-center mb-8">
+                <Avatar
+                  rounded
+                  size={40}
+                  source={{
+                    uri:
+                      thread.createdByNavigation?.avatarUrl ||
+                      "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
                   }}
-                  title={`${likeCount}`}
-                  onPress={handleLike}
-                  loading={loading}
-                  buttonStyle={{
-                    borderColor: "red",
-                    backgroundColor: isLiked ? "red" : "white",
-                  }}
-                  titleStyle={{ color: isLiked ? "white" : "red" }}
-                  containerStyle={{ alignSelf: "flex-start", borderRadius: 8 }}
                 />
-              </Card>
-
-              {/* Bình luận */}
-              <Text className="text-lg font-semibold mt-4 mb-2">Bình luận</Text>
-              {/* Ô nhập bình luận */}
-              <View className="mt-4 px-2">
-                {replyingToName && (
-                  <View className="flex-row justify-between items-center mb-1">
-                    <Text className="text-sm text-gray-500 italic">
-                      Đang trả lời {replyingToName}
-                    </Text>
-                    <TouchableOpacity onPress={cancelReply}>
-                      <Text className="text-xs text-red-500">Hủy</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+                <View className="ml-3">
+                  <Text className="text-base font-semibold">
+                    {thread.createdByNavigation?.fullName}
+                  </Text>
+                  <Text className="text-xs text-gray-500">
+                    {new Date(thread.createdAt).toLocaleString()}
+                  </Text>
+                </View>
               </View>
-              <View className="bg-gray-100 rounded-xl flex-row items-center px-3 py-2">
-                <TextInput
-                  placeholder="Nhập bình luận..."
-                  multiline
-                  value={replyToCommentId ? replyContent : mainCommentContent}
-                  onChangeText={(text) =>
-                    replyToCommentId
-                      ? setReplyContent(text)
-                      : setMainCommentContent(text)
-                  }
-                  className="flex-1 text-base text-gray-800 pr-2"
+
+              {/* Tag */}
+              <View className="flex-row flex-wrap mb-4">
+                {thread.threadsTags!.map((item) => {
+                  const tag = item.tag?.tagName?.toLowerCase() || "default";
+                  return (
+                    <Chip
+                      key={item.id}
+                      title={item!.tag!.tagName}
+                      containerStyle={{ marginRight: 8, marginBottom: 8 }}
+                      buttonStyle={{
+                        backgroundColor: tagColors[tag] || tagColors.default,
+                      }}
+                      titleStyle={{
+                        color: tag === "cờ vây" ? "black" : "white",
+                      }}
+                    />
+                  );
+                })}
+              </View>
+
+              {/* Tiêu đề */}
+              <Text className="text-xl font-bold mb-3">{thread.title}</Text>
+
+              {/* Ảnh */}
+              {thread.thumbnailUrl && (
+                <Image
+                  source={{ uri: thread.thumbnailUrl }}
+                  containerStyle={{ borderRadius: 12, marginBottom: 12 }}
+                  style={{ width: "100%", height: 200 }}
                 />
-                <TouchableOpacity
-                  onPress={handleSubmitComment}
-                  disabled={
+              )}
+
+              {/* Nội dung */}
+              <View style={{ marginBottom: 16 }}>
+                <WebView
+                  source={{ html: renderHtmlContent(thread.content) }}
+                  style={{ height: contentHeight || 200 }}
+                  scrollEnabled={false}
+                  injectedJavaScript={injectedJavaScript}
+                  onMessage={(event) => {
+                    setContentHeight(Number(event.nativeEvent.data));
+                  }}
+                />
+              </View>
+
+              {/* Like */}
+              <Button
+                type={isLiked ? "solid" : "outline"}
+                icon={{
+                  name: "heart",
+                  type: "feather",
+                  color: isLiked ? "white" : "red",
+                }}
+                title={`${likeCount}`}
+                onPress={handleLike}
+                loading={loading}
+                buttonStyle={{
+                  borderColor: "red",
+                  backgroundColor: isLiked ? "red" : "white",
+                }}
+                titleStyle={{ color: isLiked ? "white" : "red" }}
+                containerStyle={{ alignSelf: "flex-start", borderRadius: 8 }}
+              />
+            </Card>
+
+            {/* Bình luận */}
+            <Text className="text-lg font-semibold mt-4 mb-2">Bình luận</Text>
+            {/* Ô nhập bình luận */}
+            <View className="mt-4 px-2">
+              {replyingToName && (
+                <View className="flex-row justify-between items-center mb-1">
+                  <Text className="text-sm text-gray-500 italic">
+                    Đang trả lời {replyingToName}
+                  </Text>
+                  <TouchableOpacity onPress={cancelReply}>
+                    <Text className="text-xs text-red-500">Hủy</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            <View className="bg-gray-100 rounded-xl flex-row items-center px-3 py-2">
+              <TextInput
+                placeholder="Nhập bình luận..."
+                multiline
+                value={replyToCommentId ? replyContent : mainCommentContent}
+                onChangeText={(text) =>
+                  replyToCommentId
+                    ? setReplyContent(text)
+                    : setMainCommentContent(text)
+                }
+                className="flex-1 text-base text-gray-800 pr-2"
+              />
+              <TouchableOpacity
+                onPress={handleSubmitComment}
+                disabled={
+                  submitting ||
+                  !(replyToCommentId
+                    ? replyContent.trim()
+                    : mainCommentContent.trim())
+                }
+              >
+                <Feather
+                  name="send"
+                  size={20}
+                  color={
                     submitting ||
                     !(replyToCommentId
                       ? replyContent.trim()
                       : mainCommentContent.trim())
+                      ? "#ccc"
+                      : "#007AFF"
                   }
-                >
-                  <Feather
-                    name="send"
-                    size={20}
-                    color={
-                      submitting ||
-                      !(replyToCommentId
-                        ? replyContent.trim()
-                        : mainCommentContent.trim())
-                        ? "#ccc"
-                        : "#007AFF"
-                    }
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {renderComments(thread.comments, handleReply, replyToCommentId)}
-            </ScrollView>
-          ) : (
-            <View className="flex-1 justify-center items-center">
-              <RNActivityIndicator size="large" color="black" />
+                />
+              </TouchableOpacity>
             </View>
-          )}
-        </View>
+
+            {renderComments(thread.comments, handleReply, replyToCommentId)}
+          </ScrollView>
+        ) : (
+          <View className="flex-1 justify-center items-center">
+            <RNActivityIndicator size="large" color="black" />
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

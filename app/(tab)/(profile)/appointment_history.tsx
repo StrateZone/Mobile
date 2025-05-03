@@ -19,6 +19,7 @@ import { Fold } from "react-native-animated-spinkit";
 import { Apointment } from "@/constants/types/apointment";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import BottomSheetSortAppointment from "@/components/bottom_sheet/bottom_sheet_sort_appointment";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -157,7 +158,7 @@ export default function AppointmentHistory() {
 
         {isLoading ? (
           <View className="flex justify-center items-center">
-            <Fold size={48} color="#000000" />
+            <LoadingPage />
           </View>
         ) : (
           <ScrollView

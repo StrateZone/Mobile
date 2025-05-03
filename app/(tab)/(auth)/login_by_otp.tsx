@@ -2,8 +2,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   SafeAreaView,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import React, { useState } from "react";
 import TextInputComponent from "@/components/input";
@@ -16,6 +17,8 @@ import DefaultButton from "@/components/button/button";
 import { RootStackParamList } from "../../../constants/types/root-stack";
 import { postRequest } from "@/helpers/api-requests";
 import { Fold } from "react-native-animated-spinkit";
+import BackButton from "@/components/BackButton";
+import LoadingForButton from "@/components/loading/loading_button";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -38,6 +41,15 @@ export default function LoginByOtpScreen() {
     try {
       const response = await postRequest("/auth/send-otp", {}, { email });
 
+      if (response.data.message === "User doesnt exist") {
+        Toast.show({
+          type: "error",
+          text1: "Không thể đăng nhập",
+          text2: `Người dùng không tồn tại trong hệ thống.`,
+        });
+        return;
+      }
+
       if (response.status === 200) {
         Toast.show({
           type: "success",
@@ -45,9 +57,7 @@ export default function LoginByOtpScreen() {
           text2: `Mã OTP đã được gửi tới ${email}. Vui lòng kiểm tra email.`,
         });
 
-        setTimeout(() => {
-          navigation.navigate("Otp", { email });
-        }, 1500);
+        navigation.navigate("Otp", { email });
       } else {
         Toast.show({
           type: "error",
@@ -68,49 +78,80 @@ export default function LoginByOtpScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="relative">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-
-        <Text className="text-2xl font-bold text-center text-black mb-5 mt-3">
-          Đăng nhập bằng OTP
-        </Text>
-      </View>
-
-      <View className="p-5 rounded-lg">
-        <View className="m-3">
-          <TextInputComponent
-            label="Email"
-            placeholder="Nhập email"
-            value={email}
-            onChangeText={setEmail}
-          />
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 20, fontWeight: "600", color: "#212529" }}>
+            Đăng nhập otp
+          </Text>
+          <View style={{ width: 48 }} />
         </View>
 
-        <View className="flex flex-row justify-center mt-4">
-          <DefaultButton
-            title={loading ? "Đang xử lý..." : "Đăng nhập"}
-            backgroundColor="black"
-            onPress={sendEmail}
-            disabled={loading}
-            icon={loading ? <Fold size={18} color="#000000" /> : undefined}
-          />
-        </View>
+        <View
+          style={{
+            backgroundColor: "#fff",
+            margin: 16,
+            padding: 20,
+            borderRadius: 10,
+            shadowColor: "#000",
+            shadowOpacity: 0.2,
+            shadowRadius: 10,
+          }}
+        >
+          <Text className="text-black text-4xl font-bold mb-6">Stratezone</Text>
+          <Text className="text-black text-xl mb-4">Chào mừng quay lại!</Text>
+          <View style={{ marginBottom: 16 }}>
+            <TextInputComponent
+              label="Email"
+              placeholder="Nhập email"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
 
-        <View className="flex flex-row justify-center">
-          <TouchableOpacity
-            className="text-blue-600 underline pt-3"
-            onPress={() => navigation.navigate("Register")}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              marginTop: 20,
+            }}
           >
-            <Text>Bạn chưa có tài khoản?</Text>
-          </TouchableOpacity>
+            <DefaultButton
+              title={loading ? "Đang xử lý..." : "Đăng nhập"}
+              backgroundColor="black"
+              onPress={sendEmail}
+              disabled={loading}
+              icon={loading ? <LoadingForButton /> : undefined}
+            />
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              marginTop: 20,
+            }}
+          >
+            <TouchableOpacity
+              style={{ color: "#007BFF", textDecorationLine: "underline" }}
+              onPress={() => navigation.navigate("Register")}
+            >
+              <Text>Bạn chưa có tài khoản?</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

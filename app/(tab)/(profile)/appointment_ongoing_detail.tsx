@@ -187,7 +187,6 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
   const { bg, border, text, display } = appointment
     ? getStatusStyles(appointment.status)
     : { bg: "", text: "", display: "" };
-  console.log(appointment?.tablesAppointments);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView className="flex-1 bg-gray-100 p-4">

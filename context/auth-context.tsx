@@ -16,6 +16,7 @@ interface AuthProps {
       gender: string;
       skillLevel: string;
       ranking: string;
+      imageUrl: string;
       wallet: {
         walletId: number;
         userId: number;
@@ -61,6 +62,7 @@ export const AuthProvider = ({ children }: any) => {
       gender: string;
       skillLevel: string;
       ranking: string;
+      imageUrl: string;
       wallet: {
         walletId: number;
         userId: number;
@@ -117,6 +119,7 @@ export const AuthProvider = ({ children }: any) => {
           avatarUrl: response.data.data.avatarUrl,
           email: response.data.data.email,
           phone: response.data.data.phone,
+          imageUrl: response.data.data.imageUrl,
         };
 
         setAuthState({
@@ -170,6 +173,7 @@ export const AuthProvider = ({ children }: any) => {
           avatarUrl: response.data.data.avatarUrl,
           email: response.data.data.email,
           phone: response.data.data.phone,
+          imageUrl: response.data.data.imageUrl,
         };
 
         setAuthState({

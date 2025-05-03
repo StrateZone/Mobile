@@ -6,6 +6,7 @@ import { Fold } from "react-native-animated-spinkit";
 
 import { putRequest } from "@/helpers/api-requests";
 import { useAuth } from "@/context/auth-context";
+import LoadingForButton from "../loading/loading_button";
 
 type ConfirmCancelTableDialogProps = {
   visible: boolean;
@@ -146,7 +147,7 @@ export default function ConfirmCancelTableDialog({
             title={
               isLoading ? (
                 <View className="flex-row items-center justify-center gap-2">
-                  <Fold size={16} color="black" />
+                  <LoadingForButton />
                   <Text className="text-black text-sm">Đang xử lý</Text>
                 </View>
               ) : (

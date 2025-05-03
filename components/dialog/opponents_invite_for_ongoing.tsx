@@ -6,6 +6,7 @@ import { useAuth } from "@/context/auth-context";
 import { getRequest, postRequest } from "@/helpers/api-requests";
 import Toast from "react-native-toast-message";
 import { Fold } from "react-native-animated-spinkit";
+import LoadingPage from "../loading/loading_page";
 
 export const InviteOpponentDialogForOnGoing = ({
   visible,
@@ -200,9 +201,7 @@ export const InviteOpponentDialogForOnGoing = ({
             style={{ width: "100%", display: index === 0 ? "flex" : "none" }}
           >
             {loading ? (
-              <View className="flex justify-center items-center mt-32">
-                <Fold size={48} color="#000000" />
-              </View>
+              <LoadingPage />
             ) : (
               <View style={{ flex: 1 }}>
                 <ScrollView
@@ -225,9 +224,7 @@ export const InviteOpponentDialogForOnGoing = ({
             style={{ width: "100%", display: index === 1 ? "flex" : "none" }}
           >
             {loading ? (
-              <View className="flex justify-center items-center mt-32">
-                <Fold size={48} color="#000000" />
-              </View>
+              <LoadingPage />
             ) : (
               <View style={{ flex: 1 }}>
                 <ScrollView
@@ -251,9 +248,7 @@ export const InviteOpponentDialogForOnGoing = ({
           >
             {index === 2 ? (
               loading ? (
-                <View className="flex justify-center items-center mt-32">
-                  <Fold size={48} color="#000000" />
-                </View>
+                <LoadingPage />
               ) : (
                 <View style={{ flex: 1 }}>
                   {selectedUsers.length === 0 ? (

@@ -19,6 +19,7 @@ import { Apointment } from "@/constants/types/apointment";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheetSortAppointment from "@/components/bottom_sheet/bottom_sheet_sort_appointment";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -160,9 +161,7 @@ export default function AppointmentOnGoing() {
         </View>
 
         {isLoading ? (
-          <View className="flex justify-center items-center">
-            <Fold size={48} color="#000000" />
-          </View>
+          <LoadingPage />
         ) : (
           <ScrollView
             className="flex-1"

@@ -9,6 +9,8 @@ import {
   Alert,
   SafeAreaView,
   RefreshControl,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Avatar, Button, Tab, TabView, Card } from "@rneui/themed";
 import { Ionicons } from "@expo/vector-icons";
@@ -27,6 +29,8 @@ import { Fold } from "react-native-animated-spinkit";
 import { Input, Icon } from "@rneui/themed";
 import FriendCard from "@/components/card/friend_card";
 import LoadingButton from "@/components/button/loading_button";
+import BackButton from "@/components/BackButton";
+import LoadingPage from "@/components/loading/loading_page";
 
 export default function FriendManagementScreen() {
   const navigation =
@@ -227,17 +231,31 @@ export default function FriendManagementScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 p-4 mt-10">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-200 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" /* neutral */ }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          Bạn bè
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#212529" /* neutral-900 */,
+            }}
+          >
+            Thông tin người dùng
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
         <Tab
           value={index}
@@ -262,7 +280,7 @@ export default function FriendManagementScreen() {
             >
               {isLoading ? (
                 <View className="items-center justify-center mt-8">
-                  <Fold size={40} color="#000" />
+                  <LoadingPage />
                 </View>
               ) : friendList.length === 0 ? (
                 <Text className="text-gray-500 italic text-center">
@@ -322,7 +340,7 @@ export default function FriendManagementScreen() {
             >
               {isLoading ? (
                 <View className="items-center justify-center mt-8">
-                  <Fold size={40} color="#000" />
+                  <LoadingPage />
                 </View>
               ) : pendingRequests.length === 0 ? (
                 <Text className="text-gray-500 italic text-center">
@@ -395,7 +413,7 @@ export default function FriendManagementScreen() {
 
               {isLoading ? (
                 <View className="items-center justify-center mt-8">
-                  <Fold size={40} color="#000" />
+                  <LoadingPage />
                 </View>
               ) : searchResults.length === 0 ? (
                 <Text className="text-gray-500 italic text-center">
@@ -476,7 +494,7 @@ export default function FriendManagementScreen() {
             </ScrollView>
           </TabView.Item>
         </TabView>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

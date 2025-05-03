@@ -9,7 +9,7 @@ import {
   Platform,
   TouchableOpacity,
 } from "react-native";
-import { Button, Input, Avatar, Chip } from "@rneui/themed";
+import { Button, Input, Avatar, Chip, Divider, Icon } from "@rneui/themed";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "@/constants/types/root-stack";
@@ -21,6 +21,9 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import { config } from "@/config";
+import { Fold } from "react-native-animated-spinkit";
+import BackButton from "@/components/BackButton";
+import LoadingForButton from "@/components/loading/loading_button";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -155,12 +158,37 @@ export default function EditDraftScreen() {
   const handleUpdate = async (isDrafted = true) => {
     const plainText = content.replace(/<[^>]+>/g, "").trim();
     if (!title.trim() || !plainText || (plainText.length < 500 && !isDrafted)) {
-      Alert.alert(
-        "Lỗi",
-        "Tiêu đề và nội dung (ít nhất 500 ký tự) là bắt buộc.",
-      );
+      Alert.alert("Lỗi", "Nội dung (ít nhất 500 ký tự) là bắt buộc.");
       return;
     }
+
+    if (!title.trim())
+      return Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Vui lòng nhập tiêu đề.",
+      });
+
+    if (titleCharCount > 100)
+      return Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Tiêu đề không được vượt quá 100 ký tự.",
+      });
+
+    if (!thumbnail)
+      return Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Vui lòng chọn ảnh cho bài viết.",
+      });
+
+    if (selectedTagIds.length === 0)
+      return Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Vui lòng chọn ít nhất 1 thể loại.",
+      });
 
     if (isDrafted) {
       setIsDraftLoading(true);
@@ -214,26 +242,30 @@ export default function EditDraftScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" /* neutral */ }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <View style={{ padding: 16 }}>
-          <TouchableOpacity
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
             style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              zIndex: 10,
-              padding: 12,
-              backgroundColor: "#E5E7EB",
-              borderRadius: 999,
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#212529" /* neutral-900 */,
             }}
-            onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
+            Chỉnh sửa bài nháp
+          </Text>
+          <View style={{ width: 48 }} />
         </View>
 
         <ScrollView
@@ -241,36 +273,33 @@ export default function EditDraftScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: "bold",
-              marginBottom: 16,
-              textAlign: "center",
-            }}
-          >
-            Chỉnh sửa bài viết
-          </Text>
-
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>
-            Tiêu đề
-          </Text>
-          <Text
-            style={{
-              alignSelf: "flex-end",
-              color: titleCharCount > 100 ? "red" : "gray",
-            }}
-          >
-            {titleCharCount}/100 ký tự
-          </Text>
           <View
             style={{
-              backgroundColor: "#ffffff",
-              padding: 12,
-              borderRadius: 8,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 16,
+              padding: 16,
               marginBottom: 16,
             }}
           >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: "#1E293B",
+                marginBottom: 8,
+              }}
+            >
+              Tiêu đề
+            </Text>
+            <Text
+              style={{
+                alignSelf: "flex-end",
+                color: titleCharCount > 100 ? "#EF4444" : "#64748B",
+                fontSize: 12,
+              }}
+            >
+              {titleCharCount}/100 ký tự
+            </Text>
             <Input
               style={{ fontSize: 16 }}
               placeholder="Nhập tiêu đề"
@@ -279,96 +308,158 @@ export default function EditDraftScreen() {
                 setTitle(text);
                 setTitleCharCount(text.length);
               }}
+              containerStyle={{ paddingHorizontal: 0 }}
             />
           </View>
 
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>
-            Ảnh đại diện
-          </Text>
-          <Button title="Chọn ảnh đại diện" onPress={pickImage} />
-          {thumbnail && (
-            <Avatar
-              size={200}
-              source={{ uri: thumbnail }}
-              containerStyle={{ marginVertical: 16 }}
-            />
-          )}
-
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>
-            Chọn thẻ (Tags)
-          </Text>
-
           <View
             style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
+              backgroundColor: "#FFFFFF",
+              borderRadius: 16,
+              padding: 16,
               marginBottom: 16,
             }}
           >
-            {tags.map((tag) => (
-              <Chip
-                key={tag.tagId}
-                title={tag.tagName}
-                onPress={() => handleToggleTag(tag.tagId)}
-                type={selectedTagIds.includes(tag.tagId) ? "solid" : "outline"}
-                color={
-                  selectedTagIds.includes(tag.tagId) ? "primary" : "default"
-                }
-                containerStyle={{ margin: 4 }}
-                titleStyle={{
-                  color: selectedTagIds.includes(tag.tagId) ? "#fff" : "#000",
-                }}
-                buttonStyle={{
-                  backgroundColor: selectedTagIds.includes(tag.tagId)
-                    ? tag.tagColor
-                    : "#E5E7EB",
-                }}
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: "#1E293B",
+                marginBottom: 8,
+              }}
+            >
+              Ảnh cho bài viết
+            </Text>
+            <Button
+              title="Chọn ảnh cho bài viết"
+              onPress={pickImage}
+              icon={
+                <Ionicons
+                  name="image-outline"
+                  size={20}
+                  color="#FFFFFF"
+                  style={{ marginRight: 8 }}
+                />
+              }
+              buttonStyle={{ backgroundColor: "#3B82F6", borderRadius: 8 }}
+            />
+            {thumbnail && (
+              <Avatar
+                size={200}
+                source={{ uri: thumbnail }}
+                containerStyle={{ marginVertical: 16, alignSelf: "center" }}
+                rounded
               />
-            ))}
+            )}
           </View>
-
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>
-            Nội dung *(tối thiểu 500 ký tự)*
-          </Text>
-          <Text
-            style={{
-              alignSelf: "flex-end",
-              color: contentCharCount < 500 ? "red" : "gray",
-            }}
-          >
-            {contentCharCount}/500 ký tự
-          </Text>
-          <CustomQuillToolbar
-            editor={editorRef}
-            options={[
-              ["bold", "italic", "underline", "strike"],
-              [{ header: [1, 2, 3, false] }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              ["link", "image"],
-              ["clean"],
-            ]}
-            theme="light"
-          />
 
           <View
             style={{
-              height: 300,
-              borderWidth: 1,
-              borderColor: "#ccc",
-              borderRadius: 8,
-              marginBottom: 24,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16,
             }}
           >
-            <QuillEditor
-              ref={editorRef}
-              style={{ flex: 1, padding: 8 }}
-              initialHtml={content}
-              onHtmlChange={(html) => {
-                setContent(html.html);
-                const plainText = html.html.replace(/<[^>]+>/g, "").trim();
-                setContentCharCount(plainText.length);
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: "#1E293B",
+                marginBottom: 8,
               }}
+            >
+              Thể loại
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+              {tags.map((tag) => (
+                <Chip
+                  key={tag.tagId}
+                  title={tag.tagName}
+                  onPress={() => handleToggleTag(tag.tagId)}
+                  type={
+                    selectedTagIds.includes(tag.tagId) ? "solid" : "outline"
+                  }
+                  color={
+                    selectedTagIds.includes(tag.tagId) ? "primary" : "default"
+                  }
+                  containerStyle={{ margin: 4 }}
+                  titleStyle={{
+                    color: selectedTagIds.includes(tag.tagId)
+                      ? "#FFFFFF"
+                      : "#1E293B",
+                    fontSize: 14,
+                  }}
+                  buttonStyle={{
+                    backgroundColor: selectedTagIds.includes(tag.tagId)
+                      ? tag.tagColor
+                      : "#F1F5F9",
+                    borderColor: selectedTagIds.includes(tag.tagId)
+                      ? tag.tagColor
+                      : "#E2E8F0",
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: "#1E293B",
+                marginBottom: 8,
+              }}
+            >
+              Nội dung
+            </Text>
+            <Text
+              style={{
+                alignSelf: "flex-end",
+                color: contentCharCount < 500 ? "#EF4444" : "#64748B",
+                fontSize: 12,
+              }}
+            >
+              {contentCharCount}/500 ký tự
+            </Text>
+            <CustomQuillToolbar
+              editor={editorRef}
+              options={[
+                ["bold", "italic", "underline", "strike"],
+                [{ header: [1, 2, 3, false] }],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["link", "image"],
+                ["clean"],
+              ]}
+              theme="light"
             />
+            <View
+              style={{
+                height: 300,
+                borderWidth: 1,
+                borderColor: "#E2E8F0",
+                borderRadius: 8,
+              }}
+            >
+              <QuillEditor
+                ref={editorRef}
+                style={{ flex: 1, padding: 8 }}
+                initialHtml={content}
+                onHtmlChange={(html) => {
+                  setContent(html.html);
+                  const plainText = html.html.replace(/<[^>]+>/g, "").trim();
+                  setContentCharCount(plainText.length);
+                }}
+              />
+            </View>
           </View>
 
           <View
@@ -376,31 +467,60 @@ export default function EditDraftScreen() {
               flexDirection: "row",
               justifyContent: "space-between",
               marginTop: 16,
+              marginBottom: 32,
             }}
           >
             <Button
-              title={isDraftLoading ? "Đang lưu..." : "Lưu nháp mới"}
+              title={isDraftLoading ? "Đang lưu..." : "Lưu nháp"}
               loading={isDraftLoading}
               disabled={isDraftLoading || isUpdateLoading}
               onPress={() => handleUpdate(true)}
+              icon={
+                isDraftLoading ? (
+                  <LoadingForButton />
+                ) : (
+                  <Ionicons
+                    name="save-outline"
+                    size={20}
+                    color="#FFFFFF"
+                    style={{ marginRight: 8 }}
+                  />
+                )
+              }
               buttonStyle={{
-                backgroundColor: "#6B7280",
+                backgroundColor: "#64748B",
                 borderRadius: 8,
                 flex: 1,
                 marginRight: 8,
+                paddingVertical: 12,
               }}
+              titleStyle={{ fontSize: 16, fontWeight: "600" }}
             />
             <Button
               title={isUpdateLoading ? "Đang lưu..." : "Cập nhật nháp"}
               loading={isUpdateLoading}
               disabled={isDraftLoading || isUpdateLoading}
               onPress={() => handleUpdate(false)}
+              icon={
+                isUpdateLoading ? (
+                  <LoadingForButton />
+                ) : (
+                  <Ionicons
+                    name="paper-plane-outline"
+                    size={20}
+                    color="#FFFFFF"
+                    style={{ marginRight: 8 }}
+                  />
+                )
+              }
               buttonStyle={{
                 backgroundColor: "#10B981",
                 borderRadius: 8,
                 flex: 1,
                 marginLeft: 8,
+                paddingVertical: 12,
               }}
+              titleStyle={{ fontSize: 16, fontWeight: "600" }}
             />
           </View>
         </ScrollView>

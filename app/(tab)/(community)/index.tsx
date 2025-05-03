@@ -21,6 +21,7 @@ import { useAuth } from "@/context/auth-context";
 import { Ionicons } from "@expo/vector-icons";
 import MembershipUpgradeDialog from "@/components/dialog/membership_upgrade";
 import Toast from "react-native-toast-message";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -110,10 +111,9 @@ const CommunityScreen = () => {
         TagIds: selectedTags,
         pageNumber: page,
         pageSize,
-        "order-by": orderBy, // truyền orderBy
+        "order-by": orderBy,
       };
 
-      // Nếu là friends thì thêm userId
       if (orderBy === "friends" && user?.userId) {
         params.userId = user.userId;
       }
@@ -313,7 +313,7 @@ const CommunityScreen = () => {
 
           {/* Thread list */}
           {loading && currentPage === 1 ? (
-            <ActivityIndicator size="large" color="#000" className="mt-12" />
+            <LoadingPage />
           ) : (
             <FlatList
               data={threads}

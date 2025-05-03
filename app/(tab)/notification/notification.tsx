@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { getRequest } from "@/helpers/api-requests";
 import { Notification } from "@/constants/types/notification";
 import { useFocusEffect } from "expo-router";
+import LoadingPage from "@/components/loading/loading_page";
 
 const NotificationsScreen = () => {
   const { authState } = useAuth();
@@ -70,9 +71,7 @@ const NotificationsScreen = () => {
   }
 
   return isLoading ? (
-    <View className="flex justify-center items-center mt-32">
-      <Fold size={48} color="#000000" />
-    </View>
+    <LoadingPage />
   ) : (
     <FlatList
       data={notifications}

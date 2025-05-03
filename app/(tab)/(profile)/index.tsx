@@ -22,7 +22,7 @@ export default function ProfileScreen() {
   const { authState, onUpdateUserBalance } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
-
+  console.log(user);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchBalance = async () => {
@@ -51,7 +51,9 @@ export default function ProfileScreen() {
       <View className="items-center mb-6 bg-white p-5 rounded-xl shadow-md">
         <Image
           source={{
-            uri: "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+            uri:
+              user?.imageUrl ||
+              "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
           }}
           className="w-24 h-24 rounded-full border-4 border-white shadow-md"
         />

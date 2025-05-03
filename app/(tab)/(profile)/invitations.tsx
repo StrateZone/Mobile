@@ -24,6 +24,7 @@ import PaymentDialogForInvited from "@/components/dialog/payment_dialog_for_invi
 import { Apointment } from "@/constants/types/apointment";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -279,7 +280,7 @@ export default function Invitations() {
 
         {isLoading ? (
           <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
+            <LoadingPage />
           </View>
         ) : (
           <ScrollView

@@ -1,17 +1,23 @@
-import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import React, { useState } from "react";
 import TextInputComponent from "@/components/input";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
 import Ionicons from "@expo/vector-icons/Ionicons";
-
 import DefaultButton from "@/components/button/button";
 import { postRequest } from "@/helpers/api-requests";
 import { CheckBox } from "@rneui/themed";
-
 import { RootStackParamList } from "../../../constants/types/root-stack";
-import { ScrollView } from "react-native-gesture-handler";
+import BackButton from "@/components/BackButton";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -31,34 +37,28 @@ export default function RegisterScreen() {
     if (!password) {
       return "Mật khẩu không được để trống.";
     }
-
     if (password.length < 8) {
       return "Mật khẩu phải có ít nhất 8 kí tự.";
     }
-
     const hasUppercase = /[A-Z]/.test(password);
     const hasLowercase = /[a-z]/.test(password);
     const hasDigit = /\d/.test(password);
     const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-
     if (!hasUppercase) {
       return "Mật khẩu phải chứa ít nhất một chữ in hoa.";
     }
-
     if (!hasLowercase) {
       return "Mật khẩu phải chứa ít nhất một chữ in thường.";
     }
-
     if (!hasDigit) {
       return "Mật khẩu phải chứa ít nhất một chữ số.";
     }
-
     if (!hasSpecialChar) {
       return "Mật khẩu phải chứa ít nhất một kí tự đặc biệt.";
     }
-
     return null;
   }
+
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     const error = validatePassword(text);
@@ -131,125 +131,161 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="relative">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-
-        <Text className="text-2xl font-bold text-center text-black mb-5 mt-3">
-          Đăng Ký Tài Khoản
-        </Text>
-      </View>
-
-      <ScrollView className="p-5 rounded-lg">
-        <View className="">
-          <TextInputComponent
-            label="Email"
-            placeholder="Nhập email"
-            value={email}
-            onChangeText={setEmail}
-          />
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 20, fontWeight: "600", color: "#212529" }}>
+            Đăng kí tài khoản
+          </Text>
+          <View style={{ width: 48 }} />
         </View>
 
-        <View className="">
-          <TextInputComponent
-            label="Tên đăng nhập"
-            placeholder="Nhập tên đăng nhập"
-            value={userName}
-            onChangeText={setUserName}
-          />
-        </View>
-
-        <View className="">
-          <TextInputComponent
-            label="Số điện thoại"
-            placeholder="Nhập số điện thoại"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-          />
-        </View>
-
-        <View className="">
-          <TextInputComponent
-            label="Họ và tên"
-            placeholder="Nhập họ và tên"
-            value={fullName}
-            onChangeText={setFullName}
-          />
-        </View>
-
-        <View className="">
-          <TextInputComponent
-            label="Mật khẩu"
-            placeholder="Nhập mật khẩu"
-            value={password}
-            onChangeText={handlePasswordChange}
-            secureTextEntry
-          />
-          {passwordError ? (
-            <Text className="text-red-500">{passwordError}</Text>
-          ) : null}
-        </View>
-
-        <View className="">
-          <TextInputComponent
-            label="Nhập lại mật khẩu"
-            placeholder="Nhập lại mật khẩu"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
-        </View>
-
-        <View className="">
-          <Text className="text-gray-700 mb-2">Giới tính</Text>
-          <View className="flex flex-row items-center">
-            <CheckBox
-              title="Nam"
-              checked={gender === "male"}
-              onPress={() => setGender("male")}
-              checkedIcon="dot-circle-o"
-              uncheckedIcon="circle-o"
-              containerStyle={{
-                backgroundColor: "transparent",
-                borderWidth: 0,
-              }}
-            />
-            <CheckBox
-              title="Nữ"
-              checked={gender === "female"}
-              onPress={() => setGender("female")}
-              checkedIcon="dot-circle-o"
-              uncheckedIcon="circle-o"
-              containerStyle={{
-                backgroundColor: "transparent",
-                borderWidth: 0,
-              }}
-            />
-          </View>
-        </View>
-
-        <View className="flex flex-row justify-center mt-4">
-          <DefaultButton
-            title="Đăng ký"
-            backgroundColor="black"
-            onPress={handleRegister}
-          />
-        </View>
-
-        <View className="flex flex-row justify-center">
-          <TouchableOpacity
-            className="text-blue-600 underline pt-3"
-            onPress={() => navigation.goBack()}
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 20 }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 8,
+              padding: 16,
+              elevation: 3,
+            }}
           >
-            <Text>Bạn đã có tài khoản</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: "bold",
+                color: "#212529",
+                marginBottom: 16,
+              }}
+            >
+              Chào mừng đến với Stratezone!
+            </Text>
+            <Text style={{ fontSize: 16, color: "#555", marginBottom: 24 }}>
+              Hãy tạo tài khoản để bắt đầu trải nghiệm ngay. Chỉ cần điền thông
+              tin bên dưới nhé!
+            </Text>
+
+            <View style={{ marginBottom: 12 }}>
+              <TextInputComponent
+                label="Email"
+                placeholder="Nhập email"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
+
+            <View style={{ marginBottom: 12 }}>
+              <TextInputComponent
+                label="Tên đăng nhập"
+                placeholder="Nhập tên đăng nhập"
+                value={userName}
+                onChangeText={setUserName}
+              />
+            </View>
+
+            <View style={{ marginBottom: 12 }}>
+              <TextInputComponent
+                label="Số điện thoại"
+                placeholder="Nhập số điện thoại"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+              />
+            </View>
+
+            <View style={{ marginBottom: 12 }}>
+              <TextInputComponent
+                label="Họ và tên"
+                placeholder="Nhập họ và tên"
+                value={fullName}
+                onChangeText={setFullName}
+              />
+            </View>
+
+            <View style={{ marginBottom: 12 }}>
+              <TextInputComponent
+                label="Mật khẩu"
+                placeholder="Nhập mật khẩu"
+                value={password}
+                onChangeText={handlePasswordChange}
+                secureTextEntry
+              />
+              {passwordError ? (
+                <Text style={{ color: "red" }}>{passwordError}</Text>
+              ) : null}
+            </View>
+
+            <View style={{ marginBottom: 12 }}>
+              <TextInputComponent
+                label="Nhập lại mật khẩu"
+                placeholder="Nhập lại mật khẩu"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+              />
+            </View>
+
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ color: "#333", marginBottom: 8 }}>Giới tính</Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <CheckBox
+                  title="Nam"
+                  checked={gender === "male"}
+                  onPress={() => setGender("male")}
+                  checkedIcon="dot-circle-o"
+                  uncheckedIcon="circle-o"
+                  containerStyle={{
+                    backgroundColor: "transparent",
+                    borderWidth: 0,
+                  }}
+                />
+                <CheckBox
+                  title="Nữ"
+                  checked={gender === "female"}
+                  onPress={() => setGender("female")}
+                  checkedIcon="dot-circle-o"
+                  uncheckedIcon="circle-o"
+                  containerStyle={{
+                    backgroundColor: "transparent",
+                    borderWidth: 0,
+                  }}
+                />
+              </View>
+            </View>
+
+            <View style={{ marginTop: 20 }}>
+              <DefaultButton
+                title="Đăng ký"
+                backgroundColor="black"
+                onPress={handleRegister}
+              />
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                marginTop: 12,
+              }}
+            >
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={{ color: "#0066cc" }}>Bạn đã có tài khoản?</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -8,15 +8,20 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { useAuth } from "@/context/auth-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Button, Card, Badge, Tab } from "@rneui/themed";
+import { Button, Card, Badge, Tab, Icon } from "@rneui/themed";
 import { WebView } from "react-native-webview";
 import { useWindowDimensions } from "react-native";
+import { Fold } from "react-native-animated-spinkit";
+import BackButton from "@/components/BackButton";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -245,60 +250,103 @@ export default function MyThread() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="flex-1 p-4 mt-10">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" /* neutral */ }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          Bài Viết Của Tôi
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#212529" /* neutral-900 */,
+            }}
+          >
+            Bài viết của tôi
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
         <Tab
           value={selectedTab}
           onChange={setSelectedTab}
           indicatorStyle={{
+            backgroundColor: "#3B82F6",
             height: 3,
           }}
         >
           <Tab.Item
             title="Bài đã đăng"
             titleStyle={(active) => ({
-              color: active ? "#007BFF" : "#666",
+              color: active ? "#3B82F6" : "#64748B",
+              fontSize: 14,
+              fontWeight: "600",
             })}
             icon={{
               name: "file-text",
               type: "feather",
-              color: selectedTab === 0 ? "#007BFF" : "#666",
+              color: selectedTab === 0 ? "#3B82F6" : "#64748B",
             }}
           />
           <Tab.Item
             title="Bài nháp"
             titleStyle={(active) => ({
-              color: active ? "#007BFF" : "#666",
+              color: active ? "#3B82F6" : "#64748B",
+              fontSize: 14,
+              fontWeight: "600",
             })}
             icon={{
               name: "edit",
               type: "feather",
-              color: selectedTab === 1 ? "#007BFF" : "#666",
+              color: selectedTab === 1 ? "#3B82F6" : "#64748B",
             }}
           />
         </Tab>
 
         {isLoading ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#000" />
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <LoadingPage />
+            <Text style={{ marginTop: 16, color: "#64748B", fontSize: 16 }}>
+              Đang tải bài viết...
+            </Text>
           </View>
         ) : filteredThreads.length === 0 ? (
-          <Text className="text-center text-gray-500 mt-4">
-            Không tìm thấy bài viết nào.
-          </Text>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 32,
+            }}
+          >
+            <Ionicons name="document-text-outline" size={64} color="#CBD5E1" />
+            <Text
+              style={{
+                marginTop: 16,
+                color: "#64748B",
+                fontSize: 16,
+                textAlign: "center",
+              }}
+            >
+              {selectedTab === 0
+                ? "Bạn chưa có bài viết nào"
+                : "Bạn chưa có bản nháp nào"}
+            </Text>
+          </View>
         ) : (
           <ScrollView
+            style={{ padding: 16 }}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -310,10 +358,17 @@ export default function MyThread() {
               <Card
                 key={thread.threadId}
                 containerStyle={{
-                  borderRadius: 12,
+                  borderRadius: 16,
                   marginBottom: 20,
                   padding: 0,
                   overflow: "hidden",
+                  backgroundColor: "#FFFFFF",
+                  borderWidth: 0,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 3,
                 }}
               >
                 <Card.Image
@@ -322,31 +377,38 @@ export default function MyThread() {
                       thread.thumbnailUrl ||
                       "https://cdn.pixabay.com/photo/2015/10/07/12/17/post-976115_960_720.png",
                   }}
-                  style={{ width: "100%", height: 180 }}
+                  style={{ width: "100%", height: 200 }}
                   resizeMode="cover"
                 />
 
-                <View style={{ padding: 15 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={{ padding: 16 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 12,
+                    }}
+                  >
                     <Text
                       style={{
                         fontSize: 18,
-                        fontWeight: "bold",
-                        marginBottom: 6,
+                        fontWeight: "600",
+                        color: "#1E293B",
                         flex: 1,
                       }}
                     >
                       {thread.title}
                     </Text>
 
-                    {thread.status === "published" ||
-                    thread.status === "hidden" ? (
+                    {(thread.status === "published" ||
+                      thread.status === "hidden") && (
                       <TouchableOpacity
                         onPress={() =>
                           toggleThreadVisibility(thread.threadId, thread.status)
                         }
                         style={{
-                          backgroundColor: "#f39c12",
+                          backgroundColor:
+                            thread.status === "hidden" ? "#3B82F6" : "#64748B",
                           borderRadius: 8,
                           padding: 8,
                           marginLeft: 10,
@@ -358,20 +420,21 @@ export default function MyThread() {
                           color="white"
                         />
                       </TouchableOpacity>
-                    ) : null}
+                    )}
                   </View>
 
                   {getStatusBadge(thread.status)}
 
-                  <Text className="text-sm text-gray-500 mt-1">
-                    Thời gian đăng:{" "}
-                    {new Date(thread.createdAt).toLocaleString()}
-                  </Text>
-                  {thread.updatedAt && (
-                    <Text className="text-sm text-gray-500">
-                      Cập nhật: {new Date(thread.updatedAt).toLocaleString()}
+                  <View style={{ marginTop: 8 }}>
+                    <Text style={{ color: "#64748B", fontSize: 14 }}>
+                      Đăng lúc: {new Date(thread.createdAt).toLocaleString()}
                     </Text>
-                  )}
+                    {thread.updatedAt && (
+                      <Text style={{ color: "#64748B", fontSize: 14 }}>
+                        Cập nhật: {new Date(thread.updatedAt).toLocaleString()}
+                      </Text>
+                    )}
+                  </View>
 
                   <View style={{ height: 200, marginTop: 8 }}>
                     <WebView
@@ -381,20 +444,49 @@ export default function MyThread() {
                     />
                   </View>
 
-                  <View className="flex-row justify-between mt-10">
-                    <Button
-                      title="Chỉnh sửa"
-                      onPress={() =>
-                        navigation.navigate("edit_thread", { thread })
-                      }
-                      buttonStyle={{
-                        backgroundColor: "#2ecc71",
-                        borderRadius: 8,
-                        paddingHorizontal: 20,
-                        paddingVertical: 8,
-                      }}
-                      titleStyle={{ fontWeight: "bold" }}
-                    />
+                  <View style={{ marginTop: 16, gap: 8 }}>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <Button
+                        title="Chỉnh sửa"
+                        onPress={() =>
+                          navigation.navigate("edit_thread", { thread })
+                        }
+                        icon={
+                          <Ionicons
+                            name="create-outline"
+                            size={20}
+                            color="#FFFFFF"
+                            style={{ marginRight: 8 }}
+                          />
+                        }
+                        buttonStyle={{
+                          backgroundColor: "#10B981",
+                          borderRadius: 8,
+                          paddingVertical: 12,
+                          flex: 1,
+                        }}
+                        titleStyle={{ fontSize: 14, fontWeight: "600" }}
+                      />
+                      <Button
+                        title="Xóa bài"
+                        onPress={() => handleDelete(thread.threadId)}
+                        icon={
+                          <Ionicons
+                            name="trash-outline"
+                            size={20}
+                            color="#FFFFFF"
+                            style={{ marginRight: 8 }}
+                          />
+                        }
+                        buttonStyle={{
+                          backgroundColor: "#EF4444",
+                          borderRadius: 8,
+                          paddingVertical: 12,
+                          flex: 1,
+                        }}
+                        titleStyle={{ fontSize: 14, fontWeight: "600" }}
+                      />
+                    </View>
                     {thread.status === "drafted" && (
                       <Button
                         title="Tạo từ nháp"
@@ -403,34 +495,29 @@ export default function MyThread() {
                             draftThread: thread,
                           })
                         }
+                        icon={
+                          <Ionicons
+                            name="document-text-outline"
+                            size={20}
+                            color="#FFFFFF"
+                            style={{ marginRight: 8 }}
+                          />
+                        }
                         buttonStyle={{
-                          backgroundColor: "#3498db",
+                          backgroundColor: "#3B82F6",
                           borderRadius: 8,
-                          paddingHorizontal: 20,
-                          paddingVertical: 8,
+                          paddingVertical: 12,
                         }}
-                        titleStyle={{ fontWeight: "bold" }}
+                        titleStyle={{ fontSize: 14, fontWeight: "600" }}
                       />
                     )}
-
-                    <Button
-                      title="Xóa bài"
-                      onPress={() => handleDelete(thread.threadId)}
-                      buttonStyle={{
-                        backgroundColor: "#e74c3c",
-                        borderRadius: 8,
-                        paddingHorizontal: 20,
-                        paddingVertical: 8,
-                      }}
-                      titleStyle={{ fontWeight: "bold" }}
-                    />
                   </View>
                 </View>
               </Card>
             ))}
           </ScrollView>
         )}
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

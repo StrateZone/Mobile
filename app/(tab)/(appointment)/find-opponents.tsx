@@ -20,6 +20,8 @@ import { getRequest } from "@/helpers/api-requests";
 import Toast from "react-native-toast-message";
 import { TableContext } from "@/context/select-table";
 import { ChessTable } from "@/constants/types/chess_table";
+import BackButton from "@/components/BackButton";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "find_opponents">;
@@ -128,18 +130,26 @@ export default function FindOpponent({ route }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="relative">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-1 p-4 mt-10">
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          Tìm đối thủ
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#212529" /* neutral-900 */,
+            }}
+          >
+            Tìm đối thủ
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
         <View className="mb-3 flex-row items-center justify-between px-1">
           <Text className="text-lg font-semibold text-black">
@@ -186,9 +196,7 @@ export default function FindOpponent({ route }: Props) {
         </View>
 
         {isLoading ? (
-          <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
-          </View>
+          <LoadingPage />
         ) : (
           <ScrollView>
             {opponents.map((opponent) => (
