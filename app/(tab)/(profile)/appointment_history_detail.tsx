@@ -90,7 +90,7 @@ const getStatusStyles = (status: string) => {
         bg: "bg-orange-100",
         text: "text-orange-800",
         border: "border-orange-800",
-        display: "Không hoàn thành",
+        display: "Chưa hoàn thành",
       };
     default:
       return {
@@ -243,11 +243,10 @@ export default function AppointmentDetail({ route }: Props) {
                         <Text className="text-lg">Mã bàn: {table.tableId}</Text>
                         <Text className="text-lg">
                           Bắt đầu:{" "}
-                          {new Date(table.scheduleTime).toLocaleTimeString()}
+                          {new Date(table.scheduleTime).toLocaleString()}
                         </Text>
                         <Text className="text-lg">
-                          Kết thúc:{" "}
-                          {new Date(table.endTime).toLocaleTimeString()}
+                          Kết thúc: {new Date(table.endTime).toLocaleString()}
                         </Text>
                         <Text className="text-lg">
                           Trạng thái bàn: {tableStyles.display}

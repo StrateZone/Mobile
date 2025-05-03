@@ -53,7 +53,21 @@ export default function FindOpponent({ route }: Props) {
         searchTerm,
       });
 
-      setOpponents(response.matchingOpponents || []);
+      if (user?.userRole === "Member") {
+        const friends = response.friends.map((friend: any) => ({
+          ...friend,
+          // isInvited: alreadyInvitedIds.includes(friend.userId),
+        }));
+
+        const opponents = response.matchingOpponents.map((opponent: any) => ({
+          ...opponent,
+          // isInvited: alreadyInvitedIds.includes(opponent.userId),
+        }));
+
+        setOpponents([...friends, ...opponents]); // Gộp cả bạn bè và đối thủ
+      } else {
+        setOpponents(response.matchingOpponents || []); // Chỉ lấy đối thủ
+      }
       setExcludedIds(response.excludedIds || []);
     } catch (error) {
       console.error("Lỗi khi lấy đối thủ:", error);

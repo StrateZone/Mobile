@@ -65,7 +65,7 @@ export default function BookingFormScreen() {
     };
 
     fetchBusinessHours();
-  }, []);
+  }, [selectedDate]);
 
   const getHourFromTimeString = (timeString: string): number => {
     return parseInt(timeString.split(":")[0]);

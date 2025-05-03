@@ -111,7 +111,7 @@ export default function FriendDetail({ route }: Props) {
             />
             <InfoRow
               label="Ngày tham gia"
-              value={new Date(friend.createdAt).toLocaleTimeString()}
+              value={new Date(friend.createdAt).toLocaleString()}
             />
           </View>
         </Card>

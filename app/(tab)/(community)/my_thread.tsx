@@ -28,7 +28,7 @@ interface Thread {
   content: string;
   rating: number;
   likesCount: number;
-  status: "pending" | "published" | "rejected" | "deleted";
+  status: "pending" | "published" | "rejected" | "deleted" | "hidden";
   createdAt: string;
   updatedAt: string | null;
   comments: Comment[];
@@ -120,21 +120,23 @@ export default function MyThread() {
   const statusColors: {
     [key: string]: { backgroundColor: string; color: string };
   } = {
-    published: { backgroundColor: "#22C55E", color: "#fff" }, // Xanh lá
-    pending: { backgroundColor: "#3B82F6", color: "#fff" }, // Xanh dương
-    edit_pending: { backgroundColor: "#F59E0B", color: "#000" }, // Cam vàng
-    rejected: { backgroundColor: "#EF4444", color: "#fff" }, // Đỏ
-    deleted: { backgroundColor: "#9CA3AF", color: "#fff" }, // Xám
-    default: { backgroundColor: "#6B7280", color: "#fff" }, // Xám đậm
+    published: { backgroundColor: "#22C55E", color: "#fff" },
+    pending: { backgroundColor: "#3B82F6", color: "#fff" },
+    edit_pending: { backgroundColor: "#F59E0B", color: "#000" },
+    rejected: { backgroundColor: "#EF4444", color: "#fff" },
+    deleted: { backgroundColor: "#9CA3AF", color: "#fff" },
+    hidden: { backgroundColor: "#6B7280", color: "#fff" },
+    drafted: { backgroundColor: "#6B7280", color: "#fff" },
   };
 
   const statusTexts: { [key: string]: string } = {
     published: "Đã đăng",
     pending: "Chờ duyệt",
-    edit_pending: "Chỉnh sửa chờ duyệt",
+    edit_pending: "Chờ duyệt chỉnh sửa",
     rejected: "Bị từ chối",
     deleted: "Đã xóa",
-    default: "Không xác định",
+    hidden: "Đã ẩn",
+    drafted: "Nháp",
   };
 
   const getStatusBadge = (status: string) => {
@@ -198,6 +200,35 @@ export default function MyThread() {
     return htmlContent;
   };
 
+  const toggleThreadVisibility = (threadId: number, status: string) => {
+    const action = status === "hidden" ? "show" : "hide";
+    Alert.alert(
+      "Xác nhận",
+      `Bạn muốn ${action === "hide" ? "ẩn" : "hiện"} bài viết này?`,
+      [
+        { text: "Hủy" },
+        {
+          text: action === "hide" ? "Ẩn" : "Hiện",
+          onPress: async () => {
+            try {
+              const response = await fetch(
+                `https://backend-production-ac5e.up.railway.app/api/threads/${action}/${threadId}`,
+                { method: "PUT" },
+              );
+              if (response.ok) {
+                await fetchThreads();
+              } else {
+                alert("Failed to update post visibility");
+              }
+            } catch (error) {
+              console.error(`Error ${action} thread:`, error);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="flex-1 p-4 mt-10">
@@ -250,15 +281,39 @@ export default function MyThread() {
                 />
 
                 <View style={{ padding: 15 }}>
-                  <Text
-                    style={{
-                      fontSize: 18,
-                      fontWeight: "bold",
-                      marginBottom: 6,
-                    }}
-                  >
-                    {thread.title}
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        marginBottom: 6,
+                        flex: 1,
+                      }}
+                    >
+                      {thread.title}
+                    </Text>
+
+                    {thread.status === "published" ||
+                    thread.status === "hidden" ? (
+                      <TouchableOpacity
+                        onPress={() =>
+                          toggleThreadVisibility(thread.threadId, thread.status)
+                        }
+                        style={{
+                          backgroundColor: "#f39c12",
+                          borderRadius: 8,
+                          padding: 8,
+                          marginLeft: 10,
+                        }}
+                      >
+                        <Ionicons
+                          name={thread.status === "hidden" ? "eye" : "eye-off"}
+                          size={24}
+                          color="white"
+                        />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
 
                   {getStatusBadge(thread.status)}
 

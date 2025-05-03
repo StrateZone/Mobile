@@ -39,6 +39,7 @@ export default function FriendManagementScreen() {
   const [friendRequests, setFriendRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [refreshingFriends, setRefreshingFriends] = useState(false);
   const [refreshingRequests, setRefreshingRequests] = useState(false);
@@ -150,7 +151,7 @@ export default function FriendManagementScreen() {
         fromUser: userId,
         toUser: targetUserId,
       });
-
+      // console.log(response)
       if (response.status === 201) {
         Toast.show({
           type: "success",
@@ -178,11 +179,11 @@ export default function FriendManagementScreen() {
       const response = await deleteRequest(
         `/friendrequests/sender/${userId}/receiver/${receiverId}`,
       );
-
+      // console.log(response)
       Toast.show({
         type: "success",
         text1: "Thành công",
-        text2: "Đã gửi hủy kết bạn",
+        text2: "Đã hủy yêu cầu kết bạn",
       });
 
       await handleSearch();
@@ -412,7 +413,9 @@ export default function FriendManagementScreen() {
                         <LoadingButton
                           title="Xem thông tin"
                           onPress={() => {
-                            // navigation.navigate("FriendDetailScreen", { friendId: user.userId });
+                            navigation.navigate("friend_detail", {
+                              friendId: user.userId,
+                            });
                           }}
                           buttonStyle={{
                             backgroundColor: "#ffffff",
@@ -441,6 +444,18 @@ export default function FriendManagementScreen() {
                               paddingHorizontal: 16,
                             }}
                             titleStyle={{ fontSize: 14 }}
+                          />
+                        ) : user.friendStatus === 2 ? (
+                          <LoadingButton
+                            title="Bạn bè"
+                            onPress={() => {}}
+                            disabled
+                            buttonStyle={{
+                              backgroundColor: "#9ca3af", // màu xám cho disabled
+                              borderRadius: 10,
+                              paddingHorizontal: 16,
+                            }}
+                            titleStyle={{ fontSize: 14, color: "#ffffff" }}
                           />
                         ) : (
                           <LoadingButton

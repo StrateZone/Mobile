@@ -10,7 +10,8 @@ type PlayerStatus =
   | "accepted_by_others"
   | "rejected"
   | "cancelled"
-  | "expired";
+  | "expired"
+  | "table_cancelled";
 
 const getStatusStyle = (status: PlayerStatus) => {
   switch (status) {
@@ -44,8 +45,24 @@ const getStatusStyle = (status: PlayerStatus) => {
         text: "text-red-700",
         label: "Lời mời hết hạn",
       };
+    case "rejected":
+      return {
+        bg: "bg-gray-200",
+        text: "text-red-700",
+        label: "Đã từ chối lời mời",
+      };
+    case "table_cancelled":
+      return {
+        bg: "bg-red-200",
+        text: "text-red-800",
+        label: "Bàn đã bị hủy",
+      };
     default:
-      return { bg: "bg-gray", text: "text-gray", label: "Không xác định" };
+      return {
+        bg: "bg-gray-100",
+        text: "text-gray-500",
+        label: "Không xác định",
+      };
   }
 };
 

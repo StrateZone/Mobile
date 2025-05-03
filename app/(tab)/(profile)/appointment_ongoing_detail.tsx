@@ -97,12 +97,12 @@ const getStatusStyles = (status: string) => {
         border: "border-teal-800",
         display: "Đã check-in",
       };
-
-    case "incompleted":
+    case "unfinished":
       return {
         bg: "bg-orange-100",
         text: "text-orange-800",
-        display: "Chưa hoàn thành",
+        border: "border-orange-800",
+        display: "Không hoàn thành",
       };
     default:
       return {
@@ -187,7 +187,7 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
   const { bg, border, text, display } = appointment
     ? getStatusStyles(appointment.status)
     : { bg: "", text: "", display: "" };
-
+  console.log(appointment?.tablesAppointments);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView className="flex-1 bg-gray-100 p-4">
@@ -261,12 +261,12 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
                         <Text className="text-lg">Mã bàn: {table.tableId}</Text>
                         <Text className="text-lg">
                           Bắt đầu:{" "}
-                          {new Date(table.scheduleTime).toLocaleTimeString()}
+                          {new Date(table.scheduleTime).toLocaleString()}
                         </Text>
                         <Text className="text-lg">
-                          Kết thúc:{" "}
-                          {new Date(table.endTime).toLocaleTimeString()}
+                          Kết thúc: {new Date(table.endTime).toLocaleString()}
                         </Text>
+
                         <Text className={`text-lg ${tableStyles.text}`}>
                           Trạng thái bàn: {tableStyles.display}
                         </Text>

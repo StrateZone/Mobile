@@ -34,11 +34,20 @@ export default function ConfirmCancelTableDialog({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const formatDateTime = (iso: string) => {
-    const date = new Date(iso);
-    return date.toLocaleString("vi-VN", {
-      hour12: false,
-    });
+  const formatUtcDateTime = (isoString: string) => {
+    const date = new Date(isoString);
+    return `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${date.getUTCDate().toString().padStart(2, "0")} ${date
+      .getUTCHours()
+      .toString()
+      .padStart(
+        2,
+        "0",
+      )}:${date.getUTCMinutes().toString().padStart(2, "0")}:${date
+      .getUTCSeconds()
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleConfirmCancel = async () => {
@@ -108,13 +117,13 @@ export default function ConfirmCancelTableDialog({
 
           <Text className="text-base text-black">
             <Text className="font-semibold">Thời gian huỷ:</Text>{" "}
-            {formatDateTime(data.cancellationTime)}
+            {formatUtcDateTime(data.cancellationTime)}
           </Text>
 
           {data.cancellation_PartialRefund_TimeGate && (
             <Text className="text-base text-black">
               <Text className="font-semibold">Hạn hoàn tiền một phần:</Text>{" "}
-              {formatDateTime(data.cancellation_PartialRefund_TimeGate)}
+              {formatUtcDateTime(data.cancellation_PartialRefund_TimeGate)}
             </Text>
           )}
         </View>

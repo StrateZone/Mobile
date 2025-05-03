@@ -290,7 +290,7 @@ export default function Invitations() {
           >
             {invitations.length > 0 ? (
               invitations.map((item: any) => {
-                const fullName = item.fromUserNavigation?.fullName;
+                const fullName = item.fromUserNavigation?.username;
                 const status = item.status;
                 const statusInfo = getStatusColor(status);
 
@@ -324,7 +324,7 @@ export default function Invitations() {
                           navigation.navigate("invitations_detail", {
                             invitationId: item.id,
                             avatarUrl: item.fromUserNavigation.avatarUrl,
-                            fullName: item.fromUserNavigation.fullName,
+                            fullName: item.fromUserNavigation.username,
                             email: item.fromUserNavigation.email,
                             phone: item.fromUserNavigation.phone,
                             tableId: item.table.tableId,

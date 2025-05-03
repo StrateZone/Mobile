@@ -137,7 +137,7 @@ export default function MembershipUpgradeDialog({
               <Text className="text-gray-600 text-center mt-2">
                 Bạn có chắc muốn nâng cấp tài khoản với giá{" "}
                 <Text className="text-green-600 font-bold">
-                  {membershipPrice?.price1.toLocaleString()}₫/
+                  80,000₫/
                   {membershipPrice?.unit === "per month"
                     ? "tháng"
                     : membershipPrice?.unit}

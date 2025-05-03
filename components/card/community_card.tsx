@@ -18,6 +18,7 @@ type CommunityCardProps = {
   thumbnailUrl?: string;
   dateTime?: string;
   likes?: number;
+  commentsCount?: number;
   threadId?: number;
   threadData?: {
     likes: Array<{
@@ -48,6 +49,7 @@ export default function CommunityCard({
   description,
   dateTime,
   thumbnailUrl,
+  commentsCount,
   likes = 0,
   threadId,
   threadData,
@@ -207,22 +209,32 @@ export default function CommunityCard({
             </Text>
           </View>
 
-          <TouchableOpacity
-            onPress={handleLike}
-            disabled={isLoading}
-            className={`self-start flex-row items-center px-3 py-1 rounded border ${
-              isLiked ? "border-red-400 bg-red-50" : "border-gray-300"
-            }`}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color="red" />
-            ) : (
-              <>
-                <Text className="text-red-500 mr-1">❤️</Text>
-                <Text className="text-sm text-red-500">{likeCount}</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <View className="flex-row items-center space-x-3">
+            <TouchableOpacity
+              onPress={handleLike}
+              disabled={isLoading}
+              className={`flex-row items-center px-3 py-1 rounded border ${
+                isLiked ? "border-red-400 bg-red-50" : "border-gray-300"
+              }`}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="red" />
+              ) : (
+                <>
+                  <Text className="text-red-500 mr-1">❤️</Text>
+                  <Text className="text-sm text-red-500">{likeCount}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Comment count chỉ là text, không phải nút */}
+            <View className="flex-row items-center">
+              <Text className="text-gray-500 mr-1">💬</Text>
+              <Text className="text-sm text-gray-500">
+                {commentsCount ?? 0}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     </TouchableOpacity>

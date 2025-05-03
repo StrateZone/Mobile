@@ -31,6 +31,7 @@ const CommunityScreen = () => {
   const user = authState?.user;
 
   const [threads, setThreads] = useState<Thread[]>([]);
+
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
@@ -224,6 +225,10 @@ const CommunityScreen = () => {
               <Button
                 type="clear"
                 title="Mới Nhất"
+                titleStyle={{
+                  color: orderBy === "created-at-desc" ? "#3b82f6" : "#6b7280",
+                  fontWeight: orderBy === "created-at-desc" ? "bold" : "normal",
+                }}
                 onPress={() => {
                   setOrderBy("created-at-desc");
                   setCurrentPage(1);
@@ -233,6 +238,10 @@ const CommunityScreen = () => {
               <Button
                 type="clear"
                 title="Phổ Biến"
+                titleStyle={{
+                  color: orderBy === "popularity" ? "#3b82f6" : "#6b7280",
+                  fontWeight: orderBy === "popularity" ? "bold" : "normal",
+                }}
                 onPress={() => {
                   setOrderBy("popularity");
                   setCurrentPage(1);
@@ -242,6 +251,10 @@ const CommunityScreen = () => {
               <Button
                 type="clear"
                 title="Của Bạn Bè"
+                titleStyle={{
+                  color: orderBy === "friends" ? "#3b82f6" : "#6b7280",
+                  fontWeight: orderBy === "friends" ? "bold" : "normal",
+                }}
                 onPress={() => {
                   setOrderBy("friends");
                   setCurrentPage(1);
@@ -311,6 +324,7 @@ const CommunityScreen = () => {
                   threadId={thread.threadId}
                   theme={thread.threadsTags?.[0]?.tag?.tagName || "Chess"}
                   title={thread.title}
+                  commentsCount={thread.commentsCount}
                   thumbnailUrl={thread.thumbnailUrl}
                   description={cleanAndTruncate(thread.content)}
                   dateTime={thread.createdAt}

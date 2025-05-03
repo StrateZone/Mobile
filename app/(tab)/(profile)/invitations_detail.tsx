@@ -27,67 +27,59 @@ const getStatusColor = (status: string) => {
   switch (statusLower) {
     case "pending":
       return {
-        bg: "#FEF3C7",
-        text: "#B45309",
-        border: "#D97706",
+        container: "bg-yellow-100 border-yellow-500",
+        text: "text-yellow-700",
         display: "Chờ Phản Hồi",
-        icon: <Ionicons name="time-outline" size={16} color="#b58900" />,
+        iconColor: "text-yellow-700",
       };
     case "accepted":
       return {
-        bg: "#DBEAFE",
-        text: "#1D4ED8",
-        border: "#3B82F6",
+        container: "bg-blue-100 border-blue-500",
+        text: "text-blue-700",
         display: "Đã Chấp Nhận Lời Mời",
-        icon: (
-          <Ionicons name="checkmark-circle-outline" size={16} color="#1D4ED8" />
-        ),
+        iconColor: "text-blue-700",
       };
     case "rejected":
       return {
-        bg: "#FECACA",
-        text: "#DC2626",
-        border: "#EF4444",
+        container: "bg-red-100 border-red-500",
+        text: "text-red-700",
         display: "Đã Từ Chối Lời Mời",
-        icon: (
-          <Ionicons name="close-circle-outline" size={16} color="#DC2626" />
-        ),
+        iconColor: "text-red-700",
       };
     case "expired":
       return {
-        bg: "#FFEDD5",
-        text: "#EA580C",
-        border: "#FB923C",
+        container: "bg-orange-100 border-orange-500",
+        text: "text-orange-600",
         display: "Lời Mời Đã Hết Hạn",
-        icon: <Ionicons name="time-outline" size={16} color="#fb923c" />,
+        iconColor: "text-orange-600",
       };
     case "cancelled":
       return {
-        bg: "#F3F4F6",
-        text: "#6B7280",
-        border: "#9CA3AF",
+        container: "bg-gray-100 border-gray-400",
+        text: "text-gray-600",
         display: "Lời Mời Đã Bị Hủy",
-        icon: (
-          <Ionicons name="close-circle-outline" size={16} color="#6B7280" />
-        ),
+        iconColor: "text-gray-600",
       };
     case "accepted_by_others":
       return {
-        bg: "#FCE7F3",
-        text: "#BE185D",
-        border: "#DB2777",
+        container: "bg-pink-100 border-pink-500",
+        text: "text-pink-700",
         display: "Lời Mời Đã Được Người Khác Chấp Nhận",
-        icon: (
-          <Ionicons name="checkmark-circle-outline" size={16} color="#DB2777" />
-        ),
+        iconColor: "text-pink-700",
+      };
+    case "table_cancelled":
+      return {
+        container: "bg-gray-100 border-gray-400",
+        text: "text-gray-700",
+        display: "Bàn Đã Bị Hủy",
+        iconColor: "text-gray-700",
       };
     default:
       return {
-        bg: "#E5E7EB",
-        text: "#374151",
-        border: "#9CA3AF",
+        container: "bg-gray-100 border-gray-400",
+        text: "text-gray-800",
         display: status,
-        icon: <Ionicons name="ellipse-outline" size={16} color="gray" />,
+        iconColor: "text-gray-800",
       };
   }
 };
@@ -120,15 +112,7 @@ export default function InvitationsDetail({ route }: Props) {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
       <View style={{ flex: 1, padding: 16, marginTop: 40 }}>
         <TouchableOpacity
-          style={{
-            position: "absolute",
-            top: 8,
-            left: 16,
-            backgroundColor: "#D1D5DB",
-            padding: 8,
-            borderRadius: 999,
-            zIndex: 10,
-          }}
+          className="absolute top-2 left-4 bg-gray-300 p-2 rounded-full z-10"
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="black" />
@@ -147,29 +131,14 @@ export default function InvitationsDetail({ route }: Props) {
         </Text>
 
         <View
-          style={{
-            alignSelf: "center",
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 999,
-            marginBottom: 20,
-            borderWidth: 1,
-            backgroundColor: statusInfo.bg,
-            borderColor: statusInfo.border,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          className={`self-center px-4 py-2 rounded-full mb-5 border flex-row items-center justify-center ${statusInfo.container}`}
         >
-          {statusInfo.icon}
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              color: statusInfo.text,
-              marginLeft: 8,
-            }}
-          >
+          <Ionicons
+            name="time-outline"
+            size={16}
+            className={`mr-1 ${statusInfo.iconColor}`}
+          />
+          <Text className={`text-base font-semibold ml-2 ${statusInfo.text}`}>
             {statusInfo.display}
           </Text>
         </View>
@@ -253,7 +222,6 @@ export default function InvitationsDetail({ route }: Props) {
             containerStyle={{
               borderRadius: 12,
               paddingVertical: 16,
-              borderColor: statusInfo.border,
             }}
           >
             <View
@@ -296,7 +264,6 @@ export default function InvitationsDetail({ route }: Props) {
             containerStyle={{
               borderRadius: 12,
               paddingVertical: 16,
-              borderColor: statusInfo.border,
             }}
           >
             <View
