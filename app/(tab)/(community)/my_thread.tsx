@@ -14,7 +14,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { useAuth } from "@/context/auth-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Button, Card, Badge } from "@rneui/themed";
+import { Button, Card, Badge, Tab } from "@rneui/themed";
 import { WebView } from "react-native-webview";
 import { useWindowDimensions } from "react-native";
 
@@ -28,7 +28,13 @@ interface Thread {
   content: string;
   rating: number;
   likesCount: number;
-  status: "pending" | "published" | "rejected" | "deleted" | "hidden";
+  status:
+    | "pending"
+    | "published"
+    | "rejected"
+    | "deleted"
+    | "hidden"
+    | "drafted";
   createdAt: string;
   updatedAt: string | null;
   comments: Comment[];
@@ -57,6 +63,7 @@ export default function MyThread() {
 
   const pageSize = 4;
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTab, setSelectedTab] = useState(0);
 
   const fetchThreads = async (page = currentPage, showLoading = true) => {
     try {
@@ -229,6 +236,14 @@ export default function MyThread() {
     );
   };
 
+  const filteredThreads = threads.filter((thread) => {
+    if (selectedTab === 0) {
+      return thread.status !== "drafted";
+    } else {
+      return thread.status === "drafted";
+    }
+  });
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="flex-1 p-4 mt-10">
@@ -243,12 +258,43 @@ export default function MyThread() {
           Bài Viết Của Tôi
         </Text>
 
+        <Tab
+          value={selectedTab}
+          onChange={setSelectedTab}
+          indicatorStyle={{
+            height: 3,
+          }}
+        >
+          <Tab.Item
+            title="Bài đã đăng"
+            titleStyle={(active) => ({
+              color: active ? "#007BFF" : "#666",
+            })}
+            icon={{
+              name: "file-text",
+              type: "feather",
+              color: selectedTab === 0 ? "#007BFF" : "#666",
+            }}
+          />
+          <Tab.Item
+            title="Bài nháp"
+            titleStyle={(active) => ({
+              color: active ? "#007BFF" : "#666",
+            })}
+            icon={{
+              name: "edit",
+              type: "feather",
+              color: selectedTab === 1 ? "#007BFF" : "#666",
+            }}
+          />
+        </Tab>
+
         {isLoading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#000" />
           </View>
-        ) : threads.length === 0 ? (
-          <Text className="text-center text-gray-500">
+        ) : filteredThreads.length === 0 ? (
+          <Text className="text-center text-gray-500 mt-4">
             Không tìm thấy bài viết nào.
           </Text>
         ) : (
@@ -260,7 +306,7 @@ export default function MyThread() {
               />
             }
           >
-            {threads.map((thread) => (
+            {filteredThreads.map((thread) => (
               <Card
                 key={thread.threadId}
                 containerStyle={{
@@ -349,6 +395,23 @@ export default function MyThread() {
                       }}
                       titleStyle={{ fontWeight: "bold" }}
                     />
+                    {thread.status === "drafted" && (
+                      <Button
+                        title="Tạo từ nháp"
+                        onPress={() =>
+                          navigation.navigate("create_thread", {
+                            draftThread: thread,
+                          })
+                        }
+                        buttonStyle={{
+                          backgroundColor: "#3498db",
+                          borderRadius: 8,
+                          paddingHorizontal: 20,
+                          paddingVertical: 8,
+                        }}
+                        titleStyle={{ fontWeight: "bold" }}
+                      />
+                    )}
 
                     <Button
                       title="Xóa bài"

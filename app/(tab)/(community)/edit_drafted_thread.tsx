@@ -24,14 +24,14 @@ import { config } from "@/config";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  "edit_thread"
+  "edit_drafted_thread"
 >;
 
 const CustomQuillToolbar = ({ editor, options, theme }: any) => {
   return <QuillToolbar editor={editor} options={options} theme={theme} />;
 };
 
-export default function EditThreadScreen() {
+export default function EditDraftScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<NavigationProp>();
   const { thread } = route.params;
@@ -152,7 +152,7 @@ export default function EditThreadScreen() {
     }
   };
 
-  const handleUpdate = async (isDrafted = false) => {
+  const handleUpdate = async (isDrafted = true) => {
     const plainText = content.replace(/<[^>]+>/g, "").trim();
     if (!title.trim() || !plainText || (plainText.length < 500 && !isDrafted)) {
       Alert.alert(
@@ -182,11 +182,12 @@ export default function EditThreadScreen() {
           await uploadImage(res.data.threadId, thumbnail);
         }
       } else {
-        // Cập nhật bài viết
+        // Cập nhật bản nháp hiện tại
         const res = await putRequest(`/threads/edit/${thread.threadId}`, {
           title,
           content,
           tagIds: selectedTagIds,
+          isDrafted: true,
         });
         if (thumbnail && thumbnail !== thread.thumbnailUrl) {
           await uploadImage(thread.threadId, thumbnail);
@@ -196,7 +197,7 @@ export default function EditThreadScreen() {
       Toast.show({
         type: "success",
         text1: "Thành công!",
-        text2: isDrafted ? "Đã lưu nháp" : "Chỉnh sửa bài viết thành công",
+        text2: isDrafted ? "Đã lưu nháp mới" : "Đã cập nhật bài nháp",
       });
 
       navigation.goBack();
@@ -378,7 +379,7 @@ export default function EditThreadScreen() {
             }}
           >
             <Button
-              title={isDraftLoading ? "Đang lưu..." : "Lưu nháp"}
+              title={isDraftLoading ? "Đang lưu..." : "Lưu nháp mới"}
               loading={isDraftLoading}
               disabled={isDraftLoading || isUpdateLoading}
               onPress={() => handleUpdate(true)}
@@ -390,7 +391,7 @@ export default function EditThreadScreen() {
               }}
             />
             <Button
-              title={isUpdateLoading ? "Đang lưu..." : "Lưu thay đổi"}
+              title={isUpdateLoading ? "Đang lưu..." : "Cập nhật nháp"}
               loading={isUpdateLoading}
               disabled={isDraftLoading || isUpdateLoading}
               onPress={() => handleUpdate(false)}

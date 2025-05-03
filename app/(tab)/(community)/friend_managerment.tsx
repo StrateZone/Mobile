@@ -151,7 +151,6 @@ export default function FriendManagementScreen() {
         fromUser: userId,
         toUser: targetUserId,
       });
-      // console.log(response)
       if (response.status === 201) {
         Toast.show({
           type: "success",
@@ -179,7 +178,6 @@ export default function FriendManagementScreen() {
       const response = await deleteRequest(
         `/friendrequests/sender/${userId}/receiver/${receiverId}`,
       );
-      // console.log(response)
       Toast.show({
         type: "success",
         text1: "Thành công",

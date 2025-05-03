@@ -39,6 +39,10 @@ export type RootStackParamList = {
     endTime: string;
     createdAt: string;
     status: string;
+    totalPrice: number;
+    fromUserId: number;
+    appointmentId: number;
+    cancellingTableId: number;
   };
   //appointment
   home_booking: undefined;
@@ -63,9 +67,10 @@ export type RootStackParamList = {
   not_member: undefined;
   home_community: undefined;
   community_detail: { threadId: number };
-  create_thread: undefined;
+  create_thread?: { draftThread: any };
   my_threads: undefined;
   friend_managerment: undefined;
   friend_detail: { friendId: number };
   edit_thread: { thread: any };
+  edit_drafted_thread: { thread: any };
 };

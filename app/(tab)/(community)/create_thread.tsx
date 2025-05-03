@@ -8,7 +8,7 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
@@ -32,18 +32,29 @@ const CustomQuillToolbar = ({ editor, options, theme }: any) => {
 
 export default function CreateThread() {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<any>();
   const editorRef = useRef<QuillEditor>(null);
 
   const { authState } = useAuth();
   const user = authState?.user;
+  const draftThread = route.params?.draftThread;
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(draftThread?.title || "");
   const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
-  const [thumbnail, setThumbnail] = useState<any>(null);
-  const [content, setContent] = useState("");
-
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>(
+    draftThread?.threadsTags?.map((item: any) => item.tagId) || [],
+  );
+  const [thumbnail, setThumbnail] = useState<any>(
+    draftThread?.thumbnailUrl || null,
+  );
+  const [content, setContent] = useState(draftThread?.content || "");
   const [isLoading, setIsLoading] = useState(false);
+  const [isDraftLoading, setIsDraftLoading] = useState(false);
+  const [isPublishLoading, setIsPublishLoading] = useState(false);
+  const [titleCharCount, setTitleCharCount] = useState(title.length);
+  const [contentCharCount, setContentCharCount] = useState(
+    content.replace(/<[^>]+>/g, "").trim().length,
+  );
 
   const fetchTags = async () => {
     try {
@@ -145,7 +156,7 @@ export default function CreateThread() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (isDrafted = false) => {
     if (!title.trim())
       return Toast.show({
         type: "error",
@@ -153,14 +164,14 @@ export default function CreateThread() {
         text2: "Vui lòng nhập tiêu đề.",
       });
 
-    if (!thumbnail)
+    if (!thumbnail && !isDrafted)
       return Toast.show({
         type: "error",
         text1: "Lỗi",
         text2: "Vui lòng chọn ảnh đại diện.",
       });
 
-    if (selectedTagIds.length === 0)
+    if (selectedTagIds.length === 0 && !isDrafted)
       return Toast.show({
         type: "error",
         text1: "Lỗi",
@@ -168,7 +179,7 @@ export default function CreateThread() {
       });
 
     const plainText = content.replace(/<[^>]+>/g, "").trim();
-    if (!plainText || plainText.length < 500) {
+    if (!plainText || (plainText.length < 500 && !isDrafted)) {
       return Toast.show({
         type: "error",
         text1: "Lỗi",
@@ -176,26 +187,41 @@ export default function CreateThread() {
       });
     }
 
-    setIsLoading(true);
+    if (isDrafted) {
+      setIsDraftLoading(true);
+    } else {
+      setIsPublishLoading(true);
+    }
+
     try {
       const threadRes = await postRequest("/threads", {
         createdBy: user?.userId,
         title,
         content,
         tagIds: selectedTagIds,
+        isDrafted,
       });
       const threadId = threadRes.data.threadId;
-      await uploadImage(threadId, thumbnail);
+
+      if (thumbnail) {
+        await uploadImage(threadId, thumbnail);
+      }
 
       Toast.show({
         type: "success",
-        text1: "Bài đăng đã được gửi cho quản trị viên xét duyệt!",
+        text1: isDrafted
+          ? "Đã lưu nháp!"
+          : "Bài đăng đã được gửi cho quản trị viên xét duyệt!",
       });
       navigation.goBack();
     } catch (err: any) {
       console.error("Error during thread submission:", err);
     } finally {
-      setIsLoading(false);
+      if (isDrafted) {
+        setIsDraftLoading(false);
+      } else {
+        setIsPublishLoading(false);
+      }
     }
   };
 
@@ -231,10 +257,22 @@ export default function CreateThread() {
 
           <Card containerStyle={{ marginBottom: 16 }}>
             <Text style={{ fontSize: 16, fontWeight: "600" }}>Tiêu đề *</Text>
+            <Text
+              style={{
+                alignSelf: "flex-end",
+                color: titleCharCount > 100 ? "red" : "gray",
+              }}
+            >
+              {titleCharCount}/100 ký tự
+            </Text>
+
             <Input
               placeholder="Nhập tiêu đề bài viết"
               value={title}
-              onChangeText={setTitle}
+              onChangeText={(text) => {
+                setTitle(text);
+                setTitleCharCount(text.length);
+              }}
               containerStyle={{ marginBottom: 16 }}
             />
 
@@ -275,6 +313,15 @@ export default function CreateThread() {
           <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>
             Nội dung * (tối thiểu 500 ký tự)
           </Text>
+          <Text
+            style={{
+              alignSelf: "flex-end",
+              color: contentCharCount < 500 ? "red" : "gray",
+            }}
+          >
+            {contentCharCount}/500 ký tự
+          </Text>
+
           <View style={{ marginBottom: 16 }}>
             <CustomQuillToolbar
               editor={editorRef}
@@ -301,16 +348,46 @@ export default function CreateThread() {
               ref={editorRef}
               style={{ flex: 1, padding: 8 }}
               initialHtml={content}
-              onHtmlChange={(html) => setContent(html.html)}
+              onHtmlChange={(html) => {
+                setContent(html.html);
+                const plainText = html.html.replace(/<[^>]+>/g, "").trim();
+                setContentCharCount(plainText.length);
+              }}
             />
           </View>
 
-          <Button
-            title={isLoading ? "Đang đăng..." : "Đăng bài"}
-            loading={isLoading}
-            onPress={handleSubmit}
-            buttonStyle={{ backgroundColor: "#007BFF", borderRadius: 8 }}
-          />
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 16,
+            }}
+          >
+            <Button
+              title={isDraftLoading ? "Đang lưu..." : "Lưu nháp"}
+              loading={isDraftLoading}
+              disabled={isDraftLoading || isPublishLoading}
+              onPress={() => handleSubmit(true)}
+              buttonStyle={{
+                backgroundColor: "#6B7280",
+                borderRadius: 8,
+                flex: 1,
+                marginRight: 8,
+              }}
+            />
+            <Button
+              title={isPublishLoading ? "Đang đăng..." : "Đăng bài"}
+              loading={isPublishLoading}
+              disabled={isDraftLoading || isPublishLoading}
+              onPress={() => handleSubmit(false)}
+              buttonStyle={{
+                backgroundColor: "#007BFF",
+                borderRadius: 8,
+                flex: 1,
+                marginLeft: 8,
+              }}
+            />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

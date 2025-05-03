@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { Avatar, Card, Button, Divider } from "@rneui/themed";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -9,8 +16,12 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { formatDateTime } from "@/helpers/format_time";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
-import { putRequest } from "@/helpers/api-requests";
+import { putRequest, getRequest } from "@/helpers/api-requests";
 import Toast from "react-native-toast-message";
+import { useAuth } from "@/context/auth-context";
+import PaymentDialogForInvited from "@/components/dialog/payment_dialog_for_invited";
+import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
+import { Fold } from "react-native-animated-spinkit";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InvitationsDetailRouteProp = RouteProp<
@@ -19,7 +30,26 @@ type InvitationsDetailRouteProp = RouteProp<
 >;
 
 type Props = {
-  route: InvitationsDetailRouteProp;
+  route: InvitationsDetailRouteProp & {
+    params: {
+      invitationId: number;
+      avatarUrl: string;
+      fullName: string;
+      email: string;
+      phone: string;
+      tableId: number;
+      roomId: number;
+      roomName: string;
+      roomType: string;
+      startTime: string;
+      endTime: string;
+      createdAt: string;
+      status: string;
+      totalPrice: number;
+      fromUserId: number;
+      appointmentId: number;
+    };
+  };
 };
 
 const getStatusColor = (status: string) => {
@@ -31,6 +61,7 @@ const getStatusColor = (status: string) => {
         text: "text-yellow-700",
         display: "Chờ Phản Hồi",
         iconColor: "text-yellow-700",
+        border: "border-yellow-500",
       };
     case "accepted":
       return {
@@ -38,6 +69,7 @@ const getStatusColor = (status: string) => {
         text: "text-blue-700",
         display: "Đã Chấp Nhận Lời Mời",
         iconColor: "text-blue-700",
+        border: "border-blue-500",
       };
     case "rejected":
       return {
@@ -45,6 +77,7 @@ const getStatusColor = (status: string) => {
         text: "text-red-700",
         display: "Đã Từ Chối Lời Mời",
         iconColor: "text-red-700",
+        border: "border-red-500",
       };
     case "expired":
       return {
@@ -52,6 +85,7 @@ const getStatusColor = (status: string) => {
         text: "text-orange-600",
         display: "Lời Mời Đã Hết Hạn",
         iconColor: "text-orange-600",
+        border: "border-orange-500",
       };
     case "cancelled":
       return {
@@ -59,6 +93,7 @@ const getStatusColor = (status: string) => {
         text: "text-gray-600",
         display: "Lời Mời Đã Bị Hủy",
         iconColor: "text-gray-600",
+        border: "border-gray-400",
       };
     case "accepted_by_others":
       return {
@@ -66,6 +101,7 @@ const getStatusColor = (status: string) => {
         text: "text-pink-700",
         display: "Lời Mời Đã Được Người Khác Chấp Nhận",
         iconColor: "text-pink-700",
+        border: "border-pink-500",
       };
     case "table_cancelled":
       return {
@@ -73,6 +109,7 @@ const getStatusColor = (status: string) => {
         text: "text-gray-700",
         display: "Bàn Đã Bị Hủy",
         iconColor: "text-gray-700",
+        border: "border-gray-400",
       };
     default:
       return {
@@ -80,11 +117,14 @@ const getStatusColor = (status: string) => {
         text: "text-gray-800",
         display: status,
         iconColor: "text-gray-800",
+        border: "border-gray-400",
       };
   }
 };
 
 export default function InvitationsDetail({ route }: Props) {
+  const { authState } = useAuth();
+  const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
   const {
     invitationId,
@@ -100,13 +140,63 @@ export default function InvitationsDetail({ route }: Props) {
     endTime,
     createdAt,
     status,
+    totalPrice,
+    fromUserId,
+    appointmentId,
+    cancellingTableId,
   } = route.params;
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [opneDialog, setOpenDialog] = useState(false);
+  const [opneCancelAcceptTableDialog, setOpenCancelAcceptTableDialog] =
+    useState(false);
+  const [checkTable, setCheckTable] = useState<any>(null);
+  const [isLoadingCheckTable, setIsLoadingCheckTable] =
+    useState<boolean>(false);
 
   const startDate = formatDateTime(startTime);
   const endDate = formatDateTime(endTime);
   const statusInfo = getStatusColor(status);
+
+  const handleReject = async () => {
+    setIsLoading(true);
+    try {
+      await putRequest(`/appointmentrequests/reject/${invitationId}`, {});
+      Toast.show({
+        type: "success",
+        text1: "Thành công",
+        text2: `Đã từ chối lời mời`,
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Không thể từ chối lời mời",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCheckTable = async () => {
+    setIsLoadingCheckTable(true);
+    try {
+      const now = new Date();
+      const nowUTC7 = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+      const response = await getRequest(
+        `/tables-appointment/cancel-check/${cancellingTableId}/users/${user?.userId}`,
+        { CancelTime: nowUTC7.toISOString() },
+      );
+      setCheckTable(response);
+      setOpenCancelAcceptTableDialog(true);
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể kiểm tra điều kiện hủy bàn");
+    } finally {
+      setIsLoadingCheckTable(false);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
@@ -292,7 +382,90 @@ export default function InvitationsDetail({ route }: Props) {
               Giờ chơi: {startDate.time} - {endDate.time}
             </Text>
           </Card>
+
+          {/* Action Buttons */}
+          <View className="mt-4 mb-8">
+            {status === "pending" && (
+              <View className="flex-row justify-center space-x-4">
+                <TouchableOpacity
+                  className="flex-row items-center bg-green-600 px-6 py-3 rounded-full"
+                  onPress={() => {
+                    if (totalPrice > (user?.wallet.balance || 0)) {
+                      Alert.alert("Số dư không đủ để thanh toán!");
+                    } else {
+                      setOpenDialog(true);
+                    }
+                  }}
+                >
+                  <FontAwesome5 name="check" size={16} color="white" />
+                  <Text className="text-white font-semibold ml-2">Đồng ý</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="flex-row items-center bg-red-500 px-6 py-3 rounded-full"
+                  onPress={handleReject}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <>
+                      <FontAwesome5 name="times" size={16} color="white" />
+                      <Text className="text-white font-semibold ml-2">
+                        Từ chối
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {status === "accepted" && (
+              <View className="flex-row justify-center">
+                <TouchableOpacity
+                  className="flex-row items-center bg-red-500 px-6 py-3 rounded-full"
+                  onPress={handleCheckTable}
+                  disabled={isLoadingCheckTable}
+                >
+                  {isLoadingCheckTable ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Ionicons name="close-circle" size={20} color="white" />
+                  )}
+                  <Text className="text-white font-semibold ml-2">Hủy bàn</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </ScrollView>
+
+        <PaymentDialogForInvited
+          visible={opneDialog}
+          fromUserId={fromUserId}
+          tableId={tableId}
+          appointmentId={appointmentId}
+          roomName={roomName}
+          roomType={roomType}
+          startTime={startTime}
+          endTime={endTime}
+          fullName={fullName}
+          onClose={() => setOpenDialog(false)}
+          fetchAppointment={() => navigation.goBack()}
+          totalPrice={totalPrice}
+        />
+
+        {checkTable && (
+          <ConfirmCancelTableDialog
+            visible={opneCancelAcceptTableDialog}
+            tableId={cancellingTableId}
+            data={checkTable}
+            onClose={() => setOpenCancelAcceptTableDialog(false)}
+            onSuccess={() => {
+              navigation.goBack();
+              setOpenCancelAcceptTableDialog(false);
+            }}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

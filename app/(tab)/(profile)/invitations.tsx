@@ -307,6 +307,10 @@ export default function Invitations() {
                     </Text>
 
                     <Text className="text-sm text-gray-600">
+                      Mã bàn: {item.table.tableId}
+                    </Text>
+
+                    <Text className="text-sm text-gray-600">
                       {getTimeLeft(item.expireAt)}
                     </Text>
 
@@ -335,6 +339,10 @@ export default function Invitations() {
                             endTime: item.endTime,
                             createdAt: item.createdAt,
                             status: status,
+                            totalPrice: item.totalPrice,
+                            fromUserId: item.fromUser,
+                            appointmentId: item.appointmentId,
+                            cancellingTableId: item.tablesAppointmentId,
                           });
                         }}
                       >
