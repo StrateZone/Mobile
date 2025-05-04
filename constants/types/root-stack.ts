@@ -1,8 +1,12 @@
 export type RootStackParamList = {
   //auth
   login: undefined;
+  LoginByOtp: undefined;
   Otp: { email: string };
   Register: undefined;
+  Auth: {
+    screen: "login";
+  };
   //profile
   Profile: {
     screen:
@@ -16,8 +20,10 @@ export type RootStackParamList = {
   invitations: undefined;
   profile: undefined;
   appointment_history: undefined;
+  appointment_ongoing: undefined;
   deposit: { returnUrl: string };
   appointment_detail: { appointmentId: number };
+  appointment_ongoing_detail: { appointmentId: number };
   balance_movement_history: undefined;
   invitations_detail: {
     invitationId: number;
@@ -33,6 +39,10 @@ export type RootStackParamList = {
     endTime: string;
     createdAt: string;
     status: string;
+    totalPrice: number;
+    fromUserId: number;
+    appointmentId: number;
+    cancellingTableId: number;
   };
   //appointment
   home_booking: undefined;
@@ -53,4 +63,14 @@ export type RootStackParamList = {
     EndTime: string;
   };
   payment_successfull: undefined;
+  //community
+  not_member: undefined;
+  home_community: undefined;
+  community_detail: { threadId: number };
+  create_thread?: { draftThread: any };
+  my_threads: undefined;
+  friend_managerment: undefined;
+  friend_detail: { friendId: number };
+  edit_thread: { thread: any };
+  edit_drafted_thread: { thread: any };
 };

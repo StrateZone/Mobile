@@ -1,10 +1,17 @@
-import { ScrollView, View, Text, Image, TouchableOpacity } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
 import { useAuth } from "@/context/auth-context";
 import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 
@@ -15,12 +22,20 @@ export default function ProfileScreen() {
   const { authState, onUpdateUserBalance } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
+  console.log(user);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchBalance = async () => {
+    setRefreshing(true);
+    if (onUpdateUserBalance) {
+      await onUpdateUserBalance();
+    }
+    setRefreshing(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
-      if (onUpdateUserBalance) {
-        onUpdateUserBalance();
-      }
+      fetchBalance();
     }, []),
   );
 
@@ -28,12 +43,17 @@ export default function ProfileScreen() {
     <ScrollView
       className="flex-1 bg-gray-100"
       contentContainerStyle={{ flexGrow: 1, padding: 24 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={fetchBalance} />
+      }
       keyboardShouldPersistTaps="handled"
     >
       <View className="items-center mb-6 bg-white p-5 rounded-xl shadow-md">
         <Image
           source={{
-            uri: "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+            uri:
+              user?.imageUrl ||
+              "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
           }}
           className="w-24 h-24 rounded-full border-4 border-white shadow-md"
         />
@@ -54,8 +74,10 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Thông tin cá nhân */}
       <View className="bg-white p-5 rounded-xl shadow-md space-y-4">
         <Text className="text-black text-xl font-bold">Thông tin cá nhân</Text>
+
         <View className="flex-row items-center">
           <MaterialIcons name="email" size={20} color="#4B5563" />
           <Text className="text-gray-600 text-lg font-medium ml-2">Email</Text>
@@ -84,33 +106,44 @@ export default function ProfileScreen() {
           {user?.gender === "male" ? "Nam" : "Nữ"}
         </Text>
 
-        <View className="flex-row items-center">
+        {/* <View className="flex-row items-center">
           <FontAwesome5 name="medal" size={20} color="#4B5563" />
           <Text className="text-gray-600 text-lg font-medium ml-2">
             Cấp bậc
           </Text>
-        </View>
-        <Text className="text-gray-800 text-base">
+        </View> */}
+        {/* <Text className="text-gray-800 text-base">
           {user?.ranking || "Chưa có xếp hạng"}
-        </Text>
+        </Text> */}
 
-        <View className="flex-row items-center">
+        {/* <View className="flex-row items-center">
           <MaterialIcons name="school" size={20} color="#4B5563" />
           <Text className="text-gray-600 text-lg font-medium ml-2">
             Trình độ
           </Text>
-        </View>
-        <Text className="text-gray-800 text-base">
+        </View> */}
+        {/* <Text className="text-gray-800 text-base">
           {user?.skillLevel || "Chưa xác định"}
-        </Text>
+        </Text> */}
       </View>
 
+      {/* Các tùy chọn khác */}
       <TouchableOpacity
         className="bg-white p-5 rounded-xl shadow-md flex-row justify-between items-center mt-6"
         onPress={() => navigation.navigate("invitations")}
       >
         <Text className="text-black text-lg font-semibold">
-          Lời mời đặt bàn
+          Lời mời đặt hẹn
+        </Text>
+        <Ionicons name="chevron-forward" size={24} color="black" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="bg-white p-5 rounded-xl shadow-md flex-row justify-between items-center mt-6"
+        onPress={() => navigation.navigate("appointment_ongoing")}
+      >
+        <Text className="text-black text-lg font-semibold">
+          Cuộc hẹn đang chờ
         </Text>
         <Ionicons name="chevron-forward" size={24} color="black" />
       </TouchableOpacity>
@@ -120,7 +153,7 @@ export default function ProfileScreen() {
         onPress={() => navigation.navigate("appointment_history")}
       >
         <Text className="text-black text-lg font-semibold">
-          Lịch sử đặt bàn
+          Lịch sử đặt hẹn
         </Text>
         <Ionicons name="chevron-forward" size={24} color="black" />
       </TouchableOpacity>

@@ -5,9 +5,18 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
 import CommunityScreen from "./index";
+import CommunityDetail from "./community_detail";
+import { RootStackParamList } from "@/constants/types/root-stack";
+import CreateThread from "./create_thread";
+import MyThread from "./my_thread";
+import NotMember from "./not_member";
+import FriendManagementScreen from "./friend_managerment";
+import FriendDetail from "./friend_detail";
+import EditThreadScreen from "./edit_thread";
+import EditDraftScreen from "./edit_drafted_thread";
 
-const Stack = createStackNavigator();
-type NavigationProp = DrawerNavigationProp<any>;
+const Stack = createStackNavigator<RootStackParamList>();
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function CommunityLayout() {
   const navigation = useNavigation<NavigationProp>();
@@ -15,7 +24,7 @@ export default function CommunityLayout() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="index"
+        name="home_community"
         component={CommunityScreen}
         options={{
           headerLeft: () => (
@@ -34,6 +43,67 @@ export default function CommunityLayout() {
           headerStyle: {
             backgroundColor: "white",
           },
+        }}
+      />
+
+      <Stack.Screen
+        name="community_detail"
+        component={CommunityDetail}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="create_thread"
+        component={CreateThread}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="my_threads"
+        component={MyThread}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="friend_managerment"
+        component={FriendManagementScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="not_member"
+        component={NotMember}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="friend_detail"
+        component={FriendDetail}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="edit_thread"
+        component={EditThreadScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="edit_drafted_thread"
+        component={EditDraftScreen}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

@@ -5,6 +5,10 @@ import {
   SafeAreaView,
   Animated,
   TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Text, Button, Icon } from "@rneui/themed";
 import { RouteProp, useNavigation } from "@react-navigation/native";
@@ -24,6 +28,8 @@ import { RootStackParamList } from "@/constants/types/root-stack";
 import { ChessTable } from "@/constants/types/chess_table";
 import { TableContext } from "@/context/select-table";
 import { Ionicons } from "@expo/vector-icons";
+import BackButton from "@/components/BackButton";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
@@ -66,6 +72,11 @@ export default function ListTableScreen({ route }: Props) {
     useState<Date>(defaultStartDate);
   const [endDateFilter, setEndDateFilter] = useState<Date>(defaultEndDate);
   const [filterVisible, setFilterVisible] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const buttonAnim = useRef(new Animated.Value(0)).current;
 
@@ -73,7 +84,8 @@ export default function ListTableScreen({ route }: Props) {
     date ? date.toISOString().slice(0, 19) + "Z" : null;
 
   useEffect(() => {
-    fetchTables();
+    setPageNumber(1);
+    fetchTables(gameTypeFilter, roomType, startDateFilter, endDateFilter, 1);
   }, []);
 
   const fetchTables = async (
@@ -81,21 +93,70 @@ export default function ListTableScreen({ route }: Props) {
     roomTypesFilter = roomType,
     startDate = startDateFilter,
     endDate = endDateFilter,
+    page = 1,
+    isRefreshing = false,
   ) => {
-    setIsLoading(true);
+    if (page === 1) {
+      if (isRefreshing) {
+        setRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+    } else {
+      setIsFetchingMore(true);
+    }
+
     try {
       const response = await getRequest("/tables/available/filter", {
         gameTypes: gameTypes,
         roomTypes: roomTypesFilter,
         StartTime: formatDateForApi(startDate),
         EndTime: formatDateForApi(endDate),
+        pageNumber: page,
+        pageSize: pageSize,
       });
-      setChessTable(response.pagedList);
+
+      const newData = response.pagedList || [];
+
+      if (page === 1) {
+        setChessTable(newData);
+      } else {
+        setChessTable((prev) => [...prev, ...newData]);
+      }
+
+      setTotalPages(response.totalPages || 1);
     } catch (error) {
       console.error("Error fetching tables", error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
+      setIsFetchingMore(false);
     }
+  };
+  const handleRefresh = () => {
+    setPageNumber(1);
+    fetchTables(
+      gameTypeFilter,
+      roomType,
+      startDateFilter,
+      endDateFilter,
+      1,
+      true,
+    );
+  };
+
+  const handleLoadMore = () => {
+    if (isFetchingMore || pageNumber >= totalPages) return;
+
+    const nextPage = pageNumber + 1;
+    setPageNumber(nextPage);
+    fetchTables(
+      gameTypeFilter,
+      roomType,
+      startDateFilter,
+      endDateFilter,
+      nextPage,
+    );
   };
 
   useEffect(() => {
@@ -124,19 +185,35 @@ export default function ListTableScreen({ route }: Props) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="flex-1 p-4 mt-10">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#F9FAFB" /* neutral-50 */ }}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          {mapGameTypeToVietnamese(gameTypeFilter)}
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#111827" /* neutral-900 */,
+            }}
+          >
+            {mapGameTypeToVietnamese(gameTypeFilter)}
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between mb-4 mr-5">
           <View className="flex-1 mr-2"></View>
           <Button
             icon={<Icon name="filter" type="feather" color="white" />}
@@ -146,25 +223,39 @@ export default function ListTableScreen({ route }: Props) {
         </View>
 
         {isLoading ? (
-          <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
-          </View>
+          <LoadingPage />
         ) : (
-          <ScrollView className="flex-1 mb-14">
-            {chessTables.map((table) => (
+          <FlatList
+            data={chessTables}
+            keyExtractor={(item, index) =>
+              `${item.tableId}-${item.startDate}-${item.endDate}-${index}`
+            }
+            renderItem={({ item }) => (
               <TableCard
-                key={table.tableId}
-                table={table}
+                table={item}
                 isSelected={selectedTables.some(
                   (t: any) =>
-                    t.tableId === table.tableId &&
-                    t.startDate === table.startDate &&
-                    t.endDate === table.endDate,
+                    t.tableId === item.tableId &&
+                    t.startDate === item.startDate &&
+                    t.endDate === item.endDate,
                 )}
-                onPress={() => handleToggleTable(table)}
+                onPress={() => handleToggleTable(item)}
               />
-            ))}
-          </ScrollView>
+            )}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.2}
+            ListFooterComponent={
+              isFetchingMore ? (
+                <ActivityIndicator
+                  size="small"
+                  color="#3B82F6"
+                  className="my-4"
+                />
+              ) : null
+            }
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
         )}
 
         {selectedTables.length > 0 && (
@@ -196,7 +287,7 @@ export default function ListTableScreen({ route }: Props) {
                 title="Xóa hết"
                 onPress={handleClearTables}
                 buttonStyle={{
-                  backgroundColor: "red",
+                  backgroundColor: "#EF4444", // error color
                   borderRadius: 10,
                   paddingVertical: 10,
                 }}
@@ -206,7 +297,7 @@ export default function ListTableScreen({ route }: Props) {
                 title={`Chọn ${selectedTables.length} bàn`}
                 onPress={() => navigation.navigate("booking_detail")}
                 buttonStyle={{
-                  backgroundColor: "black",
+                  backgroundColor: "#3B82F6", // primary color
                   borderRadius: 10,
                   paddingVertical: 12,
                 }}
@@ -219,7 +310,7 @@ export default function ListTableScreen({ route }: Props) {
             </View>
           </Animated.View>
         )}
-      </View>
+      </KeyboardAvoidingView>
       {filterVisible && (
         <BottomSheetFilterTable
           gameType={gameTypeFilter}
@@ -229,11 +320,50 @@ export default function ListTableScreen({ route }: Props) {
             setRoomTypes(roomTypes);
             setStartDateFilter(startDate);
             setEndDateFilter(endDate);
-            fetchTables(gameTypes, roomTypes, startDate, endDate);
+            setPageNumber(1);
+            fetchTables(gameTypes, roomTypes, startDate, endDate, 1);
           }}
           onClose={() => setFilterVisible(false)}
         />
       )}
+    </SafeAreaView>
+  );
+}
+
+function AppointmentLayout() {
+  const navigation = useNavigation();
+
+  return (
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#F9FAFB" /* neutral-50 */ }}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#111827" /* neutral-900 */,
+            }}
+          >
+            Lịch hẹn
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
+
+        {/* Nội dung màn hình */}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Toast from "react-native-toast-message";
@@ -7,6 +14,9 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { useAuth } from "@/context/auth-context";
 import { RootStackParamList } from "../../../constants/types/root-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
+import BackButton from "@/components/BackButton";
+import LoadingForButton from "@/components/loading/loading_button";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export type ConfirmOtpRouteProp = RouteProp<RootStackParamList, "Otp">;
@@ -23,6 +33,7 @@ export default function OtpConfirmScreen({
   const inputRefs = useRef<Array<TextInput | null>>([]);
   const [timeLeft, setTimeLeft] = useState(300);
   const [isExpired, setIsExpired] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -59,7 +70,7 @@ export default function OtpConfirmScreen({
     }
   };
 
-  const { onLogin } = useAuth();
+  const { onLoginByOtp } = useAuth();
   const otpString = otp.join("");
 
   const login = async () => {
@@ -72,8 +83,9 @@ export default function OtpConfirmScreen({
       return;
     }
 
+    setLoading(true);
     try {
-      const result = await onLogin!(email, otpString);
+      const result = await onLoginByOtp!(email, otpString);
       if (result.success) {
         Toast.show({ type: "success", text1: "Đăng nhập thành công!" });
         navigation.navigate("Profile", {
@@ -92,6 +104,8 @@ export default function OtpConfirmScreen({
         text1: "Lỗi hệ thống",
         text2: "Vui lòng thử lại sau.",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -99,57 +113,109 @@ export default function OtpConfirmScreen({
     setTimeLeft(300);
     setIsExpired(false);
     Toast.show({
-      type: "info",
+      type: "success",
       text1: "Đã gửi lại OTP!",
       text2: "Vui lòng kiểm tra email.",
     });
   };
 
   return (
-    <View className="flex-1 bg-gray-100 justify-center items-center px-4">
-      <TouchableOpacity
-        className="absolute top-12 left-5 p-2 bg-gray-300 rounded-full"
-        onPress={() => navigation.goBack()}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, justifyContent: "center" }}
       >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+          }}
+        >
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 20, fontWeight: "600", color: "#212529" }}>
+            Nhập mã OTP
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
-      <Text className="text-lg font-semibold mb-2">Nhập mã OTP</Text>
+        <Text
+          style={{
+            textAlign: "center",
+            marginBottom: 16,
+            color: isExpired ? "red" : "gray",
+          }}
+        >
+          {isExpired
+            ? "Mã OTP đã hết hạn"
+            : `OTP hết hạn sau: ${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, "0")}`}
+        </Text>
 
-      <Text className={`mb-4 ${isExpired ? "text-red-500" : "text-gray-500"}`}>
-        {isExpired
-          ? "OTP đã hết hạn"
-          : `OTP hết hạn sau: ${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, "0")}`}
-      </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            marginBottom: 32,
+          }}
+        >
+          {otp.map((digit, index) => (
+            <TextInput
+              key={index}
+              ref={(el) => (inputRefs.current[index] = el)}
+              style={{
+                width: 48,
+                height: 48,
+                borderWidth: 2,
+                borderColor: "#ccc",
+                borderRadius: 8,
+                textAlign: "center",
+                fontSize: 24,
+                marginHorizontal: 6,
+                fontWeight: "bold",
+              }}
+              keyboardType="number-pad"
+              maxLength={1}
+              value={digit}
+              onChangeText={(text) => handleChangeText(text, index)}
+              onKeyPress={(event) => handleKeyPress(event, index)}
+            />
+          ))}
+        </View>
 
-      <View className="flex-row justify-center space-x-2 mb-6">
-        {otp.map((digit, index) => (
-          <TextInput
-            key={index}
-            ref={(el) => (inputRefs.current[index] = el)}
-            className="w-12 h-12 border-2 border-gray-500 rounded-md text-xl text-center font-semibold"
-            keyboardType="number-pad"
-            maxLength={1}
-            value={digit}
-            onChangeText={(text) => handleChangeText(text, index)}
-            onKeyPress={(event) => handleKeyPress(event, index)}
-          />
-        ))}
-      </View>
-
-      <TouchableOpacity
-        className={`w-14 h-14 rounded-full flex items-center justify-center ${isExpired ? "bg-gray-300" : "bg-gray-400"}`}
-        onPress={login}
-        disabled={isExpired}
-      >
-        <Ionicons name="arrow-forward" size={24} color="white" />
-      </TouchableOpacity>
-
-      {isExpired && (
-        <TouchableOpacity onPress={resendOtp} className="mt-4">
-          <Text className="text-blue-500">Gửi lại OTP</Text>
+        <TouchableOpacity
+          onPress={resendOtp}
+          style={{
+            marginTop: 16,
+            alignItems: "center",
+            marginBottom: 24,
+          }}
+        >
+          <Text style={{ color: "#0066cc" }}>Gửi lại OTP</Text>
         </TouchableOpacity>
-      )}
-    </View>
+
+        <View style={{ alignItems: "center" }}>
+          <TouchableOpacity
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: isExpired || loading ? "#cccccc" : "#000",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={login}
+            disabled={isExpired || loading}
+          >
+            {loading ? (
+              <LoadingForButton />
+            ) : (
+              <Ionicons name="arrow-forward" size={24} color="white" />
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

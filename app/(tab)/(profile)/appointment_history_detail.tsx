@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Fold } from "react-native-animated-spinkit";
 import { useAuth } from "@/context/auth-context";
 import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
+import OpponentsListDialog from "@/components/dialog/opponents_list";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "appointment_detail">;
@@ -26,26 +27,79 @@ type Props = {
   route: ListTableRouteProp;
 };
 
-const statusColors: Record<string, string> = {
-  pending: "#facc15",
-  confirmed: "#10b981",
-  incoming: "#0ea5e9",
-  completed: "#22c55e",
-  expired: "#64748b",
-  cancelled: "#6b7280",
-  refunded: "#8b5cf6",
-  incompleted: "#ef4444",
-};
-
-const statusTextMap: Record<string, string> = {
-  pending: "Đang chờ thanh toán",
-  confirmed: "Đã thanh toán",
-  incoming: "Sắp diễn ra",
-  expired: "Hết hạn",
-  completed: "Hoàn thành",
-  cancelled: "Đã hủy",
-  refunded: "Đã hoàn tiền",
-  incompleted: "Chưa hoàn tất",
+const getStatusStyles = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return {
+        bg: "bg-yellow-100",
+        text: "text-yellow-800",
+        border: "border-yellow-800",
+        display: "Đang chờ thanh toán",
+      };
+    case "confirmed":
+      return {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        border: "border-green-800",
+        display: "Đã thanh toán",
+      };
+    case "incoming":
+      return {
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+        border: "border-blue-800",
+        display: "Sắp diễn ra",
+      };
+    case "expired":
+      return {
+        bg: "bg-gray-100",
+        text: "text-gray-800",
+        border: "border-gray-800",
+        display: "Hết hạn",
+      };
+    case "completed":
+      return {
+        bg: "bg-purple-100",
+        text: "text-purple-800",
+        border: "border-purple-800",
+        display: "Đã Hoàn thành",
+      };
+    case "cancelled":
+      return {
+        bg: "bg-red-100",
+        text: "text-red-800",
+        border: "border-red-800",
+        display: "Đã hủy",
+      };
+    case "refunded":
+      return {
+        bg: "bg-indigo-100",
+        text: "text-indigo-800",
+        border: "border-indigo-800",
+        display: "Đã hoàn tiền",
+      };
+    case "unfinished":
+      return {
+        bg: "bg-orange-100",
+        text: "text-orange-800",
+        border: "border-orange-800",
+        display: "Không hoàn thành",
+      };
+    case "incompleted":
+      return {
+        bg: "bg-orange-100",
+        text: "text-orange-800",
+        border: "border-orange-800",
+        display: "Chưa hoàn thành",
+      };
+    default:
+      return {
+        bg: "bg-gray-100",
+        text: "text-gray-800",
+        border: "border-gray-800",
+        display: status,
+      };
+  }
 };
 
 export default function AppointmentDetail({ route }: Props) {
@@ -57,15 +111,15 @@ export default function AppointmentDetail({ route }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [appointment, setAppointment] = useState<Apointment>();
   const [opneDialog, setOpenDialog] = useState(false);
-  const [checkTable, setCheckTable] = useState<any>(null); //Kiểm tra nếu có table thì hiện thông báo confirm hủy
+  const [checkTable, setCheckTable] = useState<any>(null);
   const [selectedTableId, setSelectedTableId] = useState<number>(0);
+  const [openPlayerDialog, setOpenPlayerDialog] = useState(false);
+  const [playersOfTable, setPlayersOfTable] = useState<any[]>([]);
 
   const now = new Date();
   const convertToUTC7 = (date: Date): Date => {
-    const utc7Date = new Date(date.getTime() + 7 * 60 * 60 * 1000);
-    return utc7Date;
+    return new Date(date.getTime() + 7 * 60 * 60 * 1000);
   };
-
   const nowUTC7 = convertToUTC7(now);
 
   const loadAppointmentData = async () => {
@@ -84,13 +138,6 @@ export default function AppointmentDetail({ route }: Props) {
     loadAppointmentData();
   }, []);
 
-  const statusColorAppointment = appointment
-    ? statusColors[appointment.status] || "gray"
-    : "gray";
-  const statusTextAppointment = appointment
-    ? statusTextMap[appointment.status] || "Không xác định"
-    : "Không xác định";
-
   const handleCheckTable = async (tablesAppointmentId: number) => {
     setIsLoading(true);
     setSelectedTableId(tablesAppointmentId);
@@ -108,6 +155,22 @@ export default function AppointmentDetail({ route }: Props) {
     }
   };
 
+  const handleShowPlayers = (tableId: number) => {
+    const players = appointment?.appointmentrequests
+      .filter((req: any) => req.tableId === tableId && req.toUserNavigation)
+      .map((req: any) => ({
+        ...req,
+        toUser: req.toUserNavigation,
+      }));
+
+    setPlayersOfTable(players || []);
+    setOpenPlayerDialog(true);
+  };
+
+  const { bg, border, text, display } = appointment
+    ? getStatusStyles(appointment.status)
+    : { bg: "", text: "", display: "" };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView className="flex-1 bg-gray-100 p-4">
@@ -119,8 +182,9 @@ export default function AppointmentDetail({ route }: Props) {
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-center text-black mb-5">
-            Chi tiết đặt bàn
+            Chi tiết đặt hẹn
           </Text>
+
           {isLoading ? (
             <View className="flex justify-center items-center mt-32">
               <Fold size={48} color="#000000" />
@@ -128,61 +192,77 @@ export default function AppointmentDetail({ route }: Props) {
           ) : (
             <>
               <View
-                className="p-4 shadow-md mb-4 border-l-4 rounded-lg bg-white"
-                style={{ borderColor: statusColorAppointment }}
+                className={`p-4 shadow-md mb-4 border-l-4 rounded-lg bg-white ${border}`}
               >
-                <Text className="text-lg font-semibold">
-                  Số lượng: {appointment?.tablesAppointments.length} bàn
+                <Text className="text-xl font-semibold mb-2">
+                  Chi tiết đơn đặt hẹn
                 </Text>
-                <Text className="text-lg">
-                  Ngày đặt: {new Date(appointment!.createdAt).toLocaleString()}
+                <Text className="text-md mb-4">
+                  Dưới đây là các thông tin chi tiết về đơn đặt của bạn:
                 </Text>
-                <Text
-                  className="text-lg font-semibold"
-                  style={{ color: statusColorAppointment }}
-                >
-                  Trạng thái: {statusTextAppointment}
-                </Text>
+
+                <View className="mb-3">
+                  <Text className="text-lg font-semibold">
+                    Mã đơn: {appointment?.appointmentId}
+                  </Text>
+                  <Text className="text-lg font-semibold">
+                    Số lượng bàn: {appointment?.tablesAppointments.length} bàn
+                  </Text>
+                </View>
+
+                <View className="mb-3">
+                  <Text className="text-lg">
+                    Ngày đặt:{" "}
+                    {new Date(appointment!.createdAt).toLocaleString()}
+                  </Text>
+                </View>
+
+                <View className="mb-4">
+                  <Text className={`text-lg font-semibold ${text}`}>
+                    Trạng thái đơn: {display}
+                  </Text>
+                </View>
               </View>
+
+              <Text className="text-xl font-semibold mt-4 mb-2">
+                Danh sách các bàn đã đặt:
+              </Text>
               <ScrollView className="mb-4">
                 {appointment!.tablesAppointments.map(
                   (table: TablesAppointment, index) => {
-                    const statusColorTable = appointment
-                      ? statusColors[table.status] || "gray"
-                      : "gray";
-
-                    const statusTextTable = appointment
-                      ? statusTextMap[table.status] || "Không xác định"
-                      : "Không xác định";
-
+                    const tableStyles = getStatusStyles(table.status);
                     return (
                       <View
                         key={index}
-                        className="bg-white p-4 rounded-lg shadow-md mb-2 border relative"
-                        style={{ borderColor: statusColorTable }}
+                        className={`bg-white p-4 rounded-lg shadow-md mb-2 border ${tableStyles.bg}`}
+                        style={{ borderColor: tableStyles.text }}
                       >
-                        <View>
-                          <Text className="text-lg font-semibold">
-                            Số phòng: {table.table.tableId}
+                        <Text className="text-lg font-semibold">
+                          Tên phòng: {table.table.roomName}
+                        </Text>
+                        <Text className="text-lg">Mã bàn: {table.tableId}</Text>
+                        <Text className="text-lg">
+                          Bắt đầu:{" "}
+                          {new Date(table.scheduleTime).toLocaleString()}
+                        </Text>
+                        <Text className="text-lg">
+                          Kết thúc: {new Date(table.endTime).toLocaleString()}
+                        </Text>
+                        <Text className="text-lg">
+                          Trạng thái bàn: {tableStyles.display}
+                        </Text>
+
+                        <TouchableOpacity
+                          className="self-start flex-row items-center bg-blue-500 px-2 py-1 rounded-md"
+                          onPress={() => handleShowPlayers(table.tableId)}
+                        >
+                          <Ionicons name="people" size={16} color="white" />
+                          <Text className="ml-1 text-white text-sm">
+                            Xem đối thủ đã mời
                           </Text>
-                          <Text className="text-lg">
-                            Số bàn: {table.tableId}
-                          </Text>
-                          <Text className="text-lg">
-                            Bắt đầu:
-                            {new Date(
-                              table.scheduleTime,
-                            ).toLocaleTimeString()}{" "}
-                          </Text>
-                          <Text className="text-lg">
-                            Kết thúc:{" "}
-                            {new Date(table.endTime).toLocaleTimeString()}
-                          </Text>
-                          <Text className="text-lg">
-                            Trạng thái: {statusTextTable}
-                          </Text>
-                        </View>
-                        <Text className="text-lg font-semibold text-right">
+                        </TouchableOpacity>
+
+                        <Text className="text-lg font-semibold text-right mt-2">
                           Đơn giá: {table.price.toLocaleString()} VND
                         </Text>
 
@@ -227,12 +307,18 @@ export default function AppointmentDetail({ route }: Props) {
                   />
                 )}
               </ScrollView>
+
               <Text className="text-xl font-bold text-center text-black">
                 Tổng giá: {appointment?.totalPrice.toLocaleString()} VND
               </Text>
             </>
           )}
         </View>
+        <OpponentsListDialog
+          visible={openPlayerDialog}
+          onClose={() => setOpenPlayerDialog(false)}
+          players={playersOfTable}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

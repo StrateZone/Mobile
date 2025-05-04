@@ -11,6 +11,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Alert } from "react-native";
 import * as Linking from "expo-linking";
 import Toast from "react-native-toast-message";
+import { NavigationContainer } from "@react-navigation/native";
 
 import AppointmentLayout from "./(tab)/(appointment)/_layout";
 import ProfileLayout from "./(tab)/(profile)/_layout";
@@ -25,6 +26,9 @@ import { AuthProvider, useAuth } from "@/context/auth-context";
 import { useState } from "react";
 import { TableProvider } from "@/context/select-table";
 import NotificationLayout from "./(tab)/notification/_layout";
+import { LogBox } from "react-native";
+
+LogBox.ignoreAllLogs();
 
 const Drawer = createDrawerNavigator();
 
@@ -185,8 +189,15 @@ function CustomDrawerContent({ navigation }: any) {
         },
         {
           text: "Đăng xuất",
-          onPress: onLogout,
           style: "destructive",
+          onPress: async () => {
+            if (onLogout) {
+              await onLogout();
+            }
+            navigation.navigate("Auth", {
+              screen: "login",
+            });
+          },
         },
       ],
     );
@@ -232,27 +243,27 @@ function CustomDrawerContent({ navigation }: any) {
           <AntDesign name="calendar" size={24} color="#333" />
           <Text style={styles.menuText}>Đặt bàn</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("Products")}
           style={styles.menuItem}
         >
           <FontAwesome name="shopping-cart" size={24} color="#333" />
           <Text style={styles.menuText}>Sản phẩm</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("Courses")}
           style={styles.menuItem}
         >
           <MaterialIcons name="menu-book" size={24} color="#333" />
           <Text style={styles.menuText}>Khóa học</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("Tournaments")}
           style={styles.menuItem}
         >
           <Ionicons name="trophy" size={24} color="#333" />
           <Text style={styles.menuText}>Thi đấu</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           onPress={() => navigation.navigate("Community")}
           style={styles.menuItem}
@@ -291,8 +302,8 @@ function CustomDrawerContent({ navigation }: any) {
 
       {authState?.authenticated ? (
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={24} color="#F05193" />
-          <Text style={{ fontSize: 16, color: "#F05193", marginLeft: 10 }}>
+          <Ionicons name="log-out-outline" size={24} color="black" />
+          <Text style={{ fontSize: 16, color: "black", marginLeft: 10 }}>
             Đăng xuất
           </Text>
         </TouchableOpacity>

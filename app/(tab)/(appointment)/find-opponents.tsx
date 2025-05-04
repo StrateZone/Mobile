@@ -3,9 +3,9 @@ import {
   Text,
   SafeAreaView,
   TouchableOpacity,
-  FlatList,
   Image,
   ScrollView,
+  TextInput,
 } from "react-native";
 import React, { useEffect, useState, useContext } from "react";
 import { RouteProp, useNavigation } from "@react-navigation/native";
@@ -20,6 +20,8 @@ import { getRequest } from "@/helpers/api-requests";
 import Toast from "react-native-toast-message";
 import { TableContext } from "@/context/select-table";
 import { ChessTable } from "@/constants/types/chess_table";
+import BackButton from "@/components/BackButton";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "find_opponents">;
@@ -28,59 +30,52 @@ type Props = {
   route: ListTableRouteProp;
 };
 
-type MatchingOpponents = {
-  basic: Opponents[];
-  silver: Opponents[];
-  gold?: Opponents[];
-  platinum?: Opponents[];
-  diamond?: Opponents[];
-};
-
 export default function FindOpponent({ route }: Props) {
   const { tableId, startDate, endDate, tablePrice } = route.params;
-
   const { authState } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
 
-  const [
-    selectedTables,
-    toggleTableSelection,
-    removeSelectedTable,
-    clearSelectedTables,
-    clearSelectedTablesWithNoInvite,
-    addInvitedUser,
-    removeInvitedUser,
-  ] = useContext(TableContext);
+  const [selectedTables, , , , , addInvitedUser] = useContext(TableContext);
 
-  const [opponents, setOpponents] = useState<MatchingOpponents>({
-    basic: [],
-    silver: [],
-    gold: [],
-    platinum: [],
-    diamond: [],
-  });
-
+  const [opponents, setOpponents] = useState<Opponents[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleGetUserForInvite = async () => {
     setIsLoading(true);
-    getRequest(`/users/by-ranking/random/${user?.userId}/tables/${tableId}`, {
-      StartTime: startDate,
-      EndTime: endDate,
-      excludedIds,
-      up: 1,
-      down: 1,
-    })
-      .then((response) => {
-        setOpponents(response.matchingOpponents);
-        setExcludedIds(response.excludedIds);
-        setIsLoading(false);
-      })
-      .catch(() => {
-        setIsLoading(false);
+    try {
+      const response = await getRequest(`/users/opponents/${user?.userId}`, {
+        StartTime: startDate,
+        EndTime: endDate,
+        excludedIds,
+        up: 1,
+        down: 1,
+        searchTerm,
       });
+
+      if (user?.userRole === "Member") {
+        const friends = response.friends.map((friend: any) => ({
+          ...friend,
+          // isInvited: alreadyInvitedIds.includes(friend.userId),
+        }));
+
+        const opponents = response.matchingOpponents.map((opponent: any) => ({
+          ...opponent,
+          // isInvited: alreadyInvitedIds.includes(opponent.userId),
+        }));
+
+        setOpponents([...friends, ...opponents]); // Gộp cả bạn bè và đối thủ
+      } else {
+        setOpponents(response.matchingOpponents || []); // Chỉ lấy đối thủ
+      }
+      setExcludedIds(response.excludedIds || []);
+    } catch (error) {
+      console.error("Lỗi khi lấy đối thủ:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -90,22 +85,28 @@ export default function FindOpponent({ route }: Props) {
   const handleInvite = async (toUserId: number) => {
     if (!user) return;
 
+    const table = selectedTables.find((t: ChessTable) => t.tableId === tableId);
+    const currentInvitedCount = table?.invitedUsers?.length || 0;
+
+    if (currentInvitedCount >= 6) {
+      Toast.show({
+        type: "error",
+        text1: "Quá giới hạn",
+        text2: "Chỉ được phép mời tối đa 6 người",
+      });
+      return;
+    }
+
     try {
       await addInvitedUser(tableId, toUserId);
 
-      const updatedOpponents = { ...opponents };
-      Object.keys(updatedOpponents).forEach((rank) => {
-        const currentRank = rank as keyof MatchingOpponents;
-        if (updatedOpponents[currentRank]) {
-          updatedOpponents[currentRank] =
-            updatedOpponents[currentRank]?.map((opponent) =>
-              opponent.userId === toUserId
-                ? { ...opponent, isInvited: true }
-                : opponent,
-            ) || [];
-        }
-      });
-      setOpponents(updatedOpponents);
+      setOpponents((prev) =>
+        prev.map((opponent) =>
+          opponent.userId === toUserId
+            ? { ...opponent, isInvited: true }
+            : opponent,
+        ),
+      );
 
       Toast.show({
         type: "success",
@@ -113,7 +114,11 @@ export default function FindOpponent({ route }: Props) {
         text2: `Đã gửi lời mời cho đối thủ`,
       });
     } catch (error) {
-      console.error("Lỗi khi gửi lời mời:", error);
+      Toast.show({
+        type: "error",
+        text1: "Thất bạn",
+        text2: `Không thể gửi lời mời này`,
+      });
     }
   };
 
@@ -122,66 +127,29 @@ export default function FindOpponent({ route }: Props) {
     return table?.invitedUsers?.includes(userId) || false;
   };
 
-  const renderOpponentList = (rank: string, opponents: Opponents[]) => {
-    if (!opponents.length) return null;
-
-    return (
-      <View key={rank} className="mb-4">
-        <Text className="text-lg font-semibold text-black mb-2">
-          Cấp bậc {rank.charAt(0).toUpperCase() + rank.slice(1)}
-        </Text>
-        {opponents.map((opponent) => (
-          <View
-            key={`${rank}-${opponent.userId}`}
-            className="flex-row items-center bg-white p-4 rounded-lg shadow-md mb-3 border border-gray-300"
-          >
-            <Image
-              source={{
-                uri:
-                  opponent.avatarUrl ||
-                  "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
-              }}
-              className="w-12 h-12 rounded-full border-2 border-blue-500 mr-3"
-            />
-
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-black">
-                {opponent.fullName || "Không có tên"}
-              </Text>
-              <Text className="text-gray-500">Cấp bậc: {opponent.ranking}</Text>
-            </View>
-
-            {isUserInvited(opponent.userId) ? (
-              <Text className="text-green-500 font-semibold">Đã mời</Text>
-            ) : (
-              <TouchableOpacity
-                onPress={() => handleInvite(opponent.userId)}
-                className="p-2 bg-gray-200 rounded-full"
-              >
-                <Ionicons name="paper-plane" size={20} color="black" />
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="relative">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-1 p-4 mt-10">
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          Tìm đối thủ
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#212529" /* neutral-900 */,
+            }}
+          >
+            Tìm đối thủ
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
         <View className="mb-3 flex-row items-center justify-between px-1">
           <Text className="text-lg font-semibold text-black">
@@ -203,7 +171,7 @@ export default function FindOpponent({ route }: Props) {
 
         <View className="mb-3 flex-row items-center justify-between px-1">
           <Text className="text-lg font-semibold text-black">
-            StrateZone gọi ý
+            Gợi ý từ StrateZone
           </Text>
           <TouchableOpacity
             className="bg-black px-3 py-1 rounded-full"
@@ -213,15 +181,57 @@ export default function FindOpponent({ route }: Props) {
           </TouchableOpacity>
         </View>
 
+        <View className="flex-row items-center bg-white rounded-full px-3 py-2 mb-4 border border-gray-300">
+          <TextInput
+            placeholder="Tìm đối thủ..."
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            className="flex-1 text-black"
+            returnKeyType="search"
+            onSubmitEditing={handleGetUserForInvite}
+          />
+          <TouchableOpacity onPress={handleGetUserForInvite}>
+            <Ionicons name="search" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+
         {isLoading ? (
-          <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
-          </View>
+          <LoadingPage />
         ) : (
           <ScrollView>
-            {Object.entries(opponents).map(([rank, opponents]) =>
-              renderOpponentList(rank, opponents),
-            )}
+            {opponents.map((opponent) => (
+              <View
+                key={opponent.userId}
+                className="flex-row items-center bg-white p-4 rounded-lg shadow-md mb-3 border border-gray-300"
+              >
+                <Image
+                  source={{
+                    uri:
+                      opponent.avatarUrl ||
+                      "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+                  }}
+                  className="w-12 h-12 rounded-full border-2 border-blue-500 mr-3"
+                />
+
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-black">
+                    {opponent.fullName || "Không có tên"}
+                  </Text>
+                  <Text className="text-gray-500">Email: {opponent.email}</Text>
+                </View>
+
+                {isUserInvited(opponent.userId) ? (
+                  <Text className="text-green-500 font-semibold">Đã mời</Text>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => handleInvite(opponent.userId)}
+                    className="p-2 bg-gray-200 rounded-full"
+                  >
+                    <Ionicons name="paper-plane" size={20} color="black" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
           </ScrollView>
         )}
       </View>

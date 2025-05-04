@@ -5,6 +5,8 @@ import {
   SafeAreaView,
   FlatList,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useEffect, useState, useContext } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +20,8 @@ import { useAuth } from "@/context/auth-context";
 import { TableContext } from "@/context/select-table";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { ChessTable } from "@/constants/types/chess_table";
+import BackButton from "@/components/BackButton";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "opponent_invited">;
@@ -99,25 +103,34 @@ export default function OpponentInvited({ route }: Props) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="relative">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" /* neutral */ }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            padding: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-1 p-4 mt-10">
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          Đối thủ đã mời cho bàn {tableId}
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              color: "#212529" /* neutral-900 */,
+            }}
+          >
+            Đối thủ đã mời cho bàn {tableId}
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
         {isLoading ? (
-          <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
-          </View>
+          <LoadingPage />
         ) : opponents.length === 0 ? (
           <Text className="text-center text-gray-500">
             Chưa có đối thủ nào được mời.
@@ -144,9 +157,6 @@ export default function OpponentInvited({ route }: Props) {
                 <View className="flex-1">
                   <Text className="text-xl font-semibold">{item.fullName}</Text>
                   <Text className="text-sm text-gray-600">{item.email}</Text>
-                  <Text className="text-sm text-gray-600">
-                    Cấp bậc: {item.ranking}
-                  </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => handleRemoveInvite(item.userId)}
@@ -158,7 +168,7 @@ export default function OpponentInvited({ route }: Props) {
             )}
           />
         )}
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

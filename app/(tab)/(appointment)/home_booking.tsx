@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Button, CheckBox, Icon } from "@rneui/themed";
@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { RootStackParamList } from "../../../constants/types/root-stack";
 import { ScrollView } from "react-native-gesture-handler";
+import { getRequest } from "@/helpers/api-requests";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -25,17 +26,50 @@ export default function BookingFormScreen() {
   };
 
   const roomTypeMap: { [key: string]: string } = {
-    "Phòng cơ bản": "basic",
+    "Phòng thường": "basic",
     "Phòng không gian mở": "openspaced",
     "Phòng cao cấp": "premium",
   };
 
   const navigation = useNavigation<NavigationProp>();
   const [gameType, setGameType] = useState<string>("Cờ vua");
-  const [roomType, setRoomTypes] = useState<string[]>(["Phòng cơ bản"]);
+  const [roomType, setRoomTypes] = useState<string[]>(["Phòng thường"]);
   const [selectedDate, setSelectedDate] = useState<Date>(now);
   const [startTime, setStartTime] = useState<Date>(now);
   const [endTime, setEndTime] = useState<Date>(now);
+  const [openHour, setOpenHour] = useState<string>("");
+  const [closeHour, setCloseHour] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const formatDateForApi = (date: Date | null) =>
+    date ? date.toISOString().split("T")[0] : null;
+
+  useEffect(() => {
+    const fetchBusinessHours = async () => {
+      const formatDate = formatDateForApi(selectedDate);
+      try {
+        const [openResponse, closeResponse] = await Promise.all([
+          getRequest(`/system/1/open-hour/date`, { date: formatDate }),
+          getRequest(`/system/1/close-hour/date`, { date: formatDate }),
+        ]);
+
+        const openData = await openResponse;
+        const closeData = await closeResponse;
+        setOpenHour(openData);
+        setCloseHour(closeData);
+      } catch (error) {
+        console.error("Error fetching business hours:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBusinessHours();
+  }, [selectedDate]);
+
+  const getHourFromTimeString = (timeString: string): number => {
+    return parseInt(timeString.split(":")[0]);
+  };
 
   const handleSelectGameType = (game: string) => {
     setGameType(game);
@@ -61,8 +95,8 @@ export default function BookingFormScreen() {
     const startHour = startTimeUTC7.getUTCHours();
     const endHour = endTimeUTC7.getUTCHours();
     const nowHour = nowUTC7.getHours();
-    const earliestHour = 6;
-    const latestHour = 22;
+    const earliestHour = getHourFromTimeString(openHour);
+    const latestHour = getHourFromTimeString(closeHour);
     const minStartHour = nowHour + 1;
 
     const isToday =
@@ -70,7 +104,10 @@ export default function BookingFormScreen() {
       nowUTC7.toISOString().split("T")[0];
 
     if (startHour < earliestHour || startHour > latestHour) {
-      Alert.alert("Lỗi", "Giờ bắt đầu phải từ 6:00 sáng đến 22:00!");
+      Alert.alert(
+        "Lỗi",
+        `Giờ bắt đầu phải từ ${openHour} giờ sáng đến ${closeHour} giờ!`,
+      );
       return;
     }
 
@@ -85,7 +122,7 @@ export default function BookingFormScreen() {
     }
 
     if (endHour > latestHour) {
-      Alert.alert("Lỗi", "Giờ kết thúc không được sau 22:00!");
+      Alert.alert("Lỗi", `Giờ kết thúc không được sau ${closeHour} giờ!`);
       return;
     }
 
@@ -121,11 +158,18 @@ export default function BookingFormScreen() {
 
   return (
     <ScrollView className="flex-1 bg-white p-6">
-      <Text className="text-center text-red-500 font-semibold mb-4">
-        ⏰ Hệ thống chỉ nhận đặt bàn từ 8:00 đến 22:00 {"\n"}
-        Nếu giờ đặt bàn đã qua, vui lòng chọn giờ gần nhất hoặc chọn ngày tiếp
-        theo.
-      </Text>
+      {isLoading ? (
+        <Text className="text-center text-gray-500 font-semibold mb-4">
+          Đang tải thông tin giờ mở cửa...
+        </Text>
+      ) : (
+        <Text className="text-center text-red-500 font-semibold mb-4">
+          ⏰ Hệ thống chỉ nhận đặt bàn từ {openHour} giờ đến {closeHour} giờ{" "}
+          {"\n"}
+          Nếu giờ đặt bàn đã qua, vui lòng chọn giờ gần nhất hoặc chọn ngày tiếp
+          theo.
+        </Text>
+      )}
       <Text className="text-lg font-semibold text-black mb-2">
         Chọn loại cờ:
       </Text>

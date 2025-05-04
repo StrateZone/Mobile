@@ -4,6 +4,7 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -17,6 +18,8 @@ import { Fold } from "react-native-animated-spinkit";
 
 import { Apointment } from "@/constants/types/apointment";
 import { RootStackParamList } from "@/constants/types/root-stack";
+import BottomSheetSortAppointment from "@/components/bottom_sheet/bottom_sheet_sort_appointment";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -27,54 +30,103 @@ export default function AppointmentHistory() {
 
   const [appointments, setAppointments] = useState<Apointment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [orderBy, setOrderBy] = useState<string>("created-at-desc");
+  const [refreshing, setRefreshing] = useState(false);
+  const [showSortBottomSheet, setShowSortBottomSheet] = useState(false);
+  const [selectedSort, setSelectedSort] = useState("created-at-desc");
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getRequest(
-          `/appointments/users/${user?.userId}`,
-          {
-            "page-size": 50,
-            "order-by": orderBy,
-          },
-        );
-        if (response?.pagedList) {
-          setAppointments(response?.pagedList);
-        }
-      } catch (error) {
-        console.error("Lỗi khi lấy lịch sử đặt bàn:", error);
-      } finally {
-        setIsLoading(false);
+  const fetchAppointments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getRequest(`/appointments/users/${user?.userId}`, {
+        "page-size": 50,
+        "order-by": selectedSort,
+      });
+      if (response?.pagedList) {
+        setAppointments(response?.pagedList);
       }
-    };
-
-    fetchAppointments();
-  }, [user]);
-
-  const statusColors: Record<string, string> = {
-    pending: "#b58900",
-    confirmed: "green",
-    checked_in: "teal",
-    completed: "blue",
-    incompleted: "#ef4444",
-    cancelled: "red",
-    unpaid: "gray",
-    expired: "purple",
-    refunded: "orange",
+    } catch (error) {
+      console.error("Lỗi khi lấy lịch sử đặt bàn:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const statusTextMap: Record<string, string> = {
-    pending: "Chờ xác nhận",
-    confirmed: "Đã xác nhận",
-    checked_in: "Đã check-in",
-    completed: "Hoàn thành",
-    incompleted: "Chưa hoàn thành",
-    cancelled: "Đã hủy",
-    unpaid: "Chưa thanh toán",
-    expired: "Đã hết hạn",
-    refunded: "Đã hoàn tiền",
+  useEffect(() => {
+    fetchAppointments();
+  }, [selectedSort]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchAppointments();
+    setRefreshing(false);
+  };
+
+  const getStatusStyles = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return {
+          bg: "bg-yellow-100",
+          text: "text-yellow-800",
+          border: "border-yellow-800",
+          display: "Đang chờ thanh toán",
+        };
+      case "confirmed":
+        return {
+          bg: "bg-green-100",
+          text: "text-green-800",
+          border: "border-green-800",
+          display: "Đã thanh toán",
+        };
+      case "incoming":
+        return {
+          bg: "bg-blue-100",
+          text: "text-blue-800",
+          border: "border-blue-800",
+          display: "Sắp diễn ra",
+        };
+      case "expired":
+        return {
+          bg: "bg-gray-100",
+          text: "text-gray-800",
+          border: "border-gray-800",
+          display: "Hết hạn",
+        };
+      case "completed":
+        return {
+          bg: "bg-purple-100",
+          text: "text-purple-800",
+          border: "border-purple-800",
+          display: "Đã Hoàn thành",
+        };
+      case "cancelled":
+        return {
+          bg: "bg-red-100",
+          text: "text-red-800",
+          border: "border-red-800",
+          display: "Đã hủy",
+        };
+      case "refunded":
+        return {
+          bg: "bg-indigo-100",
+          text: "text-indigo-800",
+          border: "border-indigo-800",
+          display: "Đã hoàn tiền",
+        };
+      case "unfinished":
+        return {
+          bg: "bg-orange-100",
+          text: "text-orange-800",
+          border: "border-orange-800",
+          display: "Không hoàn thành",
+        };
+      default:
+        return {
+          bg: "bg-gray-100",
+          text: "text-gray-800",
+          border: "border-gray-800",
+          display: status,
+        };
+    }
   };
 
   return (
@@ -87,10 +139,9 @@ export default function AppointmentHistory() {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-2xl font-bold text-center text-black mb-5">
-          Lịch sử đặt bàn
+          Lịch sử đặt hẹn
         </Text>
-        <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-1 mr-2"></View>
+        <View className="flex-row items-center justify-end mb-4">
           <Button
             icon={
               <FontAwesome5
@@ -101,69 +152,84 @@ export default function AppointmentHistory() {
               />
             }
             buttonStyle={{ backgroundColor: "black", borderRadius: 10 }}
+            onPress={() => setShowSortBottomSheet(!showSortBottomSheet)}
           />
         </View>
+
         {isLoading ? (
           <View className="flex justify-center items-center">
-            <Fold size={48} color="#000000" />
+            <LoadingPage />
           </View>
         ) : (
-          <ScrollView className="flex-1">
+          <ScrollView
+            className="flex-1"
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
             {appointments.length > 0 ? (
-              appointments.map((item) => {
-                const statusColor = statusColors[item.status] || "gray";
+              appointments
+                .filter(
+                  (item) =>
+                    item.status.toLowerCase() === "completed" ||
+                    item.status.toLowerCase() === "unfinished",
+                )
+                .map((item) => {
+                  const { bg, text, border, display } = getStatusStyles(
+                    item.status,
+                  );
 
-                const statusText =
-                  statusTextMap[item.status] || "Không xác định";
-                return (
-                  <View
-                    key={item.appointmentId}
-                    className="bg-white p-4 rounded-lg shadow-md mb-4 border-l-4"
-                    style={{
-                      borderColor: statusColor,
-                    }}
-                  >
-                    <Text className="text-lg font-bold text-gray-900">
-                      Mã đơn: {item.appointmentId}
-                    </Text>
-                    <Text className="text-sm text-gray-600">
-                      Ngày tạo: {new Date(item.createdAt).toLocaleString()}
-                    </Text>
-                    <Text className="text-sm text-gray-600">
-                      Số bàn: {item.tablesAppointments.length}
-                    </Text>
-                    <Text className="text-sm text-gray-600">
-                      Tổng giá: {item.totalPrice.toLocaleString()} VND
-                    </Text>
-                    <Text
-                      className="text-sm font-bold"
-                      style={{ color: statusColor }}
+                  return (
+                    <View
+                      key={item.appointmentId}
+                      className={`bg-white p-4 rounded-lg shadow-md mb-4 border-l-4 ${border}`}
                     >
-                      Trạng thái: {statusText}
-                    </Text>
-                    <TouchableOpacity
-                      className="mt-3 bg-black text-white px-4 py-2 rounded-full"
-                      onPress={() =>
-                        navigation.navigate("appointment_detail", {
-                          appointmentId: item.appointmentId,
-                        })
-                      }
-                    >
-                      <Text className="text-white text-center font-semibold">
-                        Xem chi tiết
+                      <Text className="text-lg font-bold text-gray-900">
+                        Mã đơn: {item.appointmentId}
                       </Text>
-                    </TouchableOpacity>
-                  </View>
-                );
-              })
+                      <Text className="text-sm text-gray-600">
+                        Ngày tạo: {new Date(item.createdAt).toLocaleString()}
+                      </Text>
+                      <Text className="text-sm text-gray-600">
+                        Số bàn: {item.tablesCount}
+                      </Text>
+                      <Text className="text-sm text-gray-600">
+                        Tổng giá: {item.totalPrice.toLocaleString()} VND
+                      </Text>
+                      <Text className={`text-sm font-bold ${text}`}>
+                        Trạng thái: {display}
+                      </Text>
+
+                      <TouchableOpacity
+                        className="mt-3 bg-black text-white px-4 py-2 rounded-full"
+                        onPress={() =>
+                          navigation.navigate("appointment_detail", {
+                            appointmentId: item.appointmentId,
+                          })
+                        }
+                      >
+                        <Text className="text-white text-center font-semibold">
+                          Xem chi tiết
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })
             ) : (
               <Text className="text-center text-gray-500">
-                Chưa có lịch sử đặt bàn.
+                Chưa có lịch sử đặt hẹn.
               </Text>
             )}
           </ScrollView>
         )}
       </View>
+      {showSortBottomSheet && (
+        <BottomSheetSortAppointment
+          selectedSort={selectedSort}
+          onSelectSort={(sort) => setSelectedSort(sort)}
+          onClose={() => setShowSortBottomSheet(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

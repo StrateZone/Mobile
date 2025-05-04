@@ -2,7 +2,7 @@ export const mapRoomTypesToVietnamese = (roomTypes: string[]): string[] => {
   return roomTypes.map((roomType) => {
     switch (roomType) {
       case "basic":
-        return "Phòng cơ bản";
+        return "Phòng thường";
       case "openspaced":
         return "Phòng không gian mở";
       case "premium":
@@ -16,7 +16,7 @@ export const mapRoomTypesToVietnamese = (roomTypes: string[]): string[] => {
 export const mapRoomTypesToEnglish = (roomTypes: string[]): string[] => {
   return roomTypes.map((roomType) => {
     switch (roomType) {
-      case "Phòng cơ bản":
+      case "Phòng thường":
         return "basic";
       case "Phòng không gian mở":
         return "openspaced";

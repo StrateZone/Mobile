@@ -17,6 +17,7 @@ import { Fold } from "react-native-animated-spinkit";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { Transaction } from "@/constants/types/transaction";
+import LoadingPage from "@/components/loading/loading_page";
 
 const TRANSLATED_CONTENT: Record<string, string> = {
   "Paid booking": "Thanh toán đặt chỗ",
@@ -86,9 +87,7 @@ export default function BalanceMovementHistory() {
           Biến động số dư
         </Text>
         {isLoading ? (
-          <View className="flex justify-center items-center">
-            <Fold size={48} color="#000000" />
-          </View>
+          <LoadingPage />
         ) : (
           <ScrollView className="space-y-4">
             {balanceHistory.map((transaction, index) => (
