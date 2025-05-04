@@ -398,7 +398,7 @@ export default function CommunityDetail({ route }: Props) {
                 </View>
               )}
             </View>
-            <View className="bg-gray-100 rounded-xl flex-row items-center px-3 py-2">
+            <View className="bg-white rounded-2xl px-4 py-2 flex-row items-end shadow-sm border border-gray-200">
               <TextInput
                 placeholder="Nhập bình luận..."
                 multiline
@@ -408,7 +408,8 @@ export default function CommunityDetail({ route }: Props) {
                     ? setReplyContent(text)
                     : setMainCommentContent(text)
                 }
-                className="flex-1 text-base text-gray-800 pr-2"
+                className="flex-1 text-base text-gray-800 max-h-32"
+                placeholderTextColor="#999"
               />
               <TouchableOpacity
                 onPress={handleSubmitComment}
@@ -418,19 +419,9 @@ export default function CommunityDetail({ route }: Props) {
                     ? replyContent.trim()
                     : mainCommentContent.trim())
                 }
+                className="ml-2 p-2 rounded-full bg-blue-500 disabled:bg-gray-300"
               >
-                <Feather
-                  name="send"
-                  size={20}
-                  color={
-                    submitting ||
-                    !(replyToCommentId
-                      ? replyContent.trim()
-                      : mainCommentContent.trim())
-                      ? "#ccc"
-                      : "#007AFF"
-                  }
-                />
+                <Feather name="send" size={18} color="white" />
               </TouchableOpacity>
             </View>
 
