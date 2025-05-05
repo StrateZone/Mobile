@@ -9,14 +9,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Alert } from "react-native";
-import * as Linking from "expo-linking";
 import Toast from "react-native-toast-message";
-import { NavigationContainer } from "@react-navigation/native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import AppointmentLayout from "./(tab)/(appointment)/_layout";
 import ProfileLayout from "./(tab)/(profile)/_layout";
 import ProductLayout from "./(tab)/(product)/_layout";
-import CourseLayout from "./(tab)/(course)/_layout";
+import ClauseLayout from "./(tab)/(clause)/_layout";
 import CommunityLayout from "./(tab)/(community)/_layout";
 import TournamentLayout from "./(tab)/(tournament)/_layout";
 import SplashScreen from "./splash-screen";
@@ -37,24 +36,6 @@ const theme = createTheme({
   darkColors: { primary: "#000000" },
   mode: "light",
 });
-
-const linking = {
-  prefixes: [Linking.createURL("/")],
-  config: {
-    screens: {
-      Appointment: {
-        screens: {
-          PaymentSuccess: "payment-success",
-        },
-      },
-      Profile: {
-        screens: {
-          AppointmentHistory: "appointment-history",
-        },
-      },
-    },
-  },
-};
 
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
@@ -113,11 +94,11 @@ export default function RootLayout() {
               }}
             />
             <Drawer.Screen
-              name="Courses"
-              component={CourseLayout}
+              name="Clause"
+              component={ClauseLayout}
               options={{
                 headerShown: false,
-                drawerLabel: "Khóa học",
+                drawerLabel: "Điều khoản StrateZone",
                 drawerIcon: ({ color }) => (
                   <MaterialIcons name="menu-book" size={24} color={color} />
                 ),
@@ -208,7 +189,14 @@ function CustomDrawerContent({ navigation }: any) {
       <View style={{ alignItems: "center", paddingVertical: 20 }}>
         {authState?.authenticated ? (
           <View style={{ alignItems: "center", paddingVertical: 20 }}>
-            <Ionicons name="person-circle" size={24} />
+            <Image
+              source={{
+                uri:
+                  authState.user?.imageUrl ||
+                  "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+              }}
+              className="w-28 h-28 rounded-full border-4 border-white shadow"
+            />
             <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 10 }}>
               {authState.user?.username}
             </Text>
@@ -251,13 +239,6 @@ function CustomDrawerContent({ navigation }: any) {
           <Text style={styles.menuText}>Sản phẩm</Text>
         </TouchableOpacity> */}
         {/* <TouchableOpacity
-          onPress={() => navigation.navigate("Courses")}
-          style={styles.menuItem}
-        >
-          <MaterialIcons name="menu-book" size={24} color="#333" />
-          <Text style={styles.menuText}>Khóa học</Text>
-        </TouchableOpacity> */}
-        {/* <TouchableOpacity
           onPress={() => navigation.navigate("Tournaments")}
           style={styles.menuItem}
         >
@@ -278,6 +259,19 @@ function CustomDrawerContent({ navigation }: any) {
         >
           <FontAwesome name="bell" size={24} color="#333" />
           <Text style={styles.menuText}>Thông báo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Clause")}
+          style={styles.menuItem}
+        >
+          <MaterialCommunityIcons
+            name="file-document"
+            size={24}
+            color="black"
+          />
+
+          <Text style={styles.menuText}>Điều khoản</Text>
         </TouchableOpacity>
 
         {authState?.authenticated && (

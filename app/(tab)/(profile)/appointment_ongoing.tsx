@@ -6,6 +6,8 @@ import {
   View,
   Text,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +22,7 @@ import { RootStackParamList } from "@/constants/types/root-stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheetSortAppointment from "@/components/bottom_sheet/bottom_sheet_sort_appointment";
 import LoadingPage from "@/components/loading/loading_page";
+import BackButton from "@/components/BackButton";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -135,16 +138,21 @@ export default function AppointmentOnGoing() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="flex-1 p-4 mt-10">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 mt-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+      <View className="flex-1 p-4 ">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          Cuộc hẹn đang chờ
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: "#212529" }}>
+            Cuộc hẹn đang chờ
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
         <View className="flex-row items-center justify-end mb-4">
           <Button
             icon={

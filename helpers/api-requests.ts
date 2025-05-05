@@ -20,7 +20,7 @@ export const getRequest = async (
         }
       }
     }
-
+    // console.log( `${config.BACKEND_API}/api${path}?${params.toString()}`)
     const { data } = await axios.get(
       `${config.BACKEND_API}/api${path}?${params.toString()}`,
     );

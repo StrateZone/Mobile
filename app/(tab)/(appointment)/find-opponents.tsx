@@ -42,6 +42,17 @@ export default function FindOpponent({ route }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [maxOpponent, setMaxOpponent] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchMaxOpponents = async () => {
+      const response = await getRequest(
+        `/system/1/appointment-requests/max-invitations-to-table`,
+      );
+      setMaxOpponent(response);
+    };
+    fetchMaxOpponents();
+  }, []);
 
   const handleGetUserForInvite = async () => {
     setIsLoading(true);
@@ -58,17 +69,15 @@ export default function FindOpponent({ route }: Props) {
       if (user?.userRole === "Member") {
         const friends = response.friends.map((friend: any) => ({
           ...friend,
-          // isInvited: alreadyInvitedIds.includes(friend.userId),
         }));
 
         const opponents = response.matchingOpponents.map((opponent: any) => ({
           ...opponent,
-          // isInvited: alreadyInvitedIds.includes(opponent.userId),
         }));
 
-        setOpponents([...friends, ...opponents]); // Gộp cả bạn bè và đối thủ
+        setOpponents([...friends, ...opponents]);
       } else {
-        setOpponents(response.matchingOpponents || []); // Chỉ lấy đối thủ
+        setOpponents(response.matchingOpponents || []);
       }
       setExcludedIds(response.excludedIds || []);
     } catch (error) {
@@ -88,11 +97,11 @@ export default function FindOpponent({ route }: Props) {
     const table = selectedTables.find((t: ChessTable) => t.tableId === tableId);
     const currentInvitedCount = table?.invitedUsers?.length || 0;
 
-    if (currentInvitedCount >= 6) {
+    if (currentInvitedCount >= maxOpponent) {
       Toast.show({
         type: "error",
         text1: "Quá giới hạn",
-        text2: "Chỉ được phép mời tối đa 6 người",
+        text2: `Chỉ được phép mời tối đa ${maxOpponent} người`,
       });
       return;
     }

@@ -30,6 +30,7 @@ import { TableContext } from "@/context/select-table";
 import { Ionicons } from "@expo/vector-icons";
 import BackButton from "@/components/BackButton";
 import LoadingPage from "@/components/loading/loading_page";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "list_table">;
@@ -117,7 +118,6 @@ export default function ListTableScreen({ route }: Props) {
       });
 
       const newData = response.pagedList || [];
-
       if (page === 1) {
         setChessTable(newData);
       } else {
@@ -185,9 +185,7 @@ export default function ListTableScreen({ route }: Props) {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#F9FAFB" /* neutral-50 */ }}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -205,10 +203,10 @@ export default function ListTableScreen({ route }: Props) {
             style={{
               fontSize: 20,
               fontWeight: "600",
-              color: "#111827" /* neutral-900 */,
+              color: "#111827",
             }}
           >
-            {mapGameTypeToVietnamese(gameTypeFilter)}
+            {capitalizeWords(gameTypeFilter)}
           </Text>
           <View style={{ width: 48 }} />
         </View>
@@ -287,7 +285,7 @@ export default function ListTableScreen({ route }: Props) {
                 title="Xóa hết"
                 onPress={handleClearTables}
                 buttonStyle={{
-                  backgroundColor: "#EF4444", // error color
+                  backgroundColor: "#EF4444",
                   borderRadius: 10,
                   paddingVertical: 10,
                 }}
@@ -297,7 +295,7 @@ export default function ListTableScreen({ route }: Props) {
                 title={`Chọn ${selectedTables.length} bàn`}
                 onPress={() => navigation.navigate("booking_detail")}
                 buttonStyle={{
-                  backgroundColor: "#3B82F6", // primary color
+                  backgroundColor: "#3B82F6",
                   borderRadius: 10,
                   paddingVertical: 12,
                 }}

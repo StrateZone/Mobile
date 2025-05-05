@@ -131,7 +131,8 @@ export default function FriendManagementScreen() {
   const rejectFriend = async (id: number) => {
     setLoading(`reject_${id}`, true);
     try {
-      await putRequest(`/friendrequests/reject/${id}`, {});
+      const res = await putRequest(`/friendrequests/reject/${id}`, {});
+      console.log(res);
       Toast.show({ type: "success", text1: "Đã từ chối lời mời kết bạn" });
       await fetchFriendRequests();
       await fetchFriends();
@@ -287,43 +288,48 @@ export default function FriendManagementScreen() {
                   Bạn chưa có bạn bè nào
                 </Text>
               ) : (
-                friendList.map((item: any) => (
-                  <FriendCard
-                    key={item.id}
-                    user={item.friend}
-                    buttons={
-                      <>
-                        <LoadingButton
-                          title="Xem thông tin"
-                          onPress={() => {
-                            navigation.navigate("friend_detail", {
-                              friendId: item.friend?.userId,
-                            });
-                          }}
-                          buttonStyle={{
-                            backgroundColor: "#3b82f6",
-                            borderRadius: 10,
-                            paddingHorizontal: 16,
-                          }}
-                          titleStyle={{ fontSize: 14 }}
-                        />
-                        <LoadingButton
-                          title="Xóa bạn"
-                          onPress={() =>
-                            removeFriend(item.id, item.friend?.username)
-                          }
-                          isLoading={loadingStates[`remove_${item.id}`]}
-                          buttonStyle={{
-                            backgroundColor: "#ef4444",
-                            borderRadius: 10,
-                            paddingHorizontal: 16,
-                          }}
-                          titleStyle={{ fontSize: 14 }}
-                        />
-                      </>
-                    }
-                  />
-                ))
+                friendList.map((item: any) => {
+                  const isTopContributor =
+                    item.friend?.userLabel === "top_contributor";
+                  return (
+                    <FriendCard
+                      key={item.id}
+                      user={item.friend}
+                      topContributor={isTopContributor}
+                      buttons={
+                        <>
+                          <LoadingButton
+                            title="Xem thông tin"
+                            onPress={() => {
+                              navigation.navigate("friend_detail", {
+                                friendId: item.friend?.userId,
+                              });
+                            }}
+                            buttonStyle={{
+                              backgroundColor: "#3b82f6",
+                              borderRadius: 10,
+                              paddingHorizontal: 16,
+                            }}
+                            titleStyle={{ fontSize: 14 }}
+                          />
+                          <LoadingButton
+                            title="Xóa bạn"
+                            onPress={() =>
+                              removeFriend(item.id, item.friend?.username)
+                            }
+                            isLoading={loadingStates[`remove_${item.id}`]}
+                            buttonStyle={{
+                              backgroundColor: "#ef4444",
+                              borderRadius: 10,
+                              paddingHorizontal: 16,
+                            }}
+                            titleStyle={{ fontSize: 14 }}
+                          />
+                        </>
+                      }
+                    />
+                  );
+                })
               )}
             </ScrollView>
           </TabView.Item>
@@ -352,6 +358,7 @@ export default function FriendManagementScreen() {
                     key={req.id}
                     user={req.fromUserNavigation}
                     createdAt={req.createdAt}
+                    topContributor={req.fromUserNavigation.userLabel === 1}
                     buttons={
                       <>
                         <LoadingButton
@@ -424,6 +431,7 @@ export default function FriendManagementScreen() {
                   <FriendCard
                     key={user.userId}
                     user={user}
+                    topContributor={user.userLabel === "top_contributor"}
                     buttons={
                       <>
                         <LoadingButton

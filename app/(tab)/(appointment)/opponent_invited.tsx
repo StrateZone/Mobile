@@ -121,7 +121,7 @@ export default function OpponentInvited({ route }: Props) {
             style={{
               fontSize: 20,
               fontWeight: "600",
-              color: "#212529" /* neutral-900 */,
+              color: "#212529",
             }}
           >
             Đối thủ đã mời cho bàn {tableId}

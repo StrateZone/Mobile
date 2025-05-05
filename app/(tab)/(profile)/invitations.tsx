@@ -7,6 +7,8 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -14,17 +16,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/auth-context";
 import { getRequest, postRequest, putRequest } from "@/helpers/api-requests";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Button, Icon } from "@rneui/themed";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { Fold } from "react-native-animated-spinkit";
 import Toast from "react-native-toast-message";
 
 import PaymentDialogForInvited from "@/components/dialog/payment_dialog_for_invited";
 
-import { Apointment } from "@/constants/types/apointment";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
 import LoadingPage from "@/components/loading/loading_page";
+import BackButton from "@/components/BackButton";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -266,17 +266,21 @@ export default function Invitations() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <View className="flex-1 p-4 mt-10">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 mt-2 bg-gray-300 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+      <View className="flex-1 p-4 ">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-
-        <Text className="text-2xl font-bold text-center text-black mb-5">
-          Lời mời đặt hẹn
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: "#212529" }}>
+            Lời mời đặt hẹn
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
         {isLoading ? (
           <View className="flex justify-center items-center mt-32">
@@ -335,6 +339,7 @@ export default function Invitations() {
                             tableId: item.table.tableId,
                             roomId: item.table.roomId,
                             roomName: item.table.roomName,
+                            gameType: item.table.gameType,
                             roomType: item.table.roomType,
                             startTime: item.startTime,
                             endTime: item.endTime,

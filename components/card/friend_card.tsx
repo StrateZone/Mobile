@@ -1,13 +1,20 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { Avatar } from "@rneui/themed";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = {
   user: any;
   buttons?: React.ReactNode;
   createdAt?: string;
+  topContributor?: boolean;
 };
-export default function FriendCard({ user, buttons, createdAt }: Props) {
+export default function FriendCard({
+  user,
+  buttons,
+  createdAt,
+  topContributor,
+}: Props) {
   return (
     <View className="bg-white p-4 rounded-2xl shadow-md mb-4">
       <View className="flex-row items-center mb-3">
@@ -20,6 +27,7 @@ export default function FriendCard({ user, buttons, createdAt }: Props) {
           rounded
           size={50}
         />
+
         <View>
           <Text className="ml-4 font-semibold text-base text-black">
             {user.username || user.fromUserNavigation?.username}
@@ -28,6 +36,15 @@ export default function FriendCard({ user, buttons, createdAt }: Props) {
             <Text className="ml-4">
               Đã gửi {new Date(createdAt).toLocaleDateString()}
             </Text>
+          )}
+
+          {topContributor && (
+            <View className="flex-row items-center mt-1 px-3 py-1 bg-yellow-500 rounded-full shadow-sm">
+              <Ionicons name="trophy" size={16} color="white" />
+              <Text className="text-white font-semibold text-sm ml-2">
+                Top Contributor
+              </Text>
+            </View>
           )}
         </View>
       </View>

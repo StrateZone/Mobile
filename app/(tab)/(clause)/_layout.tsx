@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
-import CourseScreen from "./index";
+import ClauseScreen from "./index";
 
 const Stack = createStackNavigator();
 
@@ -17,7 +17,7 @@ export default function CourseLayout() {
     <Stack.Navigator>
       <Stack.Screen
         name="index"
-        component={CourseScreen}
+        component={ClauseScreen}
         options={{
           headerLeft: () => (
             <TouchableOpacity
@@ -27,7 +27,7 @@ export default function CourseLayout() {
               <Ionicons name="menu" size={24} color="black" />
             </TouchableOpacity>
           ),
-          headerTitle: "Khóa học",
+          headerTitle: "Điều khoản StrateZone",
           headerTitleStyle: {
             fontSize: 20,
           },

@@ -10,6 +10,7 @@ import RegisterScreen from "./register";
 
 import { RootStackParamList } from "@/constants/types/root-stack";
 import LoginByOtpScreen from "./login_by_otp";
+import ForgotPassword from "./forgot_password";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -58,6 +59,13 @@ export default function AuthLayout() {
       <Stack.Screen
         name="Otp"
         component={OtpConfirmScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPassword}
         options={{
           headerShown: false,
         }}

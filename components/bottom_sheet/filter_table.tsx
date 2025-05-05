@@ -11,6 +11,7 @@ import RNDateTimePicker from "@react-native-community/datetimepicker";
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 import { mapRoomTypesToVietnamese } from "@/helpers/map_room_type_by_language";
 import { getRequest } from "@/helpers/api-requests";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
 
 type Props = {
   gameType: string;
@@ -39,24 +40,47 @@ export default function BottomSheetFilterTable({
   const minStartTime = new Date(now);
   minStartTime.setHours(now.getHours() + 1);
 
-  const gameTypeMap: { [key: string]: string } = {
-    "Cờ vua": "chess",
-    "Cờ tướng": "xiangqi",
-    "Cờ vây": "go",
-  };
+  const [gameTypeList, setGameTypeList] = useState<any[]>([]);
+  const [roomTypeList, setRoomTypeList] = useState<string[]>([]);
 
-  const roomTypeMap: { [key: string]: string } = {
-    "Phòng thường": "basic",
-    "Phòng không gian mở": "openspaced",
-    "Phòng cao cấp": "premium",
-  };
+  useEffect(() => {
+    const fetchGameType = async () => {
+      try {
+        const response = await getRequest("/game_types/all");
+        if (response.length > 0) {
+          setGameTypeList(response);
+          setSelectedGameType(
+            response.find((item) => item.typeName === gameType)?.typeName ||
+              response[0].typeName,
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching game types", error);
+      }
+    };
 
-  const [selectedGameType, setSelectedGameType] = useState<string>(
-    mapGameTypeToVietnamese(gameType),
-  );
-  const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(
-    mapRoomTypesToVietnamese(roomTypes),
-  );
+    const fetchRoomType = async () => {
+      try {
+        const response = await getRequest("/rooms/roomtypes");
+        if (response.length > 0) {
+          setRoomTypeList(response);
+          const defaultRoomTypes = response.filter((item: string) =>
+            roomTypes.includes(item),
+          );
+          setSelectedRoomTypes(defaultRoomTypes);
+        }
+      } catch (error) {
+        console.error("Error fetching room types", error);
+      }
+    };
+
+    fetchGameType();
+    fetchRoomType();
+  }, []);
+
+  const [selectedGameType, setSelectedGameType] = useState<string>(gameType);
+  const [selectedRoomTypes, setSelectedRoomTypes] =
+    useState<string[]>(roomTypes);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState<Date>(now);
   const [endTime, setEndTime] = useState<Date>(now);
@@ -119,9 +143,6 @@ export default function BottomSheetFilterTable({
   };
 
   const applyFilters = () => {
-    const mappedGameType = gameTypeMap[selectedGameType];
-    const mappedRoomTypes = selectedRoomTypes.map((room) => roomTypeMap[room]);
-
     const selectedDateUTC7 = convertToUTC7(selectedDate);
     const startTimeUTC7 = convertToUTC7(startTime);
     const endTimeUTC7 = convertToUTC7(endTime);
@@ -181,8 +202,8 @@ export default function BottomSheetFilterTable({
     };
 
     onApplyFilter(
-      mappedGameType,
-      mappedRoomTypes,
+      selectedGameType,
+      selectedRoomTypes,
       createDateTime(selectedDateObj, formatTime(startTimeUTC7)),
       createDateTime(selectedDateObj, formatTime(endTimeUTC7)),
     ),
@@ -197,12 +218,12 @@ export default function BottomSheetFilterTable({
             <Text style={styles.title}>Bộ Lọc</Text>
 
             <Text style={styles.label}>Loại cờ:</Text>
-            {Object.keys(gameTypeMap).map((game) => (
+            {gameTypeList.map((game) => (
               <CheckBox
-                key={game}
-                title={game}
-                checked={selectedGameType === game}
-                onPress={() => handleSelectGameType(game)}
+                key={game.typeName}
+                title={capitalizeWords(game.typeName)}
+                checked={selectedGameType === game.typeName}
+                onPress={() => handleSelectGameType(game.typeName)}
               />
             ))}
 
@@ -236,10 +257,10 @@ export default function BottomSheetFilterTable({
             </View>
 
             <Text style={styles.label}>Loại phòng:</Text>
-            {Object.keys(roomTypeMap).map((room) => (
+            {roomTypeList.map((room) => (
               <CheckBox
                 key={room}
-                title={room}
+                title={capitalizeWords(room)}
                 checked={selectedRoomTypes.includes(room)}
                 onPress={() => toggleRoomType(room)}
               />

@@ -28,6 +28,9 @@ import { ChessTable } from "@/constants/types/chess_table";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import BackButton from "@/components/BackButton";
 import LoadingPage from "@/components/loading/loading_page";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
+import VoucherDialog from "@/components/dialog/voucher_dialog";
+import LoadingForButton from "@/components/loading/loading_button";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -50,6 +53,52 @@ export default function BookingDetailScreen() {
   const [tableOpponents, setTableOpponents] = useState<Record<number, any[]>>(
     {},
   );
+  const [voucherDialogVisible, setVoucherDialogVisible] = useState(false);
+  const [vouchers, setVouchers] = useState([]);
+  const [selectedVouchers, setSelectedVouchers] = useState<Record<number, any>>(
+    {},
+  );
+  const [currentTableIdSelectingVoucher, setCurrentTableIdSelectingVoucher] =
+    useState<number | null>(null);
+  const [loadingVoucherTableId, setLoadingVoucherTableId] = useState<
+    number | null
+  >(null);
+
+  const handleShowVouchers = async (tableId: number) => {
+    if (!user) {
+      Toast.show({
+        type: "error",
+        text1: "Bạn cần đăng nhập để xem voucher",
+      });
+      return;
+    }
+
+    try {
+      setLoadingVoucherTableId(tableId);
+
+      const res = await getRequest(`/vouchers/of-user/${user.userId}`);
+      const usedVoucherIds = Object.entries(selectedVouchers)
+        .filter(([tid, _]) => parseInt(tid) !== tableId)
+        .map(([_, voucher]) => voucher.voucherId);
+
+      const availableVouchers = res.pagedList.map((v: any) => ({
+        ...v,
+        isUsed: usedVoucherIds.includes(v.voucherId),
+      }));
+
+      setVouchers(availableVouchers);
+      setCurrentTableIdSelectingVoucher(tableId);
+      setVoucherDialogVisible(true);
+    } catch (e) {
+      console.error("Lỗi lấy voucher:", e);
+      Toast.show({
+        type: "error",
+        text1: "Không thể tải danh sách voucher",
+      });
+    } finally {
+      setLoadingVoucherTableId(null);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -93,29 +142,25 @@ export default function BookingDetailScreen() {
   }, [selectedTables, user]);
 
   useEffect(() => {
-    const fetchSelectedTables = async () => {
-      const total = selectedTables.reduce(
-        (sum: number, table: ChessTable) => sum + table.totalPrice,
-        0,
-      );
-      setTotalPrice(total);
-    };
-
-    fetchSelectedTables();
-  }, []);
-
-  useEffect(() => {
     const newTotal = selectedTables.reduce((sum: number, table: ChessTable) => {
-      const hasInvitedUsers =
-        table.invitedUsers && table.invitedUsers.length > 0;
-      const adjustedPrice = hasInvitedUsers
-        ? table.totalPrice / 2
-        : table.totalPrice;
-      return sum + adjustedPrice;
+      const hasOpponent = table.invitedUsers && table.invitedUsers.length > 0;
+      const voucher = selectedVouchers[table.tableId];
+
+      // B1: Áp dụng giảm giá
+      let priceAfterVoucher = table.totalPrice;
+      if (voucher) {
+        priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);
+      }
+
+      // B2: Nếu có đối thủ, chia đôi
+      const finalPrice = hasOpponent
+        ? priceAfterVoucher / 2
+        : priceAfterVoucher;
+
+      return sum + finalPrice;
     }, 0);
 
     setTotalPrice(newTotal);
-
     if (selectedTables.length === 0 && !isPaymentSuccessful) {
       navigation.goBack();
       Toast.show({
@@ -124,7 +169,7 @@ export default function BookingDetailScreen() {
         text2: "Vui lòng chọn thêm bàn.",
       });
     }
-  }, [selectedTables]);
+  }, [selectedTables, selectedVouchers]);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -141,12 +186,52 @@ export default function BookingDetailScreen() {
           style={{
             fontSize: 20,
             fontWeight: "600",
-            color: "#212529" /* neutral-900 */,
+            color: "#212529",
           }}
         >
           Chi tiết đặt bàn
         </Text>
         <View style={{ width: 48 }} />
+      </View>
+
+      <View className="px-4 mt-2">
+        <TouchableOpacity
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#007bff",
+            borderRadius: 8,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            alignSelf: "flex-end",
+            marginBottom: 10,
+            marginTop: 10,
+          }}
+          onPress={() => {
+            if (!user) {
+              Toast.show({
+                type: "error",
+                text1: "Thất bại",
+                text2: `Bạn cần đăng nhập để tiếp tục`,
+              });
+              return;
+            }
+            navigation.navigate("voucher_exchange");
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontSize: 16,
+              marginRight: 6,
+              fontWeight: "500",
+            }}
+          >
+            Đổi Voucher
+          </Text>
+          <FontAwesome5 name="gift" size={18} color="white" />
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -190,21 +275,15 @@ export default function BookingDetailScreen() {
                   <View className="flex-row items-center mb-2">
                     <Ionicons name="home-outline" size={16} color="gray" />
                     <Text className="text-gray-700 ml-2">
-                      Phòng:{" "}
-                      {{
-                        basic: "thường",
-                        openspaced: "Không gian mở",
-                        premium: "Cao cấp",
-                      }[table.roomType] || table.roomType}{" "}
-                      ({table.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+                      Phòng: {capitalizeWords(table.roomType)}(
+                      {table.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
                     </Text>
                   </View>
 
                   <View className="flex-row items-center mb-2">
                     <FontAwesome5 name="chess" size={16} color="gray" />
                     <Text className="text-gray-700 ml-2">
-                      Loại cờ:{" "}
-                      {mapGameTypeToVietnamese(table.gameType.typeName)} (
+                      Loại cờ: {capitalizeWords(table.gameType.typeName)} (
                       {table.gameTypePrice.toLocaleString("vi-VN")} vnd/giờ)
                     </Text>
                   </View>
@@ -246,12 +325,15 @@ export default function BookingDetailScreen() {
                     </View>
                   </View>
 
-                  <View className="mt-3 flex-row justify-around">
-                    {tableOpponents[table.tableId]?.some(
-                      (item) => item.status === "accepted",
-                    ) ? (
-                      <View className="items-center">
-                        <Text className="text-sm text-gray-600">Đối thủ</Text>
+                  <View className="mt-3 space-y-4">
+                    <View className="flex-row items-center space-x-4">
+                      <Text className="text-sm text-gray-600 w-20">
+                        Mời đối thủ:
+                      </Text>
+
+                      {tableOpponents[table.tableId]?.some(
+                        (item) => item.status === "accepted",
+                      ) ? (
                         <Image
                           source={{
                             uri:
@@ -260,70 +342,137 @@ export default function BookingDetailScreen() {
                               )?.toUserNavigation?.avatarUrl ||
                               "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
                           }}
-                          className="w-12 h-12 rounded-full mt-1"
+                          className="w-12 h-12 rounded-full"
                         />
-                      </View>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (!user) {
-                            Toast.show({
-                              type: "error",
-                              text1: "Thất bại",
-                              text2: `Bạn cần đăng nhập để tiếp tục`,
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (!user) {
+                              Toast.show({
+                                type: "error",
+                                text1: "Thất bại",
+                                text2: `Bạn cần đăng nhập để tiếp tục`,
+                              });
+                              return;
+                            }
+
+                            navigation.navigate("find_opponents", {
+                              tableId: table.tableId,
+                              startDate: table.startDate,
+                              endDate: table.endDate,
+                              tablePrice: table.totalPrice / 2,
                             });
-                            return;
+                          }}
+                          className="p-2 border rounded-full"
+                        >
+                          <AntDesign name="adduser" size={24} color="black" />
+                          {table.invitedUsers &&
+                            table.invitedUsers.length > 0 && (
+                              <View className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 items-center justify-center">
+                                <Text className="text-white text-xs">
+                                  {table.invitedUsers.length}
+                                </Text>
+                              </View>
+                            )}
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {/* Giá + Voucher */}
+                    <View className="flex-row justify-between items-start">
+                      {/* Giá + Ghi chú */}
+                      <View className="flex-1 pr-3">
+                        {(() => {
+                          const voucher = selectedVouchers[table.tableId];
+                          const hasOpponent =
+                            table.invitedUsers && table.invitedUsers.length > 0;
+
+                          const originalPrice = table.totalPrice;
+
+                          let discountedPrice = originalPrice;
+                          let reasons: string[] = [];
+
+                          if (voucher) {
+                            discountedPrice -= voucher.value;
+                            reasons.push("voucher");
                           }
 
-                          navigation.navigate("find_opponents", {
-                            tableId: table.tableId,
-                            startDate: table.startDate,
-                            endDate: table.endDate,
-                            tablePrice: table.totalPrice / 2,
-                          });
-                        }}
-                        className="relative"
-                      >
-                        <AntDesign name="adduser" size={30} color="black" />
-                        {table.invitedUsers &&
-                          table.invitedUsers.length > 0 && (
-                            <View className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 items-center justify-center">
-                              <Text className="text-white text-xs">
-                                {table.invitedUsers.length}
-                              </Text>
+                          discountedPrice = Math.max(0, discountedPrice);
+
+                          if (hasOpponent) {
+                            discountedPrice /= 2;
+                            reasons.push("đối thủ");
+                          }
+
+                          const hasDiscount = discountedPrice !== originalPrice;
+
+                          return (
+                            <View>
+                              <View className="flex-row items-center flex-wrap">
+                                <FontAwesome5
+                                  name="money-bill-wave"
+                                  size={16}
+                                  color="green"
+                                />
+
+                                {hasDiscount ? (
+                                  <>
+                                    <Text className="ml-2 text-sm text-gray-500 line-through">
+                                      {originalPrice.toLocaleString("vi-VN")}{" "}
+                                      VND
+                                    </Text>
+                                    <Text className="ml-2 text-xl font-bold text-green-600">
+                                      {discountedPrice.toLocaleString("vi-VN")}{" "}
+                                      VND
+                                    </Text>
+                                  </>
+                                ) : (
+                                  <Text className="ml-2 text-xl font-bold text-green-600">
+                                    {originalPrice.toLocaleString("vi-VN")} VND
+                                  </Text>
+                                )}
+                              </View>
+
+                              {hasDiscount && (
+                                <Text className="text-sm text-gray-600 italic mt-1">
+                                  Đã áp dụng: {reasons.join(" & ")}
+                                </Text>
+                              )}
                             </View>
-                          )}
+                          );
+                        })()}
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => handleShowVouchers(table.tableId)}
+                        disabled={loadingVoucherTableId === table.tableId}
+                        className={`${
+                          selectedVouchers[table.tableId]
+                            ? "bg-blue-500"
+                            : "bg-gray-400"
+                        } px-4 py-2 rounded-xl self-center flex-row items-center justify-center`}
+                      >
+                        {loadingVoucherTableId === table.tableId ? (
+                          <LoadingForButton />
+                        ) : (
+                          <Text className="text-white font-medium text-sm">
+                            {selectedVouchers[table.tableId]?.voucherName ||
+                              "Chọn voucher"}
+                          </Text>
+                        )}
                       </TouchableOpacity>
-                    )}
-
-                    {(() => {
-                      const hasInvitedUsers =
-                        table.invitedUsers && table.invitedUsers.length > 0;
-                      const displayedPrice = hasInvitedUsers
-                        ? table.totalPrice / 2
-                        : table.totalPrice;
-
-                      return (
-                        <Text className="font-bold text-green-600 mt-1 text-xl flex-row items-center">
-                          <FontAwesome5
-                            name="money-bill-wave"
-                            size={16}
-                            className="mr-1"
-                          />{" "}
-                          {displayedPrice.toLocaleString("vi-VN")} VND
-                        </Text>
-                      );
-                    })()}
+                    </View>
                   </View>
                 </View>
               );
             })}
           </ScrollView>
           <View className="bg-white p-4 rounded-xl mt-4 shadow">
-            {/* <TouchableOpacity className="flex-row items-center mb-4">
-                <FontAwesome5 name="tags" size={20} color="black" />
-                <Text className="ml-2">Áp dụng ưu đãi</Text>
-              </TouchableOpacity> */}
+            {/* <Button
+              title={
+                selectedVoucher ? selectedVoucher.voucherName : "Đổi Voucher"
+              }
+              onPress={() => navigation.navigate("voucher_exchange")}
+            /> */}
 
             {user && (
               <View className="flex-row items-center">
@@ -365,10 +514,45 @@ export default function BookingDetailScreen() {
               onClose={() => setOpenDialog(false)}
               setIsLoading={setIsLoading}
               tableOpponents={tableOpponents}
+              selectedVouchers={selectedVouchers}
             />
           </View>
         </>
       )}
+      <VoucherDialog
+        visible={voucherDialogVisible}
+        vouchers={vouchers}
+        onClose={() => {
+          setVoucherDialogVisible(false);
+          setCurrentTableIdSelectingVoucher(null);
+        }}
+        onSelect={(voucher: any) => {
+          setVoucherDialogVisible(false);
+          setSelectedVouchers((prev) => {
+            const updated = { ...prev };
+            if (voucher) {
+              updated[currentTableIdSelectingVoucher!] = voucher;
+            } else {
+              delete updated[currentTableIdSelectingVoucher!];
+            }
+            return updated;
+          });
+          setCurrentTableIdSelectingVoucher(null);
+        }}
+        totalPrice={
+          currentTableIdSelectingVoucher != null
+            ? selectedTables.find(
+                (t: any) => t.tableId === currentTableIdSelectingVoucher,
+              )?.totalPrice || 0
+            : 0
+        }
+        initialSelectedVoucherId={
+          currentTableIdSelectingVoucher != null
+            ? (selectedVouchers[currentTableIdSelectingVoucher]?.voucherId ??
+              null)
+            : null
+        }
+      />
     </SafeAreaView>
   );
 }

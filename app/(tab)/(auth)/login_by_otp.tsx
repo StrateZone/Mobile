@@ -147,7 +147,9 @@ export default function LoginByOtpScreen() {
               style={{ color: "#007BFF", textDecorationLine: "underline" }}
               onPress={() => navigation.navigate("Register")}
             >
-              <Text>Bạn chưa có tài khoản?</Text>
+              <Text className="text-sm text-blue-600 underline">
+                Bạn chưa có tài khoản?
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

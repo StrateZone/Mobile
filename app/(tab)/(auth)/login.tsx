@@ -60,6 +60,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const result = await onLogin?.(email, password);
+
       if (result?.success) {
         Toast.show({ type: "success", text1: "Đăng nhập thành công!" });
         navigation.navigate("Profile", { screen: "profile" });
@@ -132,21 +133,29 @@ export default function LoginScreen() {
             />
           </View>
 
-          <View className="flex flex-row justify-center">
+          <View className="mt-6 items-center">
             <TouchableOpacity
-              className="text-blue-600 underline pt-3"
-              onPress={() => navigation.navigate("Register")}
+              onPress={() => navigation.navigate("ForgotPassword")}
             >
-              <Text>Bạn chưa có tài khoản ?</Text>
+              <Text className="text-sm text-blue-600">Quên mật khẩu?</Text>
             </TouchableOpacity>
-          </View>
 
-          <View className="flex flex-row justify-center">
+            <View className="mt-3 flex-row items-center">
+              <Text className="text-sm text-gray-600">Chưa có tài khoản?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                <Text className="ml-1 text-sm text-blue-600 underline">
+                  Đăng ký
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
-              className="text-blue-600 underline pt-2"
               onPress={() => navigation.navigate("LoginByOtp")}
+              className="mt-2"
             >
-              <Text>Đăng nhập bằng mã OTP</Text>
+              <Text className="text-sm text-blue-600 underline">
+                Hoặc đăng nhập bằng mã OTP
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

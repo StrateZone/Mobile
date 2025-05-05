@@ -26,6 +26,7 @@ import { formatDateTime } from "@/helpers/format_time";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { Fold } from "react-native-animated-spinkit";
 import BackButton from "@/components/BackButton";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "table_detail">;
@@ -123,7 +124,7 @@ export default function TableDetail({ route }: Props) {
               color: "#212529" /* neutral-900 */,
             }}
           >
-            Đối thủ đã mời cho bàn {tableId}
+            Chi tiết bàn
           </Text>
           <View style={{ width: 48 }} />
         </View>
@@ -136,12 +137,14 @@ export default function TableDetail({ route }: Props) {
               <Text className="text-lg text-gray-700 mt-2">
                 <FontAwesome5 name="door-closed" size={18} color="black" /> Tên
                 phòng:{" "}
-                <Text className="font-semibold">{tableDetail.roomName}</Text>
+                <Text className="font-semibold">
+                  {capitalizeWords(tableDetail.roomName)}
+                </Text>
               </Text>
               <Text className="text-lg text-gray-700 mt-2">
                 <FontAwesome5 name="chess" size={18} color="black" /> Loại cờ:{" "}
                 <Text className="font-semibold">
-                  {mapGameTypeToVietnamese(tableDetail.gameType.typeName)} (
+                  {capitalizeWords(tableDetail.gameType.typeName)} (
                   {tableDetail.gameTypePrice.toLocaleString("vi-VN")} vnd/giờ)
                 </Text>
               </Text>
@@ -150,12 +153,8 @@ export default function TableDetail({ route }: Props) {
                 <Ionicons name="home-outline" size={20} color="black" /> Loại
                 phòng:{" "}
                 <Text className="text-lg font-bold">
-                  {{
-                    basic: "Cơ bản",
-                    openspaced: "Không gian mở",
-                    premium: "Cao cấp",
-                  }[tableDetail.roomType] || tableDetail.roomType}{" "}
-                  ({tableDetail.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+                  {capitalizeWords(tableDetail.roomType)}(
+                  {tableDetail.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
                 </Text>
               </Text>
 
