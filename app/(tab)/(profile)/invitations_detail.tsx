@@ -6,6 +6,8 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Avatar, Card, Button, Divider } from "@rneui/themed";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -22,6 +24,8 @@ import { useAuth } from "@/context/auth-context";
 import PaymentDialogForInvited from "@/components/dialog/payment_dialog_for_invited";
 import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
 import { Fold } from "react-native-animated-spinkit";
+import BackButton from "@/components/BackButton";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type InvitationsDetailRouteProp = RouteProp<
@@ -40,6 +44,7 @@ type Props = {
       tableId: number;
       roomId: number;
       roomName: string;
+      gameType: string;
       roomType: string;
       startTime: string;
       endTime: string;
@@ -134,6 +139,7 @@ export default function InvitationsDetail({ route }: Props) {
     phone,
     tableId,
     roomId,
+    gameType,
     roomName,
     roomType,
     startTime,
@@ -199,26 +205,22 @@ export default function InvitationsDetail({ route }: Props) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
-      <View style={{ flex: 1, padding: 16, marginTop: 40 }}>
-        <TouchableOpacity
-          className="absolute top-2 left-4 bg-gray-300 p-2 rounded-full z-10"
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-
-        <Text
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <View className="flex-1 p-4 ">
+        <View
           style={{
-            fontSize: 24,
-            fontWeight: "bold",
-            textAlign: "center",
-            color: "black",
-            marginBottom: 20,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
           }}
         >
-          Lời mời đặt hẹn
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: "#212529" }}>
+            Chi tiết lời mời
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
         <View
           className={`self-center px-4 py-2 rounded-full mb-5 border flex-row items-center justify-center ${statusInfo.container}`}
@@ -339,13 +341,11 @@ export default function InvitationsDetail({ route }: Props) {
             <Text style={{ fontSize: 16, color: "#374151", marginBottom: 4 }}>
               Phòng: {roomId} - {roomName}
             </Text>
+            <Text style={{ fontSize: 16, color: "#374151", marginBottom: 4 }}>
+              Loại cờ: {capitalizeWords(gameType)}
+            </Text>
             <Text style={{ fontSize: 16, color: "#374151" }}>
-              Loại phòng:{" "}
-              {{
-                basic: "Thường",
-                openspaced: "Không gian mở",
-                premium: "Cao cấp",
-              }[roomType] || roomType}
+              Loại phòng: {capitalizeWords(roomType)}
             </Text>
           </Card>
 

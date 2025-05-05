@@ -11,6 +11,7 @@ import { formatDateTime } from "@/helpers/format_time";
 
 import { mapGameTypeToVietnamese } from "@/helpers/map_game_type_by_language";
 import { RootStackParamList } from "@/constants/types/root-stack";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -39,20 +40,15 @@ export default function TableCard({
       <View className="flex-row items-center mb-2">
         <Ionicons name="home-outline" size={16} color="gray" />
         <Text className="text-gray-700 ml-2">
-          Phòng:{" "}
-          {{
-            basic: "Cơ bản",
-            openspaced: "Không gian mở",
-            premium: "Cao cấp",
-          }[table.roomType] || table.roomType}{" "}
-          ({table.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
+          Phòng: {capitalizeWords(table.roomType)}(
+          {table.roomTypePrice.toLocaleString("vi-VN")} vnd/giờ)
         </Text>
       </View>
 
       <View className="flex-row items-center mb-2">
         <FontAwesome5 name="chess" size={16} color="gray" />
         <Text className="text-gray-700 ml-2">
-          Loại cờ: {mapGameTypeToVietnamese(table.gameType.typeName)} (
+          Loại cờ: {capitalizeWords(table.gameType.typeName)} (
           {table.gameTypePrice.toLocaleString("vi-VN")} vnd/giờ)
         </Text>
       </View>

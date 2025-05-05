@@ -13,6 +13,7 @@ import TableDetail from "./table_detail";
 import PaymentSuccessScreen from "./payment_successfull";
 import FindOpponent from "./find-opponents";
 import OpponentInvited from "./opponent_invited";
+import VoucherExchangeScreen from "./voucher_exchange";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -89,6 +90,14 @@ export default function AppointmentLayout() {
       <Stack.Screen
         name="opponent_invited"
         component={OpponentInvited}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="voucher_exchange"
+        component={VoucherExchangeScreen}
         options={{
           headerShown: false,
           gestureEnabled: false,

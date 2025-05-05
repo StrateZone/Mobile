@@ -4,6 +4,7 @@ export type RootStackParamList = {
   LoginByOtp: undefined;
   Otp: { email: string };
   Register: undefined;
+  ForgotPassword: undefined;
   Auth: {
     screen: "login";
   };
@@ -17,6 +18,7 @@ export type RootStackParamList = {
       | "deposit"
       | "invitations";
   };
+  reward_history: undefined;
   invitations: undefined;
   profile: undefined;
   appointment_history: undefined;
@@ -25,6 +27,7 @@ export type RootStackParamList = {
   appointment_detail: { appointmentId: number };
   appointment_ongoing_detail: { appointmentId: number };
   balance_movement_history: undefined;
+  change_password: undefined;
   invitations_detail: {
     invitationId: number;
     avatarUrl: string;
@@ -34,6 +37,7 @@ export type RootStackParamList = {
     tableId: number;
     roomId: number;
     roomName: string;
+    gameType: string;
     roomType: string;
     startTime: string;
     endTime: string;
@@ -52,6 +56,7 @@ export type RootStackParamList = {
     endDate: string;
     tablePrice: number;
   };
+  voucher_exchange: undefined;
   opponent_invited: { tableId: number; startDate: string; endDate: string };
   booking_detail: undefined;
   table_detail: { tableId: number; startDate: string; endDate: string };
@@ -73,4 +78,6 @@ export type RootStackParamList = {
   friend_detail: { friendId: number };
   edit_thread: { thread: any };
   edit_drafted_thread: { thread: any };
+  //clause
+  clause: undefined;
 };

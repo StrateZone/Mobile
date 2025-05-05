@@ -44,8 +44,7 @@ export default function FriendDetail({ route }: Props) {
   }, []);
 
   if (!friend) return null;
-
-  const isMember = friend?.userRole === "Member";
+  const isTopContributor = friend?.userLabel === "top_contributor";
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" /* neutral */ }}>
@@ -86,32 +85,20 @@ export default function FriendDetail({ route }: Props) {
               }}
               containerStyle={{
                 borderWidth: 4,
-                borderColor: isMember ? "#d8b4fe" : "#e5e7eb",
+                borderColor: isTopContributor ? "#f59e0b" : "#e5e7eb",
               }}
             />
             <Text className="text-xl font-bold text-black mt-4">
               {friend.fullName}
             </Text>
 
-            {isMember && (
-              <Badge
-                value="Member"
-                badgeStyle={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  backgroundColor: "transparent",
-                  borderRadius: 20,
-                }}
-                textStyle={{
-                  fontWeight: "bold",
-                  color: "white",
-                }}
-                containerStyle={{ marginTop: 8 }}
-              >
-                <View className="bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-1 rounded-full">
-                  <Text className="text-white font-bold">Member</Text>
-                </View>
-              </Badge>
+            {isTopContributor && (
+              <View className="flex-row items-center mt-1 px-3 py-1 bg-yellow-500 rounded-full shadow-sm">
+                <Ionicons name="trophy" size={16} color="white" />
+                <Text className="text-white font-semibold text-sm ml-2">
+                  Top Contributor
+                </Text>
+              </View>
             )}
           </View>
 

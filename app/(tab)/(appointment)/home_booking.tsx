@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Button, CheckBox, Icon } from "@rneui/themed";
 import RNDateTimePicker, {
@@ -10,6 +16,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../constants/types/root-stack";
 import { ScrollView } from "react-native-gesture-handler";
 import { getRequest } from "@/helpers/api-requests";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -19,30 +26,63 @@ export default function BookingFormScreen() {
   const minStartTime = new Date(now);
   minStartTime.setHours(now.getHours() + 1);
 
-  const gameTypeMap: { [key: string]: string } = {
-    "Cờ vua": "chess",
-    "Cờ tướng": "xiangqi",
-    "Cờ vây": "go",
-  };
-
-  const roomTypeMap: { [key: string]: string } = {
-    "Phòng thường": "basic",
-    "Phòng không gian mở": "openspaced",
-    "Phòng cao cấp": "premium",
-  };
-
   const navigation = useNavigation<NavigationProp>();
-  const [gameType, setGameType] = useState<string>("Cờ vua");
-  const [roomType, setRoomTypes] = useState<string[]>(["Phòng thường"]);
+
+  const [gameTypeList, setGameTypeList] = useState<any[]>([]);
+  const [gameType, setGameType] = useState<string>("");
+  const [roomTypeList, setRoomTypeList] = useState<any[]>([]);
+  const [roomType, setRoomTypes] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(now);
   const [startTime, setStartTime] = useState<Date>(now);
   const [endTime, setEndTime] = useState<Date>(now);
   const [openHour, setOpenHour] = useState<string>("");
   const [closeHour, setCloseHour] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchGameType(), fetchRoomType()]);
+    setRefreshing(false);
+  };
 
   const formatDateForApi = (date: Date | null) =>
     date ? date.toISOString().split("T")[0] : null;
+
+  const fetchGameType = async () => {
+    try {
+      const response = await getRequest("/game_types/all");
+
+      if (response.length > 0) {
+        setGameTypeList(response);
+        setGameType(response[0].typeName);
+      }
+    } catch (error) {
+      console.error("Error fetching game types", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchRoomType = async () => {
+    try {
+      const response = await getRequest("/rooms/roomtypes");
+
+      if (response.length > 0) {
+        setRoomTypeList(response);
+        setRoomTypes([response[0]]);
+      }
+    } catch (error) {
+      console.error("Error fetching game types", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGameType();
+    fetchRoomType();
+  }, []);
 
   useEffect(() => {
     const fetchBusinessHours = async () => {
@@ -157,7 +197,12 @@ export default function BookingFormScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white p-6">
+    <ScrollView
+      className="flex-1 bg-white p-6"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       {isLoading ? (
         <Text className="text-center text-gray-500 font-semibold mb-4">
           Đang tải thông tin giờ mở cửa...
@@ -177,14 +222,14 @@ export default function BookingFormScreen() {
         Bạn chỉ có thể chọn <Text className="font-semibold">một</Text> loại cờ.
       </Text>
       <View className="mb-4">
-        {Object.keys(gameTypeMap).map((game) => (
+        {gameTypeList.map((game: any) => (
           <CheckBox
-            key={game}
-            title={game}
-            checked={gameType === game}
-            onPress={() => handleSelectGameType(game)}
+            key={game.typeName}
+            title={capitalizeWords(game.typeName)}
+            checked={gameType === game.typeName}
+            onPress={() => handleSelectGameType(game.typeName)}
             containerStyle={{
-              backgroundColor: gameType === game ? "#dbeafe" : "white",
+              backgroundColor: gameType === game.typeName ? "#dbeafe" : "white",
               borderRadius: 10,
               paddingVertical: 8,
             }}
@@ -201,10 +246,10 @@ export default function BookingFormScreen() {
         cùng lúc.
       </Text>
       <View className="mb-4">
-        {Object.keys(roomTypeMap).map((room) => (
+        {roomTypeList.map((room) => (
           <CheckBox
             key={room}
-            title={room}
+            title={capitalizeWords(room)}
             checked={roomType.includes(room)}
             onPress={() => toggleRoomType(room)}
             containerStyle={{

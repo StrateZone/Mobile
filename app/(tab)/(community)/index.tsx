@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import { Button, Chip, Icon } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
@@ -49,6 +50,7 @@ const CommunityScreen = () => {
   const [orderBy, setOrderBy] = useState<
     "created-at-desc" | "popularity" | "friends"
   >("created-at-desc");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -113,6 +115,10 @@ const CommunityScreen = () => {
         pageSize,
         "order-by": orderBy,
       };
+
+      if (searchTerm.trim()) {
+        params.Search = searchTerm.trim();
+      }
 
       if (orderBy === "friends" && user?.userId) {
         params.userId = user.userId;
@@ -310,6 +316,24 @@ const CommunityScreen = () => {
               ))}
             </View>
           )}
+
+          <View className="flex-row items-center border border-gray-300 rounded-md px-3 py-2 mb-4">
+            <TextInput
+              placeholder="Tìm kiếm bài viết..."
+              value={searchTerm}
+              onChangeText={(text) => setSearchTerm(text)}
+              style={{ flex: 1 }}
+              returnKeyType="search"
+            />
+            <TouchableOpacity
+              onPress={() => {
+                setCurrentPage(1);
+                fetchThreads(1, false);
+              }}
+            >
+              <Ionicons name="search" size={20} color="#333" />
+            </TouchableOpacity>
+          </View>
 
           {/* Thread list */}
           {loading && currentPage === 1 ? (

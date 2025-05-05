@@ -18,6 +18,7 @@ export type DialogType = {
   setIsPaymentSuccessful: (payment: boolean) => void;
   onClose: () => void;
   setIsLoading: (loading: boolean) => void;
+  selectedVouchers: Record<number, any | null>;
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -28,6 +29,7 @@ export default function PaymentDialog({
   tableOpponents,
   onClose,
   setIsPaymentSuccessful,
+  selectedVouchers,
 }: DialogType) {
   const { authState } = useAuth();
   const user = authState?.user;
@@ -69,15 +71,26 @@ export default function PaymentDialog({
         tablesAppointmentRequests: selectedTables.map((table: any) => {
           const hasInvitedUsers =
             table.invitedUsers && table.invitedUsers.length > 0;
+
+          const voucher = selectedVouchers[table.tableId];
+          let priceAfterVoucher = table.totalPrice;
+          if (voucher) {
+            priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);
+          }
+
+          const finalPrice = hasInvitedUsers
+            ? priceAfterVoucher / 2
+            : priceAfterVoucher;
+
           return {
-            price: hasInvitedUsers ? table.totalPrice / 2 : table.totalPrice,
+            price: finalPrice,
             tableId: table.tableId,
             scheduleTime: table.startDate,
             endTime: table.endDate,
             invitedUsers: table.invitedUsers || [],
           };
         }),
-        totalPrice: totalPrice,
+        totalPrice: totalPrice, // tổng tiền đã tính sau khi áp dụng voucher
       };
 
       const response = await postRequest("/payments/booking-payment", payload);
@@ -92,6 +105,7 @@ export default function PaymentDialog({
       };
 
       if (responseData.success === false) {
+        console.log(responseData.error);
         if (responseData.error?.message === "Some tables are not available") {
           const unavailableList = responseData.error.unavailable_tables || [];
 
@@ -128,13 +142,21 @@ export default function PaymentDialog({
             },
           ]);
           return;
+        } else if (
+          responseData.error === "Một bàn chỉ có thể mời tối đa 5 người"
+        ) {
+          Alert.alert("Không thể đặt bàn", responseData.error, [
+            {
+              text: "Quay lại",
+              style: "cancel",
+            },
+          ]);
         } else {
           Alert.alert("Lỗi", responseData.error?.message || "Đã xảy ra lỗi");
           return;
         }
       }
 
-      // ✅ Trường hợp thành công
       if (responseData.status === 200) {
         navigation.navigate("payment_successfull");
         setIsPaymentSuccessful(true);
@@ -169,10 +191,18 @@ export default function PaymentDialog({
             return "Không mời đối thủ";
           })();
 
-          const price =
+          // Áp dụng voucher nếu có
+          const voucher = selectedVouchers[table.tableId];
+          let priceAfterVoucher = table.totalPrice;
+          if (voucher) {
+            priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);
+          }
+
+          // Nếu có đối thủ, chia đôi
+          const finalPrice =
             table.invitedUsers && table.invitedUsers.length > 0
-              ? table.totalPrice / 2
-              : table.totalPrice;
+              ? priceAfterVoucher / 2
+              : priceAfterVoucher;
 
           return (
             <View
@@ -197,7 +227,7 @@ export default function PaymentDialog({
               <View className="flex-row justify-between items-center">
                 <Text className="text-gray-700">Thành tiền:</Text>
                 <Text className="text-black font-bold">
-                  {price.toLocaleString("vi-VN")} VND
+                  {finalPrice.toLocaleString("vi-VN")} VND
                 </Text>
               </View>
             </View>

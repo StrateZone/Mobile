@@ -4,11 +4,11 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
-import CourseScreen from "./index";
+import ClauseScreen from "./index";
+import { RootStackParamList } from "@/constants/types/root-stack";
 
-const Stack = createStackNavigator();
-
-type NavigationProp = DrawerNavigationProp<any>;
+const Stack = createStackNavigator<RootStackParamList>();
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function CourseLayout() {
   const navigation = useNavigation<NavigationProp>();
@@ -16,8 +16,8 @@ export default function CourseLayout() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="index"
-        component={CourseScreen}
+        name="clause"
+        component={ClauseScreen}
         options={{
           headerLeft: () => (
             <TouchableOpacity
@@ -27,7 +27,7 @@ export default function CourseLayout() {
               <Ionicons name="menu" size={24} color="black" />
             </TouchableOpacity>
           ),
-          headerTitle: "Khóa học",
+          headerTitle: "Điều khoản StrateZone",
           headerTitleStyle: {
             fontSize: 20,
           },

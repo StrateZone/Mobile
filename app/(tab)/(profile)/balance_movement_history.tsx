@@ -18,6 +18,7 @@ import { Fold } from "react-native-animated-spinkit";
 import { RootStackParamList } from "@/constants/types/root-stack";
 import { Transaction } from "@/constants/types/transaction";
 import LoadingPage from "@/components/loading/loading_page";
+import BackButton from "@/components/BackButton";
 
 const TRANSLATED_CONTENT: Record<string, string> = {
   "Paid booking": "Thanh toán đặt chỗ",
@@ -75,17 +76,22 @@ export default function BalanceMovementHistory() {
   }, [user]);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <View className="p-5 mt-10">
-        <TouchableOpacity
-          className="absolute left-4 top-2 p-2 bg-gray-200 rounded-full z-10"
-          onPress={() => navigation.goBack()}
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <View className="flex-1 p-4 ">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-bold text-center text-gray-900 mb-5">
-          Biến động số dư
-        </Text>
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: "#212529" }}>
+            Biến động số dư
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
         {isLoading ? (
           <LoadingPage />
         ) : (

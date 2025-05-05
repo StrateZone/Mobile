@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { RouteProp, useNavigation } from "@react-navigation/native";
@@ -21,6 +23,9 @@ import { useAuth } from "@/context/auth-context";
 import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
 import OpponentsListDialog from "@/components/dialog/opponents_list";
 import OpponentsListForOnGoingDialog from "@/components/dialog/opponent_list_for_ongoing";
+import BackButton from "@/components/BackButton";
+import { capitalizeWords } from "@/helpers/capitalize_first_letter";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<
@@ -188,161 +193,165 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
     ? getStatusStyles(appointment.status)
     : { bg: "", text: "", display: "" };
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView className="flex-1 bg-gray-100 p-4">
-        <View className="flex-1 p-4 mt-10">
-          <TouchableOpacity
-            className="absolute left-4 top-2 p-2 bg-gray-300 rounded-full z-10"
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
-          <Text className="text-2xl font-bold text-center text-black mb-5">
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <View className="flex-1 p-4 ">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+          }}
+        >
+          <BackButton customAction={() => navigation.goBack()} />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: "#212529" }}>
             Chi tiết đặt hẹn
           </Text>
+          <View style={{ width: 48 }} />
+        </View>
 
-          {isLoading ? (
-            <View className="flex justify-center items-center mt-32">
-              <Fold size={48} color="#000000" />
-            </View>
-          ) : (
-            <>
-              <View
-                className={`p-4 shadow-md mb-4 border-l-4 rounded-lg bg-white ${border}`}
-              >
-                <Text className="text-xl font-semibold mb-2">
-                  Chi tiết đơn đặt hẹn
+        {isLoading ? (
+          <View className="flex justify-center items-center mt-32">
+            <LoadingPage />
+          </View>
+        ) : (
+          <>
+            <View
+              className={`p-4 shadow-md mb-4 border-l-4 rounded-lg bg-white ${border}`}
+            >
+              <Text className="text-xl font-semibold mb-2">
+                Chi tiết đơn đặt hẹn
+              </Text>
+              <Text className="text-md mb-4">
+                Dưới đây là các thông tin chi tiết về đơn đặt của bạn:
+              </Text>
+
+              <View className="mb-3">
+                <Text className="text-lg font-semibold">
+                  Mã đơn: {appointment?.appointmentId}
                 </Text>
-                <Text className="text-md mb-4">
-                  Dưới đây là các thông tin chi tiết về đơn đặt của bạn:
+                <Text className="text-lg font-semibold">
+                  Số lượng bàn: {appointment?.tablesAppointments.length} bàn
                 </Text>
-
-                <View className="mb-3">
-                  <Text className="text-lg font-semibold">
-                    Mã đơn: {appointment?.appointmentId}
-                  </Text>
-                  <Text className="text-lg font-semibold">
-                    Số lượng bàn: {appointment?.tablesAppointments.length} bàn
-                  </Text>
-                </View>
-
-                <View className="mb-3">
-                  <Text className="text-lg">
-                    Ngày đặt:{" "}
-                    {new Date(appointment!.createdAt).toLocaleString()}
-                  </Text>
-                </View>
-
-                <View className="mb-4">
-                  <Text className={`text-lg font-semibold ${text}`}>
-                    Trạng thái đơn đặt: {display}
-                  </Text>
-                </View>
               </View>
 
-              <Text className="text-xl font-semibold mt-4 mb-2">
-                Danh sách các bàn đã đặt:
-              </Text>
-              <ScrollView className="mb-4">
-                {appointment!.tablesAppointments.map(
-                  (table: TablesAppointment, index) => {
-                    const tableStyles = getStatusStyles(table.status);
+              <View className="mb-3">
+                <Text className="text-lg">
+                  Ngày đặt: {new Date(appointment!.createdAt).toLocaleString()}
+                </Text>
+              </View>
 
-                    return (
-                      <View
-                        key={index}
-                        className={`bg-white p-4 rounded-lg shadow-md mb-2 border`}
-                        style={{ borderColor: tableStyles.text }}
+              <View className="mb-4">
+                <Text className={`text-lg font-semibold ${text}`}>
+                  Trạng thái đơn đặt: {display}
+                </Text>
+              </View>
+            </View>
+
+            <Text className="text-xl font-semibold mt-4 mb-2">
+              Danh sách các bàn đã đặt:
+            </Text>
+            <ScrollView className="mb-4">
+              {appointment!.tablesAppointments.map(
+                (table: TablesAppointment, index) => {
+                  const tableStyles = getStatusStyles(table.status);
+
+                  return (
+                    <View
+                      key={index}
+                      className={`bg-white p-4 rounded-lg shadow-md mb-2 border`}
+                      style={{ borderColor: tableStyles.text }}
+                    >
+                      <Text className="text-lg font-semibold">
+                        Tên phòng: {table.table.roomName}
+                      </Text>
+                      <Text className="text-lg">
+                        Loại phòng: {capitalizeWords(table.table.roomType)}
+                      </Text>
+                      <Text className="text-lg">Mã bàn: {table.tableId}</Text>
+                      <Text className="text-lg">
+                        Bắt đầu: {new Date(table.scheduleTime).toLocaleString()}
+                      </Text>
+                      <Text className="text-lg">
+                        Kết thúc: {new Date(table.endTime).toLocaleString()}
+                      </Text>
+
+                      <Text className={`text-lg ${tableStyles.text}`}>
+                        Trạng thái bàn: {tableStyles.display}
+                      </Text>
+
+                      <TouchableOpacity
+                        className="self-start flex-row items-center bg-blue-500 px-2 py-1 rounded-md"
+                        onPress={() =>
+                          handleShowPlayers(table.tableId, table.status)
+                        }
                       >
-                        <Text className="text-lg font-semibold">
-                          Tên phòng: {table.table.roomName}
+                        <Ionicons name="people" size={16} color="white" />
+                        <Text className="ml-1 text-white text-sm">
+                          Xem đối thủ đã mời
                         </Text>
-                        <Text className="text-lg">Mã bàn: {table.tableId}</Text>
-                        <Text className="text-lg">
-                          Bắt đầu:{" "}
-                          {new Date(table.scheduleTime).toLocaleString()}
-                        </Text>
-                        <Text className="text-lg">
-                          Kết thúc: {new Date(table.endTime).toLocaleString()}
-                        </Text>
+                      </TouchableOpacity>
 
-                        <Text className={`text-lg ${tableStyles.text}`}>
-                          Trạng thái bàn: {tableStyles.display}
-                        </Text>
+                      <Text className="text-lg font-semibold text-right mt-2">
+                        Đơn giá: {table.price.toLocaleString()} VND
+                      </Text>
 
-                        <TouchableOpacity
-                          className="self-start flex-row items-center bg-blue-500 px-2 py-1 rounded-md"
-                          onPress={() =>
-                            handleShowPlayers(table.tableId, table.status)
-                          }
-                        >
-                          <Ionicons name="people" size={16} color="white" />
-                          <Text className="ml-1 text-white text-sm">
-                            Xem đối thủ đã mời
-                          </Text>
-                        </TouchableOpacity>
+                      {(table.status === "confirmed" ||
+                        table.status === "pending") && (
+                        <View className="absolute top-4 right-2">
+                          <Button
+                            loading={cancellingTableId === table.id}
+                            type="solid"
+                            radius={"sm"}
+                            icon={
+                              <Ionicons
+                                name="close-circle"
+                                size={20}
+                                color="white"
+                              />
+                            }
+                            title="Hủy bàn"
+                            titleStyle={{ color: "white", marginLeft: 4 }}
+                            onPress={() => handleCheckTable(table.id)}
+                            buttonStyle={{
+                              padding: 0,
+                              backgroundColor: "red",
+                            }}
+                          />
+                        </View>
+                      )}
+                    </View>
+                  );
+                },
+              )}
 
-                        <Text className="text-lg font-semibold text-right mt-2">
-                          Đơn giá: {table.price.toLocaleString()} VND
-                        </Text>
+              {checkTable && (
+                <ConfirmCancelTableDialog
+                  visible={opneDialog}
+                  tableId={selectedTableId}
+                  data={checkTable}
+                  onClose={() => setOpenDialog(false)}
+                  onSuccess={() => {
+                    loadAppointmentData();
+                    setOpenDialog(false);
+                  }}
+                />
+              )}
+            </ScrollView>
 
-                        {(table.status === "confirmed" ||
-                          table.status === "pending") && (
-                          <View className="absolute top-4 right-2">
-                            <Button
-                              loading={cancellingTableId === table.id}
-                              type="solid"
-                              radius={"sm"}
-                              icon={
-                                <Ionicons
-                                  name="close-circle"
-                                  size={20}
-                                  color="white"
-                                />
-                              }
-                              title="Hủy bàn"
-                              titleStyle={{ color: "white", marginLeft: 4 }}
-                              onPress={() => handleCheckTable(table.id)}
-                              buttonStyle={{
-                                padding: 0,
-                                backgroundColor: "red",
-                              }}
-                            />
-                          </View>
-                        )}
-                      </View>
-                    );
-                  },
-                )}
-
-                {checkTable && (
-                  <ConfirmCancelTableDialog
-                    visible={opneDialog}
-                    tableId={selectedTableId}
-                    data={checkTable}
-                    onClose={() => setOpenDialog(false)}
-                    onSuccess={() => {
-                      loadAppointmentData();
-                      setOpenDialog(false);
-                    }}
-                  />
-                )}
-              </ScrollView>
-
-              <Text className="text-xl font-bold text-center text-black">
-                Tổng giá: {appointment?.totalPrice.toLocaleString()} VND
-              </Text>
-            </>
-          )}
-        </View>
-        <OpponentsListForOnGoingDialog
-          visible={openPlayerDialog}
-          onClose={() => setOpenPlayerDialog(false)}
-          loadAppointmentData={loadAppointmentData}
-          players={playersOfTable}
-          tableStatus={currentTableStatus}
-        />
-      </SafeAreaView>
-    </GestureHandlerRootView>
+            <Text className="text-xl font-bold text-center text-black">
+              Tổng giá: {appointment?.totalPrice.toLocaleString()} VND
+            </Text>
+          </>
+        )}
+      </View>
+      <OpponentsListForOnGoingDialog
+        visible={openPlayerDialog}
+        onClose={() => setOpenPlayerDialog(false)}
+        loadAppointmentData={loadAppointmentData}
+        players={playersOfTable}
+        tableStatus={currentTableStatus}
+      />
+    </SafeAreaView>
   );
 }
