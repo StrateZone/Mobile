@@ -5,10 +5,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
 
 import ClauseScreen from "./index";
+import { RootStackParamList } from "@/constants/types/root-stack";
 
-const Stack = createStackNavigator();
-
-type NavigationProp = DrawerNavigationProp<any>;
+const Stack = createStackNavigator<RootStackParamList>();
+type NavigationProp = DrawerNavigationProp<RootStackParamList>;
 
 export default function CourseLayout() {
   const navigation = useNavigation<NavigationProp>();
@@ -16,7 +16,7 @@ export default function CourseLayout() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="index"
+        name="clause"
         component={ClauseScreen}
         options={{
           headerLeft: () => (

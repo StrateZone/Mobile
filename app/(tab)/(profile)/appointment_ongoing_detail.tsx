@@ -25,6 +25,7 @@ import OpponentsListDialog from "@/components/dialog/opponents_list";
 import OpponentsListForOnGoingDialog from "@/components/dialog/opponent_list_for_ongoing";
 import BackButton from "@/components/BackButton";
 import { capitalizeWords } from "@/helpers/capitalize_first_letter";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<
@@ -211,7 +212,7 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
 
         {isLoading ? (
           <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
+            <LoadingPage />
           </View>
         ) : (
           <>

@@ -18,6 +18,7 @@ export type RootStackParamList = {
       | "deposit"
       | "invitations";
   };
+  reward_history: undefined;
   invitations: undefined;
   profile: undefined;
   appointment_history: undefined;
@@ -77,4 +78,6 @@ export type RootStackParamList = {
   friend_detail: { friendId: number };
   edit_thread: { thread: any };
   edit_drafted_thread: { thread: any };
+  //clause
+  clause: undefined;
 };

@@ -102,7 +102,11 @@ export default function FriendManagementScreen() {
         username: searchTerm,
       });
 
-      setSearchResults(res.pagedList || []);
+      const filteredResults = (res.pagedList || []).filter(
+        (user: any) => user.userRole === "Member",
+      );
+
+      setSearchResults(filteredResults);
     } catch {
       Alert.alert("Lỗi", "Không tìm thấy người dùng");
     } finally {
@@ -156,6 +160,7 @@ export default function FriendManagementScreen() {
         fromUser: userId,
         toUser: targetUserId,
       });
+
       if (response.status === 201) {
         Toast.show({
           type: "success",

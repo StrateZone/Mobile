@@ -182,6 +182,11 @@ export default function ProfileScreen() {
         onPress={() => navigation.navigate("appointment_history")}
       />
       <OptionItem
+        label="Hoạt động điểm thưởng"
+        icon={<Ionicons name="trending-up-outline" size={20} color="#4B5563" />}
+        onPress={() => navigation.navigate("reward_history")}
+      />
+      <OptionItem
         label="Biến động số dư"
         icon={<Ionicons name="trending-up-outline" size={20} color="#4B5563" />}
         onPress={() => navigation.navigate("balance_movement_history")}

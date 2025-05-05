@@ -2,12 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Linking, StyleSheet } from "react-native";
 import { Button, Overlay } from "@rneui/themed";
 
-interface TermsDialogProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-export default function ClauseScreen({ open, onClose }: TermsDialogProps) {
+export default function ClauseScreen() {
   const [refundHours, setRefundHours] = useState<number | null>(null);
   const [nonCancelableHours, setNonCancelableHours] = useState<number | null>(
     null,

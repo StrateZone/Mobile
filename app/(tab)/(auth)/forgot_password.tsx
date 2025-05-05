@@ -95,7 +95,7 @@ export default function ForgotPassword() {
         >
           <BackButton customAction={() => navigation.goBack()} />
           <Text style={{ fontSize: 20, fontWeight: "600", color: "#212529" }}>
-            Đăng nhập otp
+            Quên mật khẩu
           </Text>
           <View style={{ width: 48 }} />
         </View>

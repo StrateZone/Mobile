@@ -16,6 +16,7 @@ import InvitationsDetail from "./invitations_detail";
 import AppointmentOnGoing from "./appointment_ongoing";
 import AppointmentOnGoingDetail from "./appointment_ongoing_detail";
 import ChangePasswordScreen from "./change_password";
+import RewardHistory from "./reward_history";
 
 const Stack = createStackNavigator<RootStackParamList>();
 type NavigationProp = DrawerNavigationProp<RootStackParamList>;
@@ -122,6 +123,15 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="change_password"
         component={ChangePasswordScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="reward_history"
+        component={RewardHistory}
         options={{
           headerShown: false,
           gestureEnabled: false,

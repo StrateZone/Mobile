@@ -24,6 +24,7 @@ import ConfirmCancelTableDialog from "@/components/dialog/cancle_table_dialog";
 import OpponentsListDialog from "@/components/dialog/opponents_list";
 import BackButton from "@/components/BackButton";
 import { capitalizeWords } from "@/helpers/capitalize_first_letter";
+import LoadingPage from "@/components/loading/loading_page";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ListTableRouteProp = RouteProp<RootStackParamList, "appointment_detail">;
@@ -171,8 +172,6 @@ export default function AppointmentDetail({ route }: Props) {
     setOpenPlayerDialog(true);
   };
 
-  console.log(appointment!.tablesAppointments);
-
   const { bg, border, text, display } = appointment
     ? getStatusStyles(appointment.status)
     : { bg: "", text: "", display: "" };
@@ -197,7 +196,7 @@ export default function AppointmentDetail({ route }: Props) {
 
         {isLoading ? (
           <View className="flex justify-center items-center mt-32">
-            <Fold size={48} color="#000000" />
+            <LoadingPage />
           </View>
         ) : (
           <>
