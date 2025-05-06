@@ -26,6 +26,7 @@ export type DialogType = {
   startTime: string;
   endTime: string;
   fullName: string;
+  tableAppointmentId: number;
   totalPrice: number;
   onClose: () => void;
   fetchAppointment: () => void;
@@ -42,6 +43,7 @@ export default function PaymentDialogForInvited({
   roomType,
   startTime,
   endTime,
+  tableAppointmentId,
   fullName,
   totalPrice,
   onClose,
@@ -76,8 +78,7 @@ export default function PaymentDialogForInvited({
       const payload = {
         fromUser: fromUserId,
         toUser: user.userId,
-        tableId,
-        appointmentId,
+        tableAppointmentId,
       };
 
       const response = await postRequest(
@@ -85,13 +86,27 @@ export default function PaymentDialogForInvited({
         payload,
       );
 
-      if (response.status === 200) {
-        fetchAppointment();
-        Toast.show({
-          type: "success",
-          text1: "Thành công",
-          text2: `Đồng ý lời mời`,
-        });
+      if (response.data.message) {
+        if (
+          response.data.message ===
+          "This appointment invitation is no longer available."
+        ) {
+          Toast.show({
+            type: "error",
+            text1: "Không thể đồng ý lời mời",
+            text2: "Bàn này gần tới giờ chơi nên bạn không thể đồng ý lời mời.",
+          });
+          return;
+        }
+        console.log(response.data.message === "Payment success");
+        if (response.data.message === "Payment success") {
+          fetchAppointment();
+          Toast.show({
+            type: "success",
+            text1: "Thành công",
+            text2: `Đồng ý lời mời`,
+          });
+        }
       }
     } catch (error) {
       Alert.alert("Lỗi đặt bàn", "Đã có lỗi xảy ra", [

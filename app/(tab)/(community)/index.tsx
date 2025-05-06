@@ -79,27 +79,10 @@ const CommunityScreen = () => {
   };
 
   useEffect(() => {
-    const checkUserMembership = () => {
-      if (user?.userRole === "RegisteredUser") {
-        if (setAuthState) {
-          setAuthState((prev) => ({
-            ...prev,
-            user: prev.user
-              ? {
-                  ...prev.user,
-                  userRole: "Member",
-                }
-              : prev.user,
-          }));
-        }
-
-        fetchMembershipPrice();
-        setShowMembershipDialog(true);
-      }
-      setLoading(false);
-    };
-
-    checkUserMembership();
+    if (user?.userRole === "RegisteredUser") {
+      fetchMembershipPrice();
+      setShowMembershipDialog(true);
+    }
   }, []);
 
   const fetchThreads = async (page = 1, concat = false) => {

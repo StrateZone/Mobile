@@ -45,6 +45,8 @@ export default function Invitations() {
     null,
   );
   const [selectedTableId, setSelectedTableId] = useState<number>(0);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const now = new Date();
   const convertToUTC7 = (date: Date): Date => {
@@ -373,7 +375,8 @@ export default function Invitations() {
                               ) {
                                 Alert.alert("Số dư không đủ để thanh toán!");
                               } else {
-                                setOpenDialog(true);
+                                setSelectedAppointment(item);
+                                setShowPaymentDialog(true);
                               }
                             }}
                           >
@@ -431,21 +434,6 @@ export default function Invitations() {
                       )}
                     </View>
 
-                    <PaymentDialogForInvited
-                      visible={opneDialog}
-                      fromUserId={item.fromUser}
-                      tableId={item.table.tableId}
-                      appointmentId={item.appointmentId}
-                      roomName={item.table.roomName}
-                      roomType={item.table.roomType}
-                      startTime={item.startTime}
-                      endTime={item.endTime}
-                      fullName={item.fromUserNavigation.fullName}
-                      onClose={() => setOpenDialog(false)}
-                      fetchAppointment={fetchAppointments}
-                      totalPrice={item.totalPrice}
-                    />
-
                     {checkTable && (
                       <ConfirmCancelTableDialog
                         visible={opneCancelAcceptTableDialog}
@@ -467,6 +455,27 @@ export default function Invitations() {
               </Text>
             )}
           </ScrollView>
+        )}
+
+        {selectedAppointment && (
+          <PaymentDialogForInvited
+            visible={showPaymentDialog}
+            fromUserId={selectedAppointment.fromUser}
+            tableId={selectedAppointment.table.tableId}
+            appointmentId={selectedAppointment.appointmentId}
+            roomName={selectedAppointment.table.roomName}
+            roomType={selectedAppointment.table.roomType}
+            startTime={selectedAppointment.startTime}
+            endTime={selectedAppointment.endTime}
+            fullName={selectedAppointment.fromUserNavigation.fullName}
+            tableAppointmentId={selectedAppointment.tablesAppointmentId}
+            onClose={() => {
+              setShowPaymentDialog(false);
+              setSelectedAppointment(null);
+            }}
+            fetchAppointment={fetchAppointments}
+            totalPrice={selectedAppointment.totalPrice}
+          />
         )}
       </View>
     </SafeAreaView>
