@@ -7,7 +7,8 @@ import Toast from "react-native-toast-message";
 
 interface AuthProps {
   authState?: {
-    token: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
     authenticated: boolean | null;
     user?: {
       userId: number;
@@ -36,7 +37,29 @@ interface AuthProps {
   onLogout?: () => Promise<any>;
   setAuthState?: React.Dispatch<
     React.SetStateAction<{
-      user?: any;
+      accessToken: string | null;
+      refreshToken: string | null;
+      authenticated: boolean | null;
+      user?: {
+        userId: number;
+        userRole: string;
+        status: string;
+        gender: string;
+        skillLevel: string;
+        ranking: string;
+        imageUrl: string;
+        wallet: {
+          walletId: number;
+          userId: number;
+          balance: number;
+          status: string;
+        };
+        username: string;
+        fullName: string;
+        avatarUrl: string;
+        email: string;
+        phone: string;
+      };
     }>
   >;
 }
@@ -53,7 +76,8 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: any) => {
   const [authState, setAuthState] = useState<{
-    token: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
     authenticated: boolean | null;
     user?: {
       userId: number;
@@ -76,20 +100,24 @@ export const AuthProvider = ({ children }: any) => {
       phone: string;
     };
   }>({
-    token: null,
+    accessToken: null,
+    refreshToken: null,
     authenticated: null,
   });
 
   useEffect(() => {
     const loadToken = async () => {
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
+      const accessToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
       const userData = await SecureStore.getItemAsync(USER_DATA_KEY);
 
-      if (token && userData) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      if (accessToken && userData) {
+        axios.defaults.headers.common["Authorization"] =
+          `Bearer ${accessToken}`;
 
         setAuthState({
-          token: token,
+          accessToken,
+          refreshToken,
           authenticated: true,
           user: JSON.parse(userData),
         });
@@ -122,23 +150,21 @@ export const AuthProvider = ({ children }: any) => {
           imageUrl: response.data.data.imageUrl,
         };
 
+        const accessToken = response.data.data.accessToken;
+        const refreshToken = response.data.data.refreshToken;
+
         setAuthState({
-          token: response.data.data.accessToken,
+          accessToken,
+          refreshToken,
           authenticated: true,
           user: userData,
         });
 
         axios.defaults.headers.common["Authorization"] =
-          `Bearer ${response.data.data.accessToken}`;
+          `Bearer ${accessToken}`;
 
-        await SecureStore.setItemAsync(
-          TOKEN_KEY,
-          response.data.data.accessToken,
-        );
-        await SecureStore.setItemAsync(
-          REFRESH_TOKEN_KEY,
-          response.data.data.refreshToken,
-        );
+        await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
         await SecureStore.setItemAsync(USER_DATA_KEY, JSON.stringify(userData));
 
         return { success: true, message: "Đăng nhập thành công!" };
@@ -176,23 +202,21 @@ export const AuthProvider = ({ children }: any) => {
           imageUrl: response.data.data.imageUrl,
         };
 
+        const accessToken = response.data.data.accessToken;
+        const refreshToken = response.data.data.refreshToken;
+
         setAuthState({
-          token: response.data.data.accessToken,
+          accessToken,
+          refreshToken,
           authenticated: true,
           user: userData,
         });
 
         axios.defaults.headers.common["Authorization"] =
-          `Bearer ${response.data.data.accessToken}`;
+          `Bearer ${accessToken}`;
 
-        await SecureStore.setItemAsync(
-          TOKEN_KEY,
-          response.data.data.accessToken,
-        );
-        await SecureStore.setItemAsync(
-          REFRESH_TOKEN_KEY,
-          response.data.data.refreshToken,
-        );
+        await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
         await SecureStore.setItemAsync(USER_DATA_KEY, JSON.stringify(userData));
 
         return { success: true, message: "Đăng nhập thành công!" };
@@ -246,20 +270,24 @@ export const AuthProvider = ({ children }: any) => {
     axios.defaults.headers.common["Authorization"] = "";
 
     setAuthState({
-      token: null,
+      accessToken: null,
+      refreshToken: null,
       authenticated: false,
-      user: undefined,
     });
   };
 
-  const value = {
-    onLogin: login,
-    onLogout: logout,
-    onLoginByOtp: loginByOtp,
-    onUpdateUserBalance: updateUserBalance,
-    authState,
-    setAuthState,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        authState,
+        onLogin: login,
+        onLoginByOtp: loginByOtp,
+        onUpdateUserBalance: updateUserBalance,
+        onLogout: logout,
+        setAuthState,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

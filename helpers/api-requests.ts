@@ -1,13 +1,106 @@
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 import { config } from "../config";
 import { Alert } from "react-native";
+
+const TOKEN_KEY = "userAccessToken";
+const REFRESH_TOKEN_KEY = "userRefreshToken";
+
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+const refreshToken = async () => {
+  try {
+    const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    if (!refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    const response = await axios.post(
+      `${config.BACKEND_API}/api/auth/refresh-token`,
+      {
+        refreshToken,
+      },
+    );
+
+    if (response.data.success) {
+      const { newToken, refreshToken: newRefreshToken } = response.data.data;
+      await SecureStore.setItemAsync(TOKEN_KEY, newToken);
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, newRefreshToken);
+      return newToken;
+    }
+    throw new Error("Failed to refresh token");
+  } catch (error) {
+    // Nếu refresh token thất bại, xóa tất cả token và đăng xuất
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    throw error;
+  }
+};
+// Thêm axios interceptor
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        try {
+          const token = await new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          });
+          originalRequest.headers["Authorization"] = `Bearer ${token}`;
+          return axios(originalRequest);
+        } catch (err) {
+          return Promise.reject(err);
+        }
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newToken = await refreshToken();
+        axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+        originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+        processQueue(null, newToken);
+        return axios(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
+const getAuthHeader = async () => {
+  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export const getRequest = async (
   path: string,
   query?: Record<string, unknown>,
 ) => {
   try {
     const params = new URLSearchParams();
+    const headers = await getAuthHeader();
 
     if (query) {
       for (const key in query) {
@@ -23,6 +116,7 @@ export const getRequest = async (
     // console.log( `${config.BACKEND_API}/api${path}?${params.toString()}`)
     const { data } = await axios.get(
       `${config.BACKEND_API}/api${path}?${params.toString()}`,
+      { headers },
     );
     return data;
   } catch (error: any) {
@@ -50,11 +144,13 @@ export const postRequest = async (
   query?: Record<string, unknown>,
 ) => {
   try {
+    const headers = await getAuthHeader();
     const response = await axios.post(
       `${config.BACKEND_API}/api${path}`,
       requestBody,
       {
         params: query,
+        headers,
       },
     );
     return response;
@@ -84,11 +180,13 @@ export const postRequestComment = async (
   query?: Record<string, unknown>,
 ) => {
   try {
+    const headers = await getAuthHeader();
     const response = await axios.post(
       `${config.BACKEND_API}/api${path}`,
       requestBody,
       {
         params: query,
+        headers,
       },
     );
     return response;
@@ -117,13 +215,12 @@ export const postPaymemtRequest = async (
   requestBody?: Record<string, unknown>,
   token?: string,
 ) => {
+  const headers = await getAuthHeader();
   const { data } = await axios.post(
     `${config.BACKEND_API}/api${path}`,
     requestBody,
     {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
+      headers: token ? { Authorization: `Bearer ${token}` } : headers,
     },
   );
   return data;
@@ -133,9 +230,11 @@ export const patchRequest = async (
   path: string,
   requestBody: Record<string, unknown>,
 ) => {
+  const headers = await getAuthHeader();
   const { data } = await axios.patch(
     `${config.BACKEND_API}/api${path}`,
     requestBody,
+    { headers },
   );
 
   return data;
@@ -146,9 +245,11 @@ export const putRequest = async (
   requestBody: Record<string, unknown>,
 ) => {
   try {
+    const headers = await getAuthHeader();
     const data = await axios.put(
       `${config.BACKEND_API}/api${path}`,
       requestBody,
+      { headers },
     );
 
     return data;
@@ -177,6 +278,7 @@ export const deleteRequest = async (
   query?: Record<string, unknown>,
 ) => {
   const params = new URLSearchParams();
+  const headers = await getAuthHeader();
 
   if (query) {
     for (const key in query) {
@@ -191,6 +293,7 @@ export const deleteRequest = async (
 
   const { data } = await axios.delete(
     `${config.BACKEND_API}/api${path}?${params.toString()}`,
+    { headers },
   );
   return data;
 };

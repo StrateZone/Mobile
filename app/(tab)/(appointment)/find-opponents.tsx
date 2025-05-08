@@ -11,7 +11,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { Fold } from "react-native-animated-spinkit";
+import { Tab, TabView } from "@rneui/themed";
 
 import { useAuth } from "@/context/auth-context";
 import { Opponents } from "@/constants/types/opponent";
@@ -35,11 +35,14 @@ export default function FindOpponent({ route }: Props) {
   const { authState } = useAuth();
   const user = authState?.user;
   const navigation = useNavigation<NavigationProp>();
+  const [index, setIndex] = useState(0);
 
   const [selectedTables, , , , , addInvitedUser] = useContext(TableContext);
 
+  const [friends, setFriends] = useState<Opponents[]>([]);
   const [opponents, setOpponents] = useState<Opponents[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingFriends, setIsLoadingFriends] = useState<boolean>(true);
+  const [isLoadingOpponents, setIsLoadingOpponents] = useState<boolean>(true);
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [maxOpponent, setMaxOpponent] = useState<number>(0);
@@ -54,8 +57,28 @@ export default function FindOpponent({ route }: Props) {
     fetchMaxOpponents();
   }, []);
 
-  const handleGetUserForInvite = async () => {
-    setIsLoading(true);
+  const handleGetFriends = async () => {
+    if (user?.userRole !== "Member") return;
+    setIsLoadingFriends(true);
+    try {
+      const response = await getRequest(`/users/opponents/${user?.userId}`, {
+        StartTime: startDate,
+        EndTime: endDate,
+        excludedIds,
+        up: 1,
+        down: 1,
+      });
+      setFriends(response.friends || []);
+      setExcludedIds(response.excludedIds || []);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách bạn bè:", error);
+    } finally {
+      setIsLoadingFriends(false);
+    }
+  };
+
+  const handleGetOpponents = async () => {
+    setIsLoadingOpponents(true);
     try {
       const response = await getRequest(`/users/opponents/${user?.userId}`, {
         StartTime: startDate,
@@ -65,30 +88,18 @@ export default function FindOpponent({ route }: Props) {
         down: 1,
         searchTerm,
       });
-
-      if (user?.userRole === "Member") {
-        const friends = response.friends.map((friend: any) => ({
-          ...friend,
-        }));
-
-        const opponents = response.matchingOpponents.map((opponent: any) => ({
-          ...opponent,
-        }));
-
-        setOpponents([...friends, ...opponents]);
-      } else {
-        setOpponents(response.matchingOpponents || []);
-      }
+      setOpponents(response.matchingOpponents || []);
       setExcludedIds(response.excludedIds || []);
     } catch (error) {
       console.error("Lỗi khi lấy đối thủ:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingOpponents(false);
     }
   };
 
   useEffect(() => {
-    handleGetUserForInvite();
+    handleGetFriends();
+    handleGetOpponents();
   }, []);
 
   const handleInvite = async (toUserId: number) => {
@@ -109,6 +120,11 @@ export default function FindOpponent({ route }: Props) {
     try {
       await addInvitedUser(tableId, toUserId);
 
+      setFriends((prev) =>
+        prev.map((friend) =>
+          friend.userId === toUserId ? { ...friend, isInvited: true } : friend,
+        ),
+      );
       setOpponents((prev) =>
         prev.map((opponent) =>
           opponent.userId === toUserId
@@ -125,7 +141,7 @@ export default function FindOpponent({ route }: Props) {
     } catch (error) {
       Toast.show({
         type: "error",
-        text1: "Thất bạn",
+        text1: "Thất bại",
         text2: `Không thể gửi lời mời này`,
       });
     }
@@ -135,6 +151,44 @@ export default function FindOpponent({ route }: Props) {
     const table = selectedTables.find((t: ChessTable) => t.tableId === tableId);
     return table?.invitedUsers?.includes(userId) || false;
   };
+
+  const renderUserList = (users: Opponents[]) => (
+    <ScrollView>
+      {users.map((user) => (
+        <View
+          key={user.userId}
+          className="flex-row items-center bg-white p-4 rounded-lg shadow-md mb-3 border border-gray-300"
+        >
+          <Image
+            source={{
+              uri:
+                user.avatarUrl ||
+                "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
+            }}
+            className="w-12 h-12 rounded-full border-2 border-blue-500 mr-3"
+          />
+
+          <View className="flex-1">
+            <Text className="text-lg font-semibold text-black">
+              {user.fullName || "Không có tên"}
+            </Text>
+            <Text className="text-gray-500">Email: {user.email}</Text>
+          </View>
+
+          {isUserInvited(user.userId) ? (
+            <Text className="text-green-500 font-semibold">Đã mời</Text>
+          ) : (
+            <TouchableOpacity
+              onPress={() => handleInvite(user.userId)}
+              className="p-2 bg-gray-200 rounded-full"
+            >
+              <Ionicons name="paper-plane" size={20} color="black" />
+            </TouchableOpacity>
+          )}
+        </View>
+      ))}
+    </ScrollView>
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -152,7 +206,7 @@ export default function FindOpponent({ route }: Props) {
             style={{
               fontSize: 20,
               fontWeight: "600",
-              color: "#212529" /* neutral-900 */,
+              color: "#212529",
             }}
           >
             Tìm đối thủ
@@ -178,70 +232,89 @@ export default function FindOpponent({ route }: Props) {
           </TouchableOpacity>
         </View>
 
-        <View className="mb-3 flex-row items-center justify-between px-1">
-          <Text className="text-lg font-semibold text-black">
-            Gợi ý từ StrateZone
-          </Text>
-          <TouchableOpacity
-            className="bg-black px-3 py-1 rounded-full"
-            onPress={handleGetUserForInvite}
-          >
-            <Ionicons name="refresh" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
+        {user?.userRole === "Member" ? (
+          <View style={{ height: 1500 }}>
+            <Tab
+              value={index}
+              onChange={setIndex}
+              indicatorStyle={{
+                height: 3,
+              }}
+            >
+              <Tab.Item
+                title="Bạn bè"
+                titleStyle={(active) => ({
+                  color: active ? "black" : "gray",
+                })}
+                icon={{ name: "people", type: "ionicon", color: "black" }}
+              />
+              <Tab.Item
+                title="Đối thủ khác"
+                titleStyle={(active) => ({
+                  color: active ? "black" : "gray",
+                })}
+                icon={{ name: "person", type: "ionicon", color: "black" }}
+              />
+            </Tab>
 
-        <View className="flex-row items-center bg-white rounded-full px-3 py-2 mb-4 border border-gray-300">
-          <TextInput
-            placeholder="Tìm đối thủ..."
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            className="flex-1 text-black"
-            returnKeyType="search"
-            onSubmitEditing={handleGetUserForInvite}
-          />
-          <TouchableOpacity onPress={handleGetUserForInvite}>
-            <Ionicons name="search" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-
-        {isLoading ? (
-          <LoadingPage />
-        ) : (
-          <ScrollView>
-            {opponents.map((opponent) => (
-              <View
-                key={opponent.userId}
-                className="flex-row items-center bg-white p-4 rounded-lg shadow-md mb-3 border border-gray-300"
-              >
-                <Image
-                  source={{
-                    uri:
-                      opponent.avatarUrl ||
-                      "https://static.vecteezy.com/system/resources/previews/002/002/403/non_2x/man-with-beard-avatar-character-isolated-icon-free-vector.jpg",
-                  }}
-                  className="w-12 h-12 rounded-full border-2 border-blue-500 mr-3"
-                />
-
-                <View className="flex-1">
-                  <Text className="text-lg font-semibold text-black">
-                    {opponent.fullName || "Không có tên"}
-                  </Text>
-                  <Text className="text-gray-500">Email: {opponent.email}</Text>
+            <TabView value={index} onChange={setIndex} animationType="spring">
+              <TabView.Item style={{ width: "100%" }}>
+                <View className="flex-1 p-4">
+                  {isLoadingFriends ? <LoadingPage /> : renderUserList(friends)}
                 </View>
-
-                {isUserInvited(opponent.userId) ? (
-                  <Text className="text-green-500 font-semibold">Đã mời</Text>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => handleInvite(opponent.userId)}
-                    className="p-2 bg-gray-200 rounded-full"
-                  >
-                    <Ionicons name="paper-plane" size={20} color="black" />
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-          </ScrollView>
+              </TabView.Item>
+              <TabView.Item style={{ width: "100%" }}>
+                <View className="flex-1 p-4">
+                  <View className="flex-row items-center bg-white rounded-full px-3 py-2 mb-4 border border-gray-300">
+                    <TextInput
+                      placeholder="Tìm đối thủ..."
+                      value={searchTerm}
+                      onChangeText={setSearchTerm}
+                      className="flex-1 text-black"
+                      returnKeyType="search"
+                      onSubmitEditing={handleGetOpponents}
+                    />
+                    <TouchableOpacity onPress={handleGetOpponents}>
+                      <Ionicons name="search" size={24} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                  {isLoadingOpponents ? (
+                    <LoadingPage />
+                  ) : (
+                    renderUserList(opponents)
+                  )}
+                </View>
+              </TabView.Item>
+            </TabView>
+          </View>
+        ) : (
+          <>
+            <View className="mb-3 flex-row items-center justify-between px-1">
+              <Text className="text-lg font-semibold text-black">
+                StrateZone gợi ý
+              </Text>
+              <TouchableOpacity
+                className="bg-black px-3 py-1 rounded-full"
+                onPress={handleGetOpponents}
+              >
+                <Ionicons name="refresh" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            <View className="flex-row items-center bg-white rounded-full px-3 py-2 mb-4 border border-gray-300">
+              <TextInput
+                placeholder="Tìm đối thủ..."
+                value={searchTerm}
+                onChangeText={setSearchTerm}
+                className="flex-1 text-black"
+                returnKeyType="search"
+                onSubmitEditing={handleGetOpponents}
+              />
+              <TouchableOpacity onPress={handleGetOpponents}>
+                <Ionicons name="search" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+            {isLoadingOpponents ? <LoadingPage /> : renderUserList(opponents)}
+          </>
         )}
       </View>
     </SafeAreaView>

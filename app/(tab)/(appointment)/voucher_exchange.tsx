@@ -70,7 +70,6 @@ export default function VoucherExchangeScreen() {
         sampleVoucherId: voucherId,
         userId: user?.userId,
       })) as any;
-      console.log(res);
 
       if (res.error) {
         if (

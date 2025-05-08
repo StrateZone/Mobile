@@ -88,6 +88,7 @@ export default function PaymentDialog({
             scheduleTime: table.startDate,
             endTime: table.endDate,
             invitedUsers: table.invitedUsers || [],
+            voucherId: voucher?.voucherId || null,
           };
         }),
         totalPrice: totalPrice, // tổng tiền đã tính sau khi áp dụng voucher
@@ -105,7 +106,6 @@ export default function PaymentDialog({
       };
 
       if (responseData.success === false) {
-        console.log(responseData.error);
         if (responseData.error?.message === "Some tables are not available") {
           const unavailableList = responseData.error.unavailable_tables || [];
 
@@ -151,6 +151,16 @@ export default function PaymentDialog({
               style: "cancel",
             },
           ]);
+        } else if (responseData.error === "Can not select time in the past.") {
+          const message = "Không thể đặt bàn vào thời gian trong quá khứ";
+
+          Alert.alert("Không thể đặt bàn", message, [
+            {
+              text: "Đặt bàn khác",
+              style: "cancel",
+            },
+          ]);
+          return;
         } else {
           Alert.alert("Lỗi", responseData.error?.message || "Đã xảy ra lỗi");
           return;
