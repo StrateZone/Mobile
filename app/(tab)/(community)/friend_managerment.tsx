@@ -136,7 +136,6 @@ export default function FriendManagementScreen() {
     setLoading(`reject_${id}`, true);
     try {
       const res = await putRequest(`/friendrequests/reject/${id}`, {});
-      console.log(res);
       Toast.show({ type: "success", text1: "Đã từ chối lời mời kết bạn" });
       await fetchFriendRequests();
       await fetchFriends();
