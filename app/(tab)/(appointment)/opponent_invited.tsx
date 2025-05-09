@@ -155,7 +155,7 @@ export default function OpponentInvited({ route }: Props) {
                   }}
                 />
                 <View className="flex-1">
-                  <Text className="text-xl font-semibold">{item.fullName}</Text>
+                  <Text className="text-xl font-semibold">{item.username}</Text>
                   <Text className="text-sm text-gray-600">{item.email}</Text>
                 </View>
                 <TouchableOpacity

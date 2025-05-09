@@ -170,7 +170,7 @@ export default function FindOpponent({ route }: Props) {
 
           <View className="flex-1">
             <Text className="text-lg font-semibold text-black">
-              {user.fullName || "Không có tên"}
+              {user.username || "Không có tên"}
             </Text>
             <Text className="text-gray-500">Email: {user.email}</Text>
           </View>

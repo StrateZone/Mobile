@@ -6,10 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
+  SafeAreaView,
 } from "react-native";
 import { Button, Chip, Icon } from "@rneui/themed";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { FAB } from "@rneui/themed";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import CommunityCard from "@/components/card/community_card";
 import { getRequest, postRequest } from "@/helpers/api-requests";
@@ -33,6 +35,7 @@ const CommunityScreen = () => {
   const user = authState?.user;
 
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [checkingRole, setCheckingRole] = useState(true);
 
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
@@ -136,6 +139,41 @@ const CommunityScreen = () => {
     fetchTags();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      const checkAndUpdateUserRole = async () => {
+        try {
+          if (!user?.userId) {
+            setCheckingRole(false);
+            return;
+          }
+
+          const response = await getRequest(`/users/${user.userId}/role`);
+          const newRole = response;
+
+          if (newRole && newRole !== user.userRole) {
+            if (setAuthState) {
+              setAuthState((prev) => ({
+                ...prev,
+                user: {
+                  ...prev.user,
+                  userRole: newRole,
+                },
+              }));
+            }
+          }
+        } catch (error) {
+          console.error("Lỗi khi kiểm tra role:", error);
+        } finally {
+          setCheckingRole(false);
+        }
+      };
+
+      setCheckingRole(true);
+      checkAndUpdateUserRole();
+    }, [user?.userId]),
+  );
+
   const loadMoreThreads = () => {
     if (loadingMore || currentPage >= totalPages) return;
     const nextPage = currentPage + 1;
@@ -204,6 +242,10 @@ const CommunityScreen = () => {
     const truncated = plainText.substring(0, maxLength);
     return truncated.slice(0, truncated.lastIndexOf(" ")) + "...";
   };
+
+  if (checkingRole) {
+    return <LoadingPage />;
+  }
 
   return (
     <View className="bg-white flex-1 px-4 py-6">
