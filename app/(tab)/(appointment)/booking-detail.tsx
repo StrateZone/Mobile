@@ -178,6 +178,32 @@ export default function BookingDetailScreen() {
     (table: ChessTable) => table.invitedUsers && table.invitedUsers.length > 0,
   );
 
+  const getTablePriceInfo = (table: ChessTable) => {
+    const hasOpponent = table.invitedUsers && table.invitedUsers.length > 0;
+    const voucher = selectedVouchers[table.tableId];
+    let discountedPrice = table.totalPrice;
+    const reasons: string[] = [];
+
+    if (voucher) {
+      discountedPrice = Math.max(0, table.totalPrice - voucher.value);
+      reasons.push(`Giảm giá voucher: ${voucher.value.toLocaleString()} VND`);
+    }
+
+    if (hasOpponent && !paidForOpponent) {
+      discountedPrice /= 2;
+      reasons.push("Chia đôi với đối thủ");
+    } else if (hasOpponent && paidForOpponent) {
+      reasons.push("Thanh toán toàn bộ cho bàn chơi");
+    }
+
+    return {
+      originalPrice: table.totalPrice,
+      finalPrice: discountedPrice,
+      reasons,
+      hasDiscount: discountedPrice !== table.totalPrice,
+    };
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View
@@ -409,65 +435,41 @@ export default function BookingDetailScreen() {
                     <View className="flex-row justify-between items-start">
                       {/* Giá + Ghi chú */}
                       <View className="flex-1 pr-3">
-                        {(() => {
-                          const voucher = selectedVouchers[table.tableId];
-                          const hasOpponent =
-                            table.invitedUsers && table.invitedUsers.length > 0;
-
-                          const originalPrice = table.totalPrice;
-
-                          let discountedPrice = originalPrice;
-                          let reasons: string[] = [];
-
-                          if (voucher) {
-                            discountedPrice -= voucher.value;
-                            reasons.push("voucher");
-                          }
-
-                          discountedPrice = Math.max(0, discountedPrice);
-
-                          if (hasOpponent) {
-                            discountedPrice /= 2;
-                            reasons.push("đối thủ");
-                          }
-
-                          const hasDiscount = discountedPrice !== originalPrice;
-
-                          return (
-                            <View>
-                              <View className="flex-row items-center flex-wrap">
-                                <FontAwesome5
-                                  name="money-bill-wave"
-                                  size={16}
-                                  color="green"
-                                />
-
-                                {hasDiscount ? (
-                                  <>
-                                    <Text className="ml-2 text-sm text-gray-500 line-through">
-                                      {originalPrice.toLocaleString("vi-VN")}{" "}
-                                      VND
-                                    </Text>
-                                    <Text className="ml-2 text-xl font-bold text-green-600">
-                                      {discountedPrice.toLocaleString("vi-VN")}{" "}
-                                      VND
-                                    </Text>
-                                  </>
-                                ) : (
-                                  <Text className="ml-2 text-xl font-bold text-green-600">
-                                    {originalPrice.toLocaleString("vi-VN")} VND
-                                  </Text>
-                                )}
-                              </View>
-
-                              {hasDiscount && (
-                                <Text className="text-sm text-gray-600 italic mt-1">
-                                  Đã áp dụng: {reasons.join(" & ")}
-                                </Text>
-                              )}
-                            </View>
-                          );
-                        })()}
+                        <View className="mt-2">
+                          {getTablePriceInfo(table).hasDiscount ? (
+                            <>
+                              <Text className="text-sm text-gray-400 text-right line-through">
+                                {getTablePriceInfo(
+                                  table,
+                                ).originalPrice.toLocaleString()}{" "}
+                                VND
+                              </Text>
+                              <Text className="text-lg font-semibold text-right text-green-600">
+                                {getTablePriceInfo(
+                                  table,
+                                ).finalPrice.toLocaleString()}{" "}
+                                VND
+                              </Text>
+                            </>
+                          ) : (
+                            <Text className="text-lg font-semibold text-right">
+                              {getTablePriceInfo(
+                                table,
+                              ).finalPrice.toLocaleString()}{" "}
+                              VND
+                            </Text>
+                          )}
+                          {getTablePriceInfo(table).reasons.map(
+                            (reason, index) => (
+                              <Text
+                                key={index}
+                                className="text-sm text-gray-500 text-right"
+                              >
+                                {reason}
+                              </Text>
+                            ),
+                          )}
+                        </View>
                       </View>
                       <TouchableOpacity
                         onPress={() => handleShowVouchers(table.tableId)}
