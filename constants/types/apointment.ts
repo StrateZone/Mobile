@@ -21,6 +21,8 @@ export type TablesAppointment = {
   table: ChessTable;
   status: string;
   totalPrice: number;
+  invitedUsers?: any[];
+  paidForOpponent?: boolean;
 };
 
 export type Apointment = {
@@ -32,4 +34,5 @@ export type Apointment = {
   status: string;
   createdAt: string;
   tablesAppointments: TablesAppointment[];
+  appointmentrequests?: any[];
 };

@@ -19,6 +19,7 @@ export type DialogType = {
   onClose: () => void;
   setIsLoading: (loading: boolean) => void;
   selectedVouchers: Record<number, any | null>;
+  paidForOpponent: boolean;
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -30,6 +31,7 @@ export default function PaymentDialog({
   onClose,
   setIsPaymentSuccessful,
   selectedVouchers,
+  paidForOpponent,
 }: DialogType) {
   const { authState } = useAuth();
   const user = authState?.user;
@@ -78,9 +80,12 @@ export default function PaymentDialog({
             priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);
           }
 
-          const finalPrice = hasInvitedUsers
-            ? priceAfterVoucher / 2
-            : priceAfterVoucher;
+          const finalPrice =
+            table.invitedUsers &&
+            table.invitedUsers.length > 0 &&
+            !paidForOpponent
+              ? priceAfterVoucher / 2
+              : priceAfterVoucher;
 
           return {
             price: finalPrice,
@@ -89,6 +94,7 @@ export default function PaymentDialog({
             endTime: table.endDate,
             invitedUsers: table.invitedUsers || [],
             voucherId: voucher?.voucherId || null,
+            paidForOpponent: hasInvitedUsers ? paidForOpponent : false,
           };
         }),
         totalPrice: totalPrice, // tổng tiền đã tính sau khi áp dụng voucher
@@ -208,9 +214,11 @@ export default function PaymentDialog({
             priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);
           }
 
-          // Nếu có đối thủ, chia đôi
+          // Nếu có đối thủ và không thanh toán toàn bộ, chia đôi
           const finalPrice =
-            table.invitedUsers && table.invitedUsers.length > 0
+            table.invitedUsers &&
+            table.invitedUsers.length > 0 &&
+            !paidForOpponent
               ? priceAfterVoucher / 2
               : priceAfterVoucher;
 
@@ -240,6 +248,14 @@ export default function PaymentDialog({
                   {finalPrice.toLocaleString("vi-VN")} VND
                 </Text>
               </View>
+
+              {table.invitedUsers && table.invitedUsers.length > 0 && (
+                <Text className="text-sm text-gray-500 mt-1">
+                  {paidForOpponent
+                    ? "Thanh toán toàn bộ cho bàn chơi"
+                    : "Thanh toán 50% (chia đôi với đối thủ)"}
+                </Text>
+              )}
             </View>
           );
         })}

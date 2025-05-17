@@ -9,7 +9,7 @@ import {
   Image,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { Button } from "@rneui/themed";
+import { Button, CheckBox } from "@rneui/themed";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -63,6 +63,7 @@ export default function BookingDetailScreen() {
   const [loadingVoucherTableId, setLoadingVoucherTableId] = useState<
     number | null
   >(null);
+  const [paidForOpponent, setPaidForOpponent] = useState(false);
 
   const handleShowVouchers = async (tableId: number) => {
     if (!user) {
@@ -152,10 +153,11 @@ export default function BookingDetailScreen() {
         priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);
       }
 
-      // B2: Nếu có đối thủ, chia đôi
-      const finalPrice = hasOpponent
-        ? priceAfterVoucher / 2
-        : priceAfterVoucher;
+      // B2: Nếu có đối thủ và không thanh toán toàn bộ, chia đôi
+      const finalPrice =
+        hasOpponent && !paidForOpponent
+          ? priceAfterVoucher / 2
+          : priceAfterVoucher;
 
       return sum + finalPrice;
     }, 0);
@@ -169,7 +171,12 @@ export default function BookingDetailScreen() {
         text2: "Vui lòng chọn thêm bàn.",
       });
     }
-  }, [selectedTables, selectedVouchers]);
+  }, [selectedTables, selectedVouchers, paidForOpponent]);
+
+  // Thêm hàm kiểm tra xem có bàn nào đã mời người chơi không
+  const hasInvitedOpponents = selectedTables.some(
+    (table: ChessTable) => table.invitedUsers && table.invitedUsers.length > 0,
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -239,10 +246,30 @@ export default function BookingDetailScreen() {
       ) : (
         <>
           <View className="bg-white p-4 rounded-xl mb-4 shadow">
-            <Text className="text-lg font-semibold flex-row items-center">
+            <Text className="text-lg font-semibold flex-row items-center mb-4">
               <FontAwesome5 name="table" size={20} color="black" /> Số lượng:{" "}
               {selectedTables.length} bàn
             </Text>
+
+            {hasInvitedOpponents && (
+              <View className="mb-4">
+                <Text className="text-base font-medium mb-2">
+                  Phương thức thanh toán:
+                </Text>
+                <CheckBox
+                  title="Thanh toán toàn bộ"
+                  checked={paidForOpponent}
+                  onPress={() => setPaidForOpponent(!paidForOpponent)}
+                  containerStyle={{ marginBottom: 8 }}
+                  textStyle={{ fontSize: 14 }}
+                />
+                <Text className="text-sm text-gray-500 ml-8">
+                  {paidForOpponent
+                    ? "Bạn sẽ thanh toán toàn bộ số tiền cho bàn chơi"
+                    : "Bạn sẽ thanh toán 50% và chia đôi với đối thủ"}
+                </Text>
+              </View>
+            )}
           </View>
 
           <ScrollView className="flex-1">
@@ -515,6 +542,7 @@ export default function BookingDetailScreen() {
               setIsLoading={setIsLoading}
               tableOpponents={tableOpponents}
               selectedVouchers={selectedVouchers}
+              paidForOpponent={paidForOpponent}
             />
           </View>
         </>

@@ -178,15 +178,36 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
   };
 
   const handleShowPlayers = (tableId: number, status: string) => {
-    const players = appointment?.appointmentrequests
-      .filter((req: any) => req.tableId === tableId && req.toUserNavigation)
-      .map((req: any) => ({
-        ...req,
-        toUser: req.toUserNavigation,
-      }));
-    setPlayersOfTable(players || []);
+    const players =
+      appointment?.appointmentrequests
+        ?.filter((req: any) => req.tableId === tableId && req.toUserNavigation)
+        .map((req: any) => ({
+          ...req,
+          toUser: req.toUserNavigation,
+        })) || [];
+    setPlayersOfTable(players);
     setCurrentTableStatus(status);
     setOpenPlayerDialog(true);
+  };
+
+  const getPaymentStatus = (table: TablesAppointment) => {
+    const players =
+      appointment?.appointmentrequests
+        ?.filter(
+          (req: any) => req.tableId === table.tableId && req.toUserNavigation,
+        )
+        .map((req: any) => ({
+          ...req,
+          toUser: req.toUserNavigation,
+        })) || [];
+
+    if (players.length === 0) {
+      return "Đã thanh toán toàn bộ cho bàn chơi";
+    }
+
+    return table.paidForOpponent
+      ? "Đã thanh toán toàn bộ cho bàn chơi"
+      : "Đã thanh toán 50% (chia đôi với đối thủ)";
   };
 
   const { bg, border, text, display } = appointment
@@ -255,6 +276,10 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
               {appointment!.tablesAppointments.map(
                 (table: TablesAppointment, index) => {
                   const tableStyles = getStatusStyles(table.status);
+                  const opponentStatusText =
+                    table.invitedUsers && table.invitedUsers.length > 0
+                      ? "Đã được mời"
+                      : "Chưa được mời";
 
                   return (
                     <View
@@ -262,12 +287,33 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
                       className={`bg-white p-4 rounded-lg shadow-md mb-2 border`}
                       style={{ borderColor: tableStyles.text }}
                     >
-                      <Text className="text-lg font-semibold">
-                        Tên phòng: {table.table.roomName}
+                      <View className="flex-row justify-between items-center mb-1">
+                        <Text className="font-semibold text-base text-black">
+                          Bàn {table.tableId}
+                        </Text>
+                        <Text
+                          className={`text-sm font-medium ${
+                            table.invitedUsers && table.invitedUsers.length > 0
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {opponentStatusText}
+                        </Text>
+                      </View>
+
+                      <Text className="text-sm text-gray-500 mb-1">
+                        {getPaymentStatus(table)}
                       </Text>
-                      <Text className="text-lg">
-                        Loại phòng: {capitalizeWords(table.table.roomType)}
-                      </Text>
+
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-lg font-semibold">
+                          Tên phòng: {table.table.roomName}
+                        </Text>
+                        <Text className="text-lg">
+                          Loại phòng: {capitalizeWords(table.table.roomType)}
+                        </Text>
+                      </View>
                       <Text className="text-lg">Mã bàn: {table.tableId}</Text>
                       <Text className="text-lg">
                         Bắt đầu: {new Date(table.scheduleTime).toLocaleString()}
