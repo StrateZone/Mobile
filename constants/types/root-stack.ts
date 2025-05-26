@@ -47,6 +47,7 @@ export type RootStackParamList = {
     fromUserId: number;
     appointmentId: number;
     cancellingTableId: number;
+    isPaid: boolean;
   };
   //appointment
   home_booking: undefined;

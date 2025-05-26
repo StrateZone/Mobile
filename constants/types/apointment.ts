@@ -23,6 +23,8 @@ export type TablesAppointment = {
   totalPrice: number;
   invitedUsers?: any[];
   paidForOpponent?: boolean;
+  note?: string;
+  isExtended?: boolean;
 };
 
 export type Apointment = {

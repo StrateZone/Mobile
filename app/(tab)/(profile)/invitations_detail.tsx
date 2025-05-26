@@ -53,6 +53,7 @@ type Props = {
       totalPrice: number;
       fromUserId: number;
       appointmentId: number;
+      isPaid: boolean;
     };
   };
 };
@@ -150,6 +151,7 @@ export default function InvitationsDetail({ route }: Props) {
     fromUserId,
     appointmentId,
     cancellingTableId,
+    isPaid,
   } = route.params;
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -193,7 +195,7 @@ export default function InvitationsDetail({ route }: Props) {
       const nowUTC7 = new Date(now.getTime() + 7 * 60 * 60 * 1000);
       const response = await getRequest(
         `/tables-appointment/cancel-check/${cancellingTableId}/users/${user?.userId}`,
-        { CancelTime: nowUTC7.toISOString() },
+        { CancelTime: nowUTC7.toISOString() }
       );
       setCheckTable(response);
       setOpenCancelAcceptTableDialog(true);
@@ -383,6 +385,39 @@ export default function InvitationsDetail({ route }: Props) {
             </Text>
           </Card>
 
+          {/* Card 4: Payment Status */}
+          {isPaid && (
+            <Card
+              containerStyle={{
+                borderRadius: 12,
+                paddingVertical: 16,
+                borderColor: "#10b981",
+                borderWidth: 1,
+                backgroundColor: "#f0fdf4",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <FontAwesome5 name="check-circle" size={20} color="#10b981" />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: "#10b981",
+                    fontWeight: "600",
+                    marginLeft: 8,
+                  }}
+                >
+                  Đã được thanh toán bởi người gửi
+                </Text>
+              </View>
+            </Card>
+          )}
+
           {/* Action Buttons */}
           <View className="mt-4 mb-8">
             {status === "pending" && (
@@ -452,6 +487,7 @@ export default function InvitationsDetail({ route }: Props) {
           onClose={() => setOpenDialog(false)}
           fetchAppointment={() => navigation.goBack()}
           totalPrice={totalPrice}
+          isPaid={route.params.isPaid}
         />
 
         {checkTable && (

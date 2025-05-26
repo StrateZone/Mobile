@@ -27,7 +27,8 @@ export type DialogType = {
   endTime: string;
   fullName: string;
   tableAppointmentId: number;
-  totalPrice: number;
+  totalPrice?: number;
+  isPaid?: boolean;
   onClose: () => void;
   fetchAppointment: () => void;
 };
@@ -46,6 +47,7 @@ export default function PaymentDialogForInvited({
   tableAppointmentId,
   fullName,
   totalPrice,
+  isPaid,
   onClose,
   fetchAppointment,
 }: DialogType) {
@@ -83,7 +85,7 @@ export default function PaymentDialogForInvited({
 
       const response = await postRequest(
         "/payments/booking-request-payment",
-        payload,
+        payload
       );
 
       if (response.data.message) {
@@ -98,8 +100,8 @@ export default function PaymentDialogForInvited({
           });
           return;
         }
-        console.log(response.data.message === "Payment success");
-        if (response.data.message === "Payment success") {
+        console.log(response.data.message);
+        if (response.data.message === "Payment success" || "Request accepted") {
           fetchAppointment();
           Toast.show({
             type: "success",
@@ -167,15 +169,26 @@ export default function PaymentDialogForInvited({
           <Text className="text-gray-700">{fullName}</Text>
         </View>
 
-        {/* 3. Tổng tiền */}
-        <View className="bg-green-50 p-3 rounded-xl border border-green-200">
-          <Text className="text-center text-base text-gray-800 font-medium">
-            Tổng tiền
-          </Text>
-          <Text className="text-center text-xl font-bold text-green-600 mt-1">
-            {totalPrice.toLocaleString("vi-VN")} VND
-          </Text>
-        </View>
+        {/* 3. Tổng tiền hoặc thông báo đã thanh toán */}
+        {isPaid ? (
+          <View className="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+            <View className="flex-row items-center justify-center">
+              <FontAwesome5 name="check-circle" size={20} color="#10b981" />
+              <Text className="text-center text-base text-emerald-600 font-medium ml-2">
+                Lời mời này đã được người gửi thanh toán
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View className="bg-green-50 p-3 rounded-xl border border-green-200">
+            <Text className="text-center text-base text-gray-800 font-medium">
+              Tổng tiền
+            </Text>
+            <Text className="text-center text-xl font-bold text-green-600 mt-1">
+              {totalPrice?.toLocaleString("vi-VN")} VND
+            </Text>
+          </View>
+        )}
 
         {/* 4. Nút hành động */}
         <View className="flex-row justify-end space-x-3 pt-1">
@@ -200,7 +213,7 @@ export default function PaymentDialogForInvited({
                   <Text className="text-black text-sm">Đang xử lý</Text>
                 </View>
               ) : (
-                "Thanh toán"
+                "Đồng ý"
               )
             }
             onPress={handleConfirm}

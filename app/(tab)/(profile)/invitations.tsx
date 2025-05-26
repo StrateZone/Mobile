@@ -42,7 +42,7 @@ export default function Invitations() {
     useState(false);
   const [checkTable, setCheckTable] = useState<any>(null);
   const [cancellingTableId, setCancellingTableId] = useState<number | null>(
-    null,
+    null
   );
   const [selectedTableId, setSelectedTableId] = useState<number>(0);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -60,7 +60,7 @@ export default function Invitations() {
     try {
       const response = await getRequest(
         `/tables-appointment/cancel-check/${tablesAppointmentId}/users/${user?.userId}`,
-        { CancelTime: nowUTC7.toISOString() },
+        { CancelTime: nowUTC7.toISOString() }
       );
 
       setCheckTable(response);
@@ -80,7 +80,7 @@ export default function Invitations() {
         {
           "page-size": 50,
           "order-by": orderBy,
-        },
+        }
       );
       if (response?.pagedList) {
         setInvitations(response?.pagedList);
@@ -321,6 +321,19 @@ export default function Invitations() {
                       {getTimeLeft(item.expireAt)}
                     </Text>
 
+                    {item.isPaid && (
+                      <View className="flex-row items-center mt-1">
+                        <FontAwesome5
+                          name="check-circle"
+                          size={14}
+                          color="#10b981"
+                        />
+                        <Text className="text-sm text-emerald-600 font-medium ml-1">
+                          Đã được thanh toán bởi người gửi
+                        </Text>
+                      </View>
+                    )}
+
                     <View className="flex-row items-center mb-2">
                       {statusInfo.icon}
                       <Text className={`text-sm font-bold ${statusInfo.text}`}>
@@ -351,6 +364,7 @@ export default function Invitations() {
                             fromUserId: item.fromUser,
                             appointmentId: item.appointmentId,
                             cancellingTableId: item.tablesAppointmentId,
+                            isPaid: item.isPaid,
                           });
                         }}
                       >
@@ -475,6 +489,7 @@ export default function Invitations() {
             }}
             fetchAppointment={fetchAppointments}
             totalPrice={selectedAppointment.totalPrice}
+            isPaid={selectedAppointment.isPaid}
           />
         )}
       </View>

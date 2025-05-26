@@ -273,7 +273,7 @@ export default function AppointmentDetail({ route }: Props) {
                         <Text className="font-semibold text-base text-black">
                           Bàn {table.tableId}
                         </Text>
-                        <Text
+                        {/* <Text
                           className={`text-sm font-medium ${
                             table.invitedUsers && table.invitedUsers.length > 0
                               ? "text-green-600"
@@ -281,7 +281,7 @@ export default function AppointmentDetail({ route }: Props) {
                           }`}
                         >
                           {opponentStatusText}
-                        </Text>
+                        </Text> */}
                       </View>
 
                       <Text className="text-sm text-gray-500 mb-1">
