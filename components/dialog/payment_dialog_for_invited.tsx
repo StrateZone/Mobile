@@ -85,7 +85,7 @@ export default function PaymentDialogForInvited({
 
       const response = await postRequest(
         "/payments/booking-request-payment",
-        payload
+        payload,
       );
 
       if (response.data.message) {
@@ -100,7 +100,6 @@ export default function PaymentDialogForInvited({
           });
           return;
         }
-        console.log(response.data.message);
         if (response.data.message === "Payment success" || "Request accepted") {
           fetchAppointment();
           Toast.show({

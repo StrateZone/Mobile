@@ -32,7 +32,7 @@ const refreshToken = async () => {
       `${config.BACKEND_API}/api/auth/refresh-token`,
       {
         refreshToken,
-      }
+      },
     );
 
     if (response.data.success) {
@@ -86,7 +86,7 @@ axios.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 const getAuthHeader = async () => {
@@ -96,7 +96,7 @@ const getAuthHeader = async () => {
 
 export const getRequest = async (
   path: string,
-  query?: Record<string, unknown>
+  query?: Record<string, unknown>,
 ) => {
   try {
     const params = new URLSearchParams();
@@ -113,10 +113,10 @@ export const getRequest = async (
         }
       }
     }
-    // console.log( `${config.BACKEND_API}/api${path}?${params.toString()}`)
+    // console.log(`${config.BACKEND_API}/api${path}?${params.toString()}`);
     const { data } = await axios.get(
       `${config.BACKEND_API}/api${path}?${params.toString()}`,
-      { headers }
+      { headers },
     );
     return data;
   } catch (error: any) {
@@ -143,7 +143,7 @@ export const getRequest = async (
 export const postRequest = async (
   path: string,
   requestBody?: Record<string, unknown>,
-  query?: Record<string, unknown>
+  query?: Record<string, unknown>,
 ) => {
   try {
     const headers = await getAuthHeader();
@@ -153,7 +153,7 @@ export const postRequest = async (
       {
         params: query,
         headers,
-      }
+      },
     );
 
     return response;
@@ -180,7 +180,7 @@ export const postRequest = async (
 export const postRequestComment = async (
   path: string,
   requestBody?: Record<string, unknown>,
-  query?: Record<string, unknown>
+  query?: Record<string, unknown>,
 ) => {
   try {
     const headers = await getAuthHeader();
@@ -190,7 +190,7 @@ export const postRequestComment = async (
       {
         params: query,
         headers,
-      }
+      },
     );
     return response;
   } catch (error: any) {
@@ -216,7 +216,7 @@ export const postRequestComment = async (
 export const postPaymemtRequest = async (
   path: string,
   requestBody?: Record<string, unknown>,
-  token?: string
+  token?: string,
 ) => {
   const headers = await getAuthHeader();
   const { data } = await axios.post(
@@ -224,20 +224,20 @@ export const postPaymemtRequest = async (
     requestBody,
     {
       headers: token ? { Authorization: `Bearer ${token}` } : headers,
-    }
+    },
   );
   return data;
 };
 
 export const patchRequest = async (
   path: string,
-  requestBody: Record<string, unknown>
+  requestBody: Record<string, unknown>,
 ) => {
   const headers = await getAuthHeader();
   const { data } = await axios.patch(
     `${config.BACKEND_API}/api${path}`,
     requestBody,
-    { headers }
+    { headers },
   );
 
   return data;
@@ -245,14 +245,14 @@ export const patchRequest = async (
 
 export const putRequest = async (
   path: string,
-  requestBody: Record<string, unknown>
+  requestBody: Record<string, unknown>,
 ) => {
   try {
     const headers = await getAuthHeader();
     const data = await axios.put(
       `${config.BACKEND_API}/api${path}`,
       requestBody,
-      { headers }
+      { headers },
     );
 
     return data;
@@ -278,7 +278,7 @@ export const putRequest = async (
 
 export const deleteRequest = async (
   path: string,
-  query?: Record<string, unknown>
+  query?: Record<string, unknown>,
 ) => {
   const params = new URLSearchParams();
   const headers = await getAuthHeader();
@@ -296,13 +296,13 @@ export const deleteRequest = async (
 
   const { data } = await axios.delete(
     `${config.BACKEND_API}/api${path}?${params.toString()}`,
-    { headers }
+    { headers },
   );
   return data;
 };
 
 export function translateValidationErrors<T>(
-  errors: Record<string, string | string[]>
+  errors: Record<string, string | string[]>,
 ): Partial<T> {
   const result: any = {};
 
@@ -338,7 +338,7 @@ export function handleApiRequestError<T>({
   if (errorCode === "BAD_REQUEST" && setErrors) {
     if (typeof message === "object" && !Array.isArray(message)) {
       const validationErrors = translateValidationErrors<T>(
-        message as Record<string, string | string[]>
+        message as Record<string, string | string[]>,
       );
       setErrors(validationErrors);
       return;

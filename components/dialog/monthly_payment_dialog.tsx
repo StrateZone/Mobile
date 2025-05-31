@@ -6,10 +6,10 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Fold } from "react-native-animated-spinkit";
 import { IconNode } from "@rneui/base";
 
-import { TableContext } from "@/context/select-table";
 import { useAuth } from "@/context/auth-context";
 import { postRequest } from "@/helpers/api-requests";
 import { RootStackParamList } from "@/constants/types/root-stack";
+import { MonthlyTableContext } from "@/context/select-monthly-table";
 
 export type DialogType = {
   visible: boolean;
@@ -18,13 +18,17 @@ export type DialogType = {
   setIsPaymentSuccessful: (payment: boolean) => void;
   onClose: () => void;
   setIsLoading: (loading: boolean) => void;
-  selectedVouchers: Record<number, any | null>;
+  selectedVouchers: Record<string, any | null>;
   paidForOpponent: boolean;
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function PaymentDialog({
+const getTableKey = (tableId: number, startDate: string, endDate: string) => {
+  return `${tableId}-${startDate}-${endDate}`;
+};
+
+export default function MonthlyPaymentDialog({
   visible,
   totalPrice,
   tableOpponents,
@@ -45,7 +49,7 @@ export default function PaymentDialog({
     clearSelectedTables,
     removeSelectedTable,
     clearSelectedTablesWithNoInvite,
-  ] = useContext(TableContext);
+  ] = useContext(MonthlyTableContext);
 
   const handleConfirm = async () => {
     setIsLoading(true);
@@ -74,7 +78,12 @@ export default function PaymentDialog({
           const hasInvitedUsers =
             table.invitedUsers && table.invitedUsers.length > 0;
 
-          const voucher = selectedVouchers[table.tableId];
+          const tableKey = getTableKey(
+            table.tableId,
+            table.startDate,
+            table.endDate,
+          );
+          const voucher = selectedVouchers[tableKey];
           let priceAfterVoucher = table.totalPrice;
           if (voucher) {
             priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);
@@ -95,10 +104,10 @@ export default function PaymentDialog({
             invitedUsers: table.invitedUsers || [],
             voucherId: voucher?.voucherId || null,
             paidForOpponent: hasInvitedUsers ? paidForOpponent : false,
-            isMonthlyAppointment: false,
+            isMonthlyAppointment: true,
           };
         }),
-        totalPrice: totalPrice, // tổng tiền đã tính sau khi áp dụng voucher
+        totalPrice: totalPrice,
       };
 
       const response = await postRequest("/payments/booking-payment", payload);
@@ -175,7 +184,7 @@ export default function PaymentDialog({
       }
 
       if (responseData.status === 200) {
-        navigation.navigate("payment_successfull");
+        navigation.navigate("payment_successful_monthly");
         setIsPaymentSuccessful(true);
         await clearSelectedTablesWithNoInvite();
       }
@@ -209,7 +218,12 @@ export default function PaymentDialog({
           })();
 
           // Áp dụng voucher nếu có
-          const voucher = selectedVouchers[table.tableId];
+          const tableKey = getTableKey(
+            table.tableId,
+            table.startDate,
+            table.endDate,
+          );
+          const voucher = selectedVouchers[tableKey];
           let priceAfterVoucher = table.totalPrice;
           if (voucher) {
             priceAfterVoucher = Math.max(0, table.totalPrice - voucher.value);

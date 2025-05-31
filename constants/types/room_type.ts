@@ -1,4 +1,4 @@
-export interface GameType {
+export interface RoomType {
   id: number;
   name: string;
   description?: string;

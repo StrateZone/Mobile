@@ -133,7 +133,7 @@ export default function AppointmentOnGoing() {
   };
 
   const incompletedAppointments = appointments.filter(
-    (item) => item.status.toLowerCase() === "incompleted"
+    (item) => item.status.toLowerCase() === "incompleted",
   );
 
   return (
@@ -180,7 +180,7 @@ export default function AppointmentOnGoing() {
             {incompletedAppointments.length > 0 ? (
               incompletedAppointments.map((item) => {
                 const { bg, text, border, display } = getStatusStyles(
-                  item.status
+                  item.status,
                 );
 
                 return (

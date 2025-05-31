@@ -136,7 +136,7 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
   const [playersOfTable, setPlayersOfTable] = useState<any[]>([]);
   const [currentTableStatus, setCurrentTableStatus] = useState<string>("");
   const [cancellingTableId, setCancellingTableId] = useState<number | null>(
-    null
+    null,
   );
   const [openExtendTimeDialog, setOpenExtendTimeDialog] = useState(false);
   const [selectedTableForExtend, setSelectedTableForExtend] = useState<
@@ -155,6 +155,7 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
     setIsLoading(true);
     try {
       const response = await getRequest(`/appointments/${appointmentId}`);
+      console.log(appointmentId);
       setAppointment(response);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu:", error);
@@ -173,7 +174,7 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
     try {
       const response = await getRequest(
         `/tables-appointment/cancel-check/${tablesAppointmentId}/users/${user?.userId}`,
-        { CancelTime: nowUTC7.toISOString() }
+        { CancelTime: nowUTC7.toISOString() },
       );
 
       setCheckTable(response);
@@ -185,24 +186,40 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
     }
   };
 
-  const handleShowPlayers = (tableId: number, status: string) => {
+  const handleShowPlayers = (
+    tableId: number,
+    status: string,
+    scheduleTime: string,
+    endTime: string,
+  ) => {
     const players =
       appointment?.appointmentrequests
-        ?.filter((req: any) => req.tableId === tableId && req.toUserNavigation)
+        ?.filter(
+          (req: any) =>
+            req.tableId === tableId &&
+            req.toUserNavigation &&
+            req.startTime === scheduleTime &&
+            req.endTime === endTime,
+        )
         .map((req: any) => ({
           ...req,
           toUser: req.toUserNavigation,
         })) || [];
+
     setPlayersOfTable(players);
     setCurrentTableStatus(status);
     setOpenPlayerDialog(true);
   };
-  console.log(appointment?.tablesAppointments);
+
   const getPaymentStatus = (table: TablesAppointment) => {
     const players =
       appointment?.appointmentrequests
         ?.filter(
-          (req: any) => req.tableId === table.tableId && req.toUserNavigation
+          (req: any) =>
+            req.tableId === table.tableId &&
+            req.toUserNavigation &&
+            req.startTime === table.scheduleTime &&
+            req.endTime === table.endTime,
         )
         .map((req: any) => ({
           ...req,
@@ -333,7 +350,12 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
                           <TouchableOpacity
                             className="flex-1 flex-row items-center justify-center bg-blue-500 px-3 py-2 rounded-md"
                             onPress={() =>
-                              handleShowPlayers(table.tableId, table.status)
+                              handleShowPlayers(
+                                table.tableId,
+                                table.status,
+                                table.scheduleTime,
+                                table.endTime,
+                              )
                             }
                           >
                             <Ionicons name="people" size={18} color="white" />
@@ -418,7 +440,7 @@ export default function AppointmentOnGoingDetail({ route }: Props) {
                       </View>
                     </View>
                   );
-                }
+                },
               )}
             </ScrollView>
 

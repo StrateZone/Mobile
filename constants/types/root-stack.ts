@@ -81,4 +81,34 @@ export type RootStackParamList = {
   edit_drafted_thread: { thread: any };
   //clause
   clause: undefined;
+  //monthly booking
+  home_monthly_booking: undefined;
+  list_table_monthly: {
+    fromDate: string;
+    toDate: string;
+    daysOfWeek: string[];
+    StartTime: string;
+    EndTime: string;
+    roomTypes: string;
+    gameType: string;
+  };
+  booking_detail_monthly: undefined;
+  find_opponents_monthly: {
+    tableId: number;
+    startDate: string;
+    endDate: string;
+    tablePrice: number;
+  };
+  opponent_invited_monthly: {
+    tableId: number;
+    startDate: string;
+    endDate: string;
+  };
+  voucher_exchange_monthly: undefined;
+  payment_successful_monthly: undefined;
+  table_detail_monthly: {
+    tableId: number;
+    startDate: string;
+    endDate: string;
+  };
 };

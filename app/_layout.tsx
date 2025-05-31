@@ -18,12 +18,14 @@ import ProductLayout from "./(tab)/(product)/_layout";
 import ClauseLayout from "./(tab)/(clause)/_layout";
 import CommunityLayout from "./(tab)/(community)/_layout";
 import TournamentLayout from "./(tab)/(tournament)/_layout";
+import MonthlyBookingLayout from "./(tab)/(monthly_booking)/_layout";
 import SplashScreen from "./splash-screen";
 import AuthLayout from "./(tab)/(auth)/_layout";
 import DefaultButton from "@/components/button/button";
 import { AuthProvider, useAuth } from "@/context/auth-context";
 import { useState } from "react";
 import { TableProvider } from "@/context/select-table";
+import { MonthlyTableProvider } from "@/context/select-monthly-table";
 import NotificationLayout from "./(tab)/notification/_layout";
 import { LogBox } from "react-native";
 
@@ -48,108 +50,130 @@ export default function RootLayout() {
     <ThemeProvider theme={theme}>
       <AuthProvider>
         <TableProvider>
-          <Drawer.Navigator
-            drawerContent={(props) => <CustomDrawerContent {...props} />}
-            screenOptions={{
-              drawerStyle: {
-                backgroundColor: "#fff",
-                width: 260,
-              },
-              drawerActiveBackgroundColor: "#000",
-              drawerActiveTintColor: "#fff",
-              drawerInactiveTintColor: "#333",
-            }}
-          >
-            <Drawer.Screen
-              name="Appointment"
-              component={AppointmentLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Đặt bàn",
-                drawerIcon: ({ color }) => (
-                  <AntDesign size={24} name="calendar" color={color} />
-                ),
+          <MonthlyTableProvider>
+            <Drawer.Navigator
+              drawerContent={(props) => <CustomDrawerContent {...props} />}
+              screenOptions={{
+                drawerStyle: {
+                  backgroundColor: "#fff",
+                  width: 260,
+                },
+                drawerActiveBackgroundColor: "#000",
+                drawerActiveTintColor: "#fff",
+                drawerInactiveTintColor: "#333",
               }}
-            />
-            <Drawer.Screen
-              name="Auth"
-              component={AuthLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Đăng nhập",
-                drawerIcon: ({ color }) => (
-                  <AntDesign size={24} name="calendar" color={color} />
-                ),
-              }}
-            />
-            <Drawer.Screen
-              name="Products"
-              component={ProductLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Sản phẩm",
-                drawerIcon: ({ color }) => (
-                  <FontAwesome name="shopping-cart" size={24} color={color} />
-                ),
-              }}
-            />
-            <Drawer.Screen
-              name="Clause"
-              component={ClauseLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Điều khoản StrateZone",
-                drawerIcon: ({ color }) => (
-                  <MaterialIcons name="menu-book" size={24} color={color} />
-                ),
-              }}
-            />
-            <Drawer.Screen
-              name="Tournaments"
-              component={TournamentLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Thi đấu",
-                drawerIcon: ({ color }) => (
-                  <Ionicons name="trophy" size={24} color={color} />
-                ),
-              }}
-            />
-            <Drawer.Screen
-              name="Community"
-              component={CommunityLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Cộng đồng",
-                drawerIcon: ({ color }) => (
-                  <FontAwesome name="users" size={24} color={color} />
-                ),
-              }}
-            />
-            <Drawer.Screen
-              name="Notification"
-              component={NotificationLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Thông báo",
-                drawerIcon: ({ color }) => (
-                  <Ionicons name="person-circle" size={24} color={color} />
-                ),
-              }}
-            />
-            <Drawer.Screen
-              name="Profile"
-              component={ProfileLayout}
-              options={{
-                headerShown: false,
-                drawerLabel: "Thông tin cá nhân",
-                drawerIcon: ({ color }) => (
-                  <Ionicons name="person-circle" size={24} color={color} />
-                ),
-              }}
-            />
-          </Drawer.Navigator>
-          <Toast />
+            >
+              <Drawer.Screen
+                name="Appointment"
+                component={AppointmentLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Đặt bàn",
+                  drawerIcon: ({ color }) => (
+                    <MaterialCommunityIcons
+                      name="calendar-clock"
+                      size={24}
+                      color={color}
+                    />
+                  ),
+                }}
+              />
+
+              <Drawer.Screen
+                name="MonthlyBooking"
+                component={MonthlyBookingLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Đặt hẹn định kì",
+                  drawerIcon: ({ color }) => (
+                    <MaterialCommunityIcons
+                      name="calendar-sync"
+                      size={24}
+                      color={color}
+                    />
+                  ),
+                }}
+              />
+              <Drawer.Screen
+                name="Auth"
+                component={AuthLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Đăng nhập",
+                  drawerIcon: ({ color }) => (
+                    <AntDesign size={24} name="calendar" color={color} />
+                  ),
+                }}
+              />
+              <Drawer.Screen
+                name="Products"
+                component={ProductLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Sản phẩm",
+                  drawerIcon: ({ color }) => (
+                    <FontAwesome name="shopping-cart" size={24} color={color} />
+                  ),
+                }}
+              />
+              <Drawer.Screen
+                name="Clause"
+                component={ClauseLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Điều khoản StrateZone",
+                  drawerIcon: ({ color }) => (
+                    <MaterialIcons name="menu-book" size={24} color={color} />
+                  ),
+                }}
+              />
+              <Drawer.Screen
+                name="Tournaments"
+                component={TournamentLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Thi đấu",
+                  drawerIcon: ({ color }) => (
+                    <Ionicons name="trophy" size={24} color={color} />
+                  ),
+                }}
+              />
+              <Drawer.Screen
+                name="Community"
+                component={CommunityLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Cộng đồng",
+                  drawerIcon: ({ color }) => (
+                    <FontAwesome name="users" size={24} color={color} />
+                  ),
+                }}
+              />
+              <Drawer.Screen
+                name="Notification"
+                component={NotificationLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Thông báo",
+                  drawerIcon: ({ color }) => (
+                    <Ionicons name="person-circle" size={24} color={color} />
+                  ),
+                }}
+              />
+              <Drawer.Screen
+                name="Profile"
+                component={ProfileLayout}
+                options={{
+                  headerShown: false,
+                  drawerLabel: "Thông tin cá nhân",
+                  drawerIcon: ({ color }) => (
+                    <Ionicons name="person-circle" size={24} color={color} />
+                  ),
+                }}
+              />
+            </Drawer.Navigator>
+            <Toast />
+          </MonthlyTableProvider>
         </TableProvider>
       </AuthProvider>
     </ThemeProvider>
@@ -228,8 +252,19 @@ function CustomDrawerContent({ navigation }: any) {
           onPress={() => navigation.navigate("Appointment")}
           style={styles.menuItem}
         >
-          <AntDesign name="calendar" size={24} color="#333" />
-          <Text style={styles.menuText}>Đặt bàn</Text>
+          <MaterialCommunityIcons
+            name="calendar-clock"
+            size={24}
+            color="#333"
+          />
+          <Text style={styles.menuText}>Đặt hẹn</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("MonthlyBooking")}
+          style={styles.menuItem}
+        >
+          <MaterialCommunityIcons name="calendar-sync" size={24} color="#333" />
+          <Text style={styles.menuText}>Đặt hẹn định kì</Text>
         </TouchableOpacity>
         {/* <TouchableOpacity
           onPress={() => navigation.navigate("Products")}

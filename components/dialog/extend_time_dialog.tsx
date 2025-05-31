@@ -44,7 +44,7 @@ export default function ExtendTimeDialog({
         `/tables-appointment/extend-check/${tableId}`,
         {
           durationInMinutes: minutesNum,
-        }
+        },
       );
 
       if (checkResponse.error || checkResponse.success) {
@@ -99,7 +99,7 @@ export default function ExtendTimeDialog({
 
       await postRequest(
         "/payments/extend-tables-appointment-payment",
-        requestBody
+        requestBody,
       );
 
       Toast.show({

@@ -42,7 +42,7 @@ export default function Invitations() {
     useState(false);
   const [checkTable, setCheckTable] = useState<any>(null);
   const [cancellingTableId, setCancellingTableId] = useState<number | null>(
-    null
+    null,
   );
   const [selectedTableId, setSelectedTableId] = useState<number>(0);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -60,7 +60,7 @@ export default function Invitations() {
     try {
       const response = await getRequest(
         `/tables-appointment/cancel-check/${tablesAppointmentId}/users/${user?.userId}`,
-        { CancelTime: nowUTC7.toISOString() }
+        { CancelTime: nowUTC7.toISOString() },
       );
 
       setCheckTable(response);
@@ -80,7 +80,7 @@ export default function Invitations() {
         {
           "page-size": 50,
           "order-by": orderBy,
-        }
+        },
       );
       if (response?.pagedList) {
         setInvitations(response?.pagedList);

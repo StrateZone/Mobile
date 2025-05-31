@@ -195,7 +195,7 @@ export default function InvitationsDetail({ route }: Props) {
       const nowUTC7 = new Date(now.getTime() + 7 * 60 * 60 * 1000);
       const response = await getRequest(
         `/tables-appointment/cancel-check/${cancellingTableId}/users/${user?.userId}`,
-        { CancelTime: nowUTC7.toISOString() }
+        { CancelTime: nowUTC7.toISOString() },
       );
       setCheckTable(response);
       setOpenCancelAcceptTableDialog(true);
